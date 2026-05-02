@@ -11,3 +11,6 @@
  * table — DO NOT APPLY that migration.
  */
 export * from "./lifeosDailyCheckins";
+export * from "./lifeosHabits";
+export * from "./lifeosHabitCompletions";
+export * from "./lifeosFocusSessions";

@@ -35,8 +35,8 @@ const NAV: NavGroup[] = [
     items: [
       { label: "Morning", href: "/morning" },
       { label: "Evening", href: "/evening" },
-      { label: "Focus", href: "/focus", comingIn: "Phase 4" },
-      { label: "Habits", href: "/habits", comingIn: "Phase 4" },
+      { label: "Focus", href: "/focus" },
+      { label: "Habits", href: "/habits" },
     ],
   },
   {
