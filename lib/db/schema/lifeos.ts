@@ -16,3 +16,6 @@ export * from "./lifeosHabitCompletions";
 export * from "./lifeosFocusSessions";
 export * from "./lifeosQuests";
 export * from "./lifeosCompass";
+export * from "./lifeosProtocolRuns";
+export * from "./lifeosConfidenceEntries";
+export * from "./lifeosReframesSeen";
