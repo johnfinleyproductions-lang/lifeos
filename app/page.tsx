@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { format } from "date-fns";
 import { getAuthContext } from "@/lib/auth/server-helpers";
+import { getTodayCheckin } from "@/lib/checkin/today";
 import { ManifestoCard } from "@/components/today/ManifestoCard";
 import { QuestsCard } from "@/components/today/QuestsCard";
 import { BalanceCard } from "@/components/today/BalanceCard";
 import { PlanCard } from "@/components/today/PlanCard";
+import { EveningSummaryCard } from "@/components/today/EveningSummaryCard";
 
 function greetingFor(date: Date) {
   const h = date.getHours();
@@ -17,6 +19,9 @@ function greetingFor(date: Date) {
 
 export default async function TodayPage() {
   const { user } = await getAuthContext();
+  const eveningDone = user
+    ? (await getTodayCheckin(user.id)).evening !== null
+    : false;
   const now = new Date();
   const greeting = greetingFor(now);
 
@@ -33,8 +38,8 @@ export default async function TodayPage() {
           </h1>
         </div>
         <div className="text-right text-sm text-ink-300">
-          <div>Day 1 of LifeOS</div>
-          <div className="text-ink-400 text-xs mt-0.5">Phase 1 · skeleton</div>
+          <div>{eveningDone ? "Day closed" : "Day in motion"}</div>
+          <div className="text-ink-400 text-xs mt-0.5">Phase 2 · live</div>
         </div>
       </header>
 
@@ -64,7 +69,7 @@ export default async function TodayPage() {
         <ManifestoCard />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <QuestsCard />
         <BalanceCard />
         <PlanCard />
@@ -82,6 +87,19 @@ export default async function TodayPage() {
           </p>
         </div>
       </div>
+
+      <EveningSummaryCard />
+
+      {!eveningDone && user && (
+        <div className="mt-6 flex items-center justify-end">
+          <Link
+            href="/evening"
+            className="text-xs text-ink-400 hover:text-ink-100 transition"
+          >
+            End the day → evening shutdown
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

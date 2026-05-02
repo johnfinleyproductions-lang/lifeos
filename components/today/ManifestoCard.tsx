@@ -1,45 +1,14 @@
 import Link from "next/link";
-import { and, eq } from "drizzle-orm";
-import { format } from "date-fns";
-import { db } from "@/lib/db";
-import { lifeosDailyCheckins } from "@/lib/db/schema/lifeos";
 import { getAuthContext } from "@/lib/auth/server-helpers";
-import { morningManifestoSchema } from "@/lib/manifesto/schema";
+import { getTodayCheckin } from "@/lib/checkin/today";
 
 /**
  * Reads today's morning row if signed in. Otherwise shows the empty state.
- * Phase 2 expands this to also pull priorities into the PlanCard.
  */
 export async function ManifestoCard() {
   const { user } = await getAuthContext();
-  let manifestoText: string | null = null;
-  let energy: number | null = null;
-  let priorityCount = 0;
-
-  if (user) {
-    const today = format(new Date(), "yyyy-MM-dd");
-    const rows = await db
-      .select({ morning: lifeosDailyCheckins.morning })
-      .from(lifeosDailyCheckins)
-      .where(
-        and(
-          eq(lifeosDailyCheckins.userId, user.id),
-          eq(lifeosDailyCheckins.entryDate, today),
-        ),
-      )
-      .limit(1);
-
-    if (rows[0]?.morning != null) {
-      const parsed = morningManifestoSchema.safeParse(rows[0].morning);
-      if (parsed.success) {
-        manifestoText = parsed.data.manifesto;
-        energy = parsed.data.energy;
-        priorityCount = parsed.data.priorities.length;
-      }
-    }
-  }
-
-  const hasManifesto = manifestoText !== null;
+  const morning = user ? (await getTodayCheckin(user.id)).morning : null;
+  const hasManifesto = morning !== null;
 
   return (
     <div className="card">
@@ -49,14 +18,15 @@ export async function ManifestoCard() {
           <div className="text-xs uppercase tracking-[0.18em] text-ink-400 mb-2">
             Morning manifesto
           </div>
-          {hasManifesto ? (
+          {hasManifesto && morning ? (
             <>
               <p className="font-serif text-2xl text-ink-50 leading-snug">
-                {manifestoText}
+                {morning.manifesto}
               </p>
               <p className="text-sm text-ink-300 mt-2">
-                Energy {energy}/5 · {priorityCount}{" "}
-                {priorityCount === 1 ? "priority" : "priorities"} locked
+                Energy {morning.energy}/5 · {morning.priorities.length}{" "}
+                {morning.priorities.length === 1 ? "priority" : "priorities"}{" "}
+                locked
               </p>
             </>
           ) : (
