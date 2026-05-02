@@ -14,3 +14,5 @@ export * from "./lifeosDailyCheckins";
 export * from "./lifeosHabits";
 export * from "./lifeosHabitCompletions";
 export * from "./lifeosFocusSessions";
+export * from "./lifeosQuests";
+export * from "./lifeosCompass";

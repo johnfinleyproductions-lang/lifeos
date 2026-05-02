@@ -24,10 +24,10 @@ const NAV: NavGroup[] = [
   {
     label: "Vision",
     items: [
-      { label: "Quests", href: "/quests", comingIn: "Phase 3" },
-      { label: "Compass", href: "/compass", comingIn: "Phase 3" },
-      { label: "Future", href: "/future", comingIn: "Phase 3" },
-      { label: "Ideal Week", href: "/week", comingIn: "Phase 3" },
+      { label: "Quests", href: "/quests" },
+      { label: "Compass", href: "/compass", comingIn: "Phase 3b" },
+      { label: "Future", href: "/future", comingIn: "Phase 3b" },
+      { label: "Ideal Week", href: "/week", comingIn: "Phase 3b" },
     ],
   },
   {
