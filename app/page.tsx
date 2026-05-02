@@ -6,6 +6,7 @@ import { ManifestoCard } from "@/components/today/ManifestoCard";
 import { QuestsCard } from "@/components/today/QuestsCard";
 import { BalanceCard } from "@/components/today/BalanceCard";
 import { PlanCard } from "@/components/today/PlanCard";
+import { FocusHabitsCard } from "@/components/today/FocusHabitsCard";
 import { EveningSummaryCard } from "@/components/today/EveningSummaryCard";
 
 function greetingFor(date: Date) {
@@ -73,19 +74,7 @@ export default async function TodayPage() {
         <QuestsCard />
         <BalanceCard />
         <PlanCard />
-        <div className="card">
-          <div className="card-glow" />
-          <div className="text-xs uppercase tracking-[0.18em] text-ink-400 mb-2">
-            Confidence file
-          </div>
-          <div className="font-serif text-lg text-ink-100 mb-1">
-            Coming in Phase 5
-          </div>
-          <p className="text-xs text-ink-300 leading-relaxed">
-            Your evidence file — moments that prove who you&apos;re becoming.
-            Auto-collects from focus sessions, build log entries, and ratings.
-          </p>
-        </div>
+        <FocusHabitsCard />
       </div>
 
       <EveningSummaryCard />
