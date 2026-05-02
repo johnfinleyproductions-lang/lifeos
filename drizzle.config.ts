@@ -5,15 +5,22 @@ if (!process.env.DATABASE_URL) {
 }
 
 export default {
-  schema: "./lib/db/schema/index.ts",
+  // CRITICAL: point at the OWNED-ONLY barrel so drizzle-kit never sees
+  // EC's auth/workspace tables in the schema. tablesFilter alone is not
+  // enough — it restricts introspection but NOT schema parsing, so if
+  // we pointed at index.ts (which re-exports external tables for runtime
+  // queries), drizzle-kit would propose CREATE TABLE for every EC table.
+  // (Confirmed the hard way during Batch 3 — 0001_charming_owl.sql was
+  // a near-miss.) Keep this `lifeos.ts`, never `index.ts`.
+  schema: "./lib/db/schema/lifeos.ts",
   out: "./drizzle",
   dialect: "postgresql",
   dbCredentials: {
     url: process.env.DATABASE_URL,
   },
-  // CRITICAL: only LifeOS-owned tables are migrated. Better Auth + workspaces
-  // are owned by Evergreen Core in the same database; LifeOS reads them but
-  // never migrates them. Keep this filter in sync with §2.1-2.3 of the spec.
+  // Defense-in-depth: even if someone later changes the schema path
+  // by accident, this filter still keeps introspection focused on
+  // lifeos_* tables.
   tablesFilter: ["lifeos_*"],
   verbose: true,
   strict: true,
