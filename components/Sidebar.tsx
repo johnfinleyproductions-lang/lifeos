@@ -53,6 +53,10 @@ const NAV: NavGroup[] = [
       { label: "Insights", href: "/insights", comingIn: "Phase 7" },
     ],
   },
+  {
+    label: "System",
+    items: [{ label: "Settings", href: "/settings" }],
+  },
 ];
 
 const EC_AUTH_URL = `${
