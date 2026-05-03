@@ -56,8 +56,14 @@ export function CoachChat() {
     if (!content.trim() || streaming) return;
     stopSpeaking();
     const userMsg: ChatMessage = { role: "user", content: content.trim() };
-    const nextMessages = [...messages, userMsg];
-    setMessages(nextMessages);
+    // Filter out any prior empty-assistant placeholders before sending —
+    // those are UI state only, the server's zod schema requires non-empty
+    // content on every message.
+    const cleanHistory = messages.filter(
+      (m) => m.content.trim().length > 0,
+    );
+    const nextMessages = [...cleanHistory, userMsg];
+    setMessages([...nextMessages]);
     setInput("");
     setError(null);
     setStreaming(true);
@@ -93,6 +99,10 @@ export function CoachChat() {
           if (json === "[DONE]" || !json) continue;
           try {
             const evt = JSON.parse(json);
+            // OpenAI-compat: choices[0].delta.content
+            // Some servers also expose .delta.reasoning_content (Qwen-style
+            // thinking tokens) which we collect separately so the visible
+            // answer doesn't include the model's internal reasoning.
             const piece: string | undefined =
               evt.choices?.[0]?.delta?.content;
             if (typeof piece === "string" && piece.length > 0) {
@@ -235,6 +245,22 @@ export function CoachChat() {
   );
 }
 
+/**
+ * Strip <think>...</think> reasoning blocks emitted by Qwen-style models
+ * before the visible answer. If the closing tag hasn't streamed in yet,
+ * we hide the in-progress thinking too — once the close tag arrives, the
+ * visible answer below it appears.
+ */
+function stripThinking(text: string): string {
+  // Remove complete <think>...</think> blocks
+  let out = text.replace(/<think>[\s\S]*?<\/think>\s*/gi, "");
+  // If the model is mid-think (open tag, no close yet), hide the partial
+  if (/<think>/i.test(out)) {
+    out = out.replace(/<think>[\s\S]*$/i, "");
+  }
+  return out;
+}
+
 function Message({
   role,
   content,
@@ -251,6 +277,8 @@ function Message({
       </div>
     );
   }
+  const visible = stripThinking(content).trim();
+  const isThinking = !visible && /<think>/i.test(content);
   return (
     <div className="flex justify-start">
       <div className="max-w-[85%]">
@@ -258,9 +286,14 @@ function Message({
           Coach
         </div>
         <div className="text-base text-ink-100 whitespace-pre-wrap leading-relaxed">
-          {content || (
-            <span className="text-ink-400 italic">Thinking…</span>
-          )}
+          {visible ||
+            (isThinking ? (
+              <span className="text-ink-400 italic">
+                Reasoning through it…
+              </span>
+            ) : (
+              <span className="text-ink-400 italic">Thinking…</span>
+            ))}
         </div>
       </div>
     </div>
