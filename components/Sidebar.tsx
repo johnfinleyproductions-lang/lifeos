@@ -54,7 +54,7 @@ const NAV: NavGroup[] = [
   },
 ];
 
-const SIGN_IN_URL = "/auth";
+const SIGN_IN_URL = "/pick-profile";
 
 export function Sidebar({ user }: { user: AppUser | null }) {
   return (
@@ -83,23 +83,27 @@ export function Sidebar({ user }: { user: AppUser | null }) {
 
       <div className="border-t border-white/5 pt-4">
         {user ? (
-          <div className="flex items-center gap-3">
+          <Link
+            href={SIGN_IN_URL}
+            className="flex items-center gap-3 hover:bg-white/5 rounded-lg p-2 -m-2 transition"
+            title="Switch profile"
+          >
             <div className="w-8 h-8 rounded-full bg-accent-violet/30 grid place-items-center text-xs font-medium text-accent-violet">
               {user.name?.[0]?.toUpperCase() ?? "?"}
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-sm truncate">{user.name}</div>
               <div className="text-[11px] text-ink-400 truncate">
-                {user.email}
+                Switch profile →
               </div>
             </div>
-          </div>
+          </Link>
         ) : (
           <Link
             href={SIGN_IN_URL}
             className="block text-center text-xs px-3 py-2 rounded-lg bg-accent-green/10 text-accent-green hover:bg-accent-green/20 transition"
           >
-            Sign in
+            Pick a profile
           </Link>
         )}
       </div>

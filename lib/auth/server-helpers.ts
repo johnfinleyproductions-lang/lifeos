@@ -1,29 +1,24 @@
 /**
  * Server-side auth helpers.
  *
- * Two modes, controlled by env:
+ * Resolution order for getAuthContext:
+ *   1. Real Better Auth session — wins if user signed in via /auth
+ *   2. Active profile cookie — household / shared-device mode (/pick-profile)
+ *   3. Single-user fallback env vars — for personal-only deploys
+ *   4. null → caller redirects to /pick-profile
  *
- * 1. **Real auth mode** (default): validates a Better Auth session via the
- *    shared cookie. If no session, redirects to EC's `/auth`. Used for
- *    real multi-user setups where EC is deployed alongside.
- *
- * 2. **Single-user fallback mode** (when LIFEOS_FALLBACK_USER_ID is set):
- *    treats every visitor as the configured user. No login required, no
- *    cookies needed. Used when LifeOS is personal and EC isn't publicly
- *    deployed. The user_id and workspace_id come from env vars so they
- *    point at real DB rows EC already created.
- *
- * The fallback mode is what makes deployed LifeOS usable on a phone when
- * EC only runs locally.
+ * The profile cookie is the primary path for the two-profile model. The
+ * magic-link auth at /auth still works as an escape hatch (and for any
+ * users beyond the configured profile list).
  */
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
 import { auth } from "./server";
 import type { AppUser, AuthSession } from "./types";
+import { getActiveProfile } from "@/lib/profiles/cookie";
 
-// Sign-in URL — LifeOS hosts its own /auth page (multi-user mode).
-const SIGN_IN_URL = "/auth";
+const SIGN_IN_URL = "/pick-profile";
 
 const FALLBACK_USER_ID = process.env.LIFEOS_FALLBACK_USER_ID?.trim();
 const FALLBACK_USER_NAME =
@@ -44,28 +39,31 @@ function mapAuthUser(user: AuthSession["user"]): AppUser {
   };
 }
 
-function buildFallbackUser(): AppUser {
+function buildSyntheticUser(opts: {
+  id: string;
+  name: string;
+  email: string;
+}): AppUser {
   return {
-    id: FALLBACK_USER_ID!,
-    name: FALLBACK_USER_NAME,
-    email: FALLBACK_USER_EMAIL,
+    id: opts.id,
+    name: opts.name,
+    email: opts.email,
     emailVerified: true,
     image: null,
     createdAt: new Date(),
     updatedAt: new Date(),
-    fullName: FALLBACK_USER_NAME,
+    fullName: opts.name,
     avatarUrl: null,
   } as unknown as AppUser;
 }
 
-function buildFallbackSession(): AuthSession {
-  const user = buildFallbackUser();
+function buildSyntheticSession(user: AppUser): AuthSession {
   return {
     session: {
-      id: "fallback",
-      userId: FALLBACK_USER_ID!,
+      id: "synthetic",
+      userId: user.id,
       expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-      token: "fallback",
+      token: "synthetic",
       ipAddress: null,
       userAgent: null,
       createdAt: new Date(),
@@ -76,18 +74,33 @@ function buildFallbackSession(): AuthSession {
 }
 
 export async function getAuthContext(): Promise<ServerAuthContext> {
+  // 1. Real Better Auth session
   const session = await auth.api
     .getSession({ headers: await headers() })
     .catch(() => null);
-
   if (session) {
     return { session, user: mapAuthUser(session.user) };
   }
 
-  // Fallback: synthesise a session for the configured single user.
+  // 2. Active profile cookie (the two-profile model)
+  const activeProfile = await getActiveProfile();
+  if (activeProfile) {
+    const user = buildSyntheticUser({
+      id: activeProfile.userId,
+      name: activeProfile.name,
+      email: activeProfile.email,
+    });
+    return { session: buildSyntheticSession(user), user };
+  }
+
+  // 3. Env-var fallback (legacy single-user mode)
   if (FALLBACK_USER_ID) {
-    const user = buildFallbackUser();
-    return { session: buildFallbackSession(), user };
+    const user = buildSyntheticUser({
+      id: FALLBACK_USER_ID,
+      name: FALLBACK_USER_NAME,
+      email: FALLBACK_USER_EMAIL,
+    });
+    return { session: buildSyntheticSession(user), user };
   }
 
   return { session: null, user: null };
@@ -108,7 +121,6 @@ export async function requireUserContext(): Promise<{
     return { session, user };
   }
 
-  // No session and no fallback configured — send to LifeOS's sign-in page.
   redirect(SIGN_IN_URL);
 }
 
