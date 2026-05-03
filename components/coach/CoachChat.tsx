@@ -2,6 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { ChatMessage } from "@/lib/coach/schema";
+import { VoiceButton } from "@/components/voice/VoiceButton";
+import {
+  isSpeechSynthesisSupported,
+  speak,
+  stopSpeaking,
+} from "@/lib/voice/speech";
 
 const SUGGESTED_OPENERS = [
   "How's my week looking so far?",
@@ -16,7 +22,14 @@ export function CoachChat() {
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [speakResponses, setSpeakResponses] = useState(false);
+  const [ttsSupported, setTtsSupported] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const lastSpokenRef = useRef<string>("");
+
+  useEffect(() => {
+    setTtsSupported(isSpeechSynthesisSupported());
+  }, []);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({
@@ -25,8 +38,23 @@ export function CoachChat() {
     });
   }, [messages]);
 
+  // When a streaming response finishes, optionally speak it.
+  useEffect(() => {
+    if (!speakResponses || streaming) return;
+    const last = messages[messages.length - 1];
+    if (
+      last?.role === "assistant" &&
+      last.content.trim().length > 0 &&
+      last.content !== lastSpokenRef.current
+    ) {
+      lastSpokenRef.current = last.content;
+      speak(last.content);
+    }
+  }, [streaming, messages, speakResponses]);
+
   async function send(content: string) {
     if (!content.trim() || streaming) return;
+    stopSpeaking();
     const userMsg: ChatMessage = { role: "user", content: content.trim() };
     const nextMessages = [...messages, userMsg];
     setMessages(nextMessages);
@@ -52,9 +80,6 @@ export function CoachChat() {
       const decoder = new TextDecoder();
       let buffer = "";
 
-      // Parse OpenAI-compatible SSE: lines look like
-      //   data: {"choices":[{"delta":{"content":"hello"}}]}
-      //   data: [DONE]
       while (true) {
         const { value, done } = await reader.read();
         if (done) break;
@@ -84,7 +109,7 @@ export function CoachChat() {
               });
             }
           } catch {
-            // ignore parse errors on partial chunks
+            // ignore parse errors
           }
         }
       }
@@ -100,6 +125,10 @@ export function CoachChat() {
     } finally {
       setStreaming(false);
     }
+  }
+
+  function appendVoice(text: string) {
+    setInput((prev) => (prev ? `${prev} ${text}` : text));
   }
 
   return (
@@ -143,6 +172,26 @@ export function CoachChat() {
         </div>
       )}
 
+      {/* Voice settings strip */}
+      {ttsSupported && (
+        <div className="flex items-center justify-between mb-2 px-1">
+          <button
+            type="button"
+            onClick={() => {
+              if (speakResponses) stopSpeaking();
+              setSpeakResponses(!speakResponses);
+            }}
+            className={`text-[11px] px-2 py-1 rounded-full transition ${
+              speakResponses
+                ? "bg-accent-violet/15 text-accent-violet border border-accent-violet/30"
+                : "text-ink-400 hover:text-ink-200"
+            }`}
+          >
+            {speakResponses ? "🔊 Speak responses on" : "🔇 Speak responses off"}
+          </button>
+        </div>
+      )}
+
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -150,6 +199,11 @@ export function CoachChat() {
         }}
         className="card flex items-end gap-3"
       >
+        <VoiceButton
+          onTranscript={appendVoice}
+          disabled={streaming}
+          size="md"
+        />
         <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -162,7 +216,9 @@ export function CoachChat() {
           rows={2}
           maxLength={4000}
           placeholder={
-            streaming ? "Coach is thinking…" : "Ask anything (Shift+Enter for newline)"
+            streaming
+              ? "Coach is thinking…"
+              : "Ask anything — type or tap the mic"
           }
           disabled={streaming}
           className="flex-1 bg-transparent text-base text-ink-100 focus:outline-none resize-none"

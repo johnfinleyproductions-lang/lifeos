@@ -25,7 +25,20 @@ const jetbrains = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: "LifeOS",
-  description: "A daily check-in companion + identity + insight system.",
+  description:
+    "A daily check-in, identity, and coaching companion. Morning manifesto, evening shutdown, quests, habits, journal — all yours.",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "LifeOS",
+  },
+};
+
+export const viewport = {
+  themeColor: "#0a0a0c",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
 };
 
 export default async function RootLayout({

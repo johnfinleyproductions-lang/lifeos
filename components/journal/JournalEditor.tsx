@@ -9,6 +9,7 @@ import {
   type DecisionDoor,
   DECISION_CATEGORY_LABELS,
 } from "@/lib/journal/schema";
+import { VoiceButton } from "@/components/voice/VoiceButton";
 
 const MODE_OPTIONS: {
   key: JournalMode;
@@ -198,14 +199,22 @@ export function JournalEditor() {
                 : "text-base text-ink-100"
           }`}
         />
-        <div className="flex items-center justify-between text-[11px] text-ink-400 mt-3 pt-3 border-t border-white/5">
+        <div className="flex items-center justify-between text-[11px] text-ink-400 mt-3 pt-3 border-t border-white/5 gap-3">
           <span>
             {body.length} / 20000 ·{" "}
             {body.trim().split(/\s+/).filter(Boolean).length} words
           </span>
-          {savedFlash && (
-            <span className="text-accent-green">✓ saved</span>
-          )}
+          <div className="flex items-center gap-2">
+            {savedFlash && (
+              <span className="text-accent-green">✓ saved</span>
+            )}
+            <VoiceButton
+              size="sm"
+              onTranscript={(text) =>
+                setBody((prev) => (prev ? `${prev} ${text}` : text))
+              }
+            />
+          </div>
         </div>
       </div>
 
