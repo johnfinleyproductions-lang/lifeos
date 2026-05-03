@@ -1,27 +1,24 @@
 /**
  * LifeOS's Better Auth instance.
  *
- * Minimal config: this app only validates sessions created by Evergreen Core.
- * No providers, no email, no plugins beyond nextCookies(). The shared
- * BETTER_AUTH_SECRET + the same database means LifeOS can read EC's session
- * cookie and look up the session row directly.
+ * Multi-user mode: magic-link sign-in via /auth, with auto workspace
+ * creation on first sign-up. Sessions are stored in the shared `session`
+ * table; if EC is also deployed and shares the cookieDomain, sessions
+ * created here ALSO validate at EC and vice versa.
  *
- * Production SSO: when BETTER_AUTH_COOKIE_DOMAIN is set (e.g. on Coolify),
- * we enable crossSubDomainCookies so a session set at app.<domain> validates
- * at lifeos.<domain>. EC must have the same env var with the same value —
- * see DEPLOY.md for the EC patch (the ONE EC code change in this build).
- *
- * What is NOT here (and why):
- * - No socialProviders, magicLink, emailAndPassword — LifeOS never creates
- *   users or sessions; users sign in via EC's modal. If a user hits LifeOS
- *   without a session, redirect them to EC's `/auth` to sign in there.
- * - No databaseHooks — only EC owns user lifecycle.
+ * Single-user fallback: when LIFEOS_FALLBACK_USER_ID env var is set,
+ * server-helpers.ts treats every request as that user even without a
+ * session. Useful for personal-only deploys where you don't want to
+ * sign in repeatedly. Real sessions still win when present.
  */
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
+import { magicLink } from "better-auth/plugins";
 import { db } from "@/lib/db";
 import * as dbSchema from "@/lib/db/schema";
+import { ensureWorkspaceForUser } from "@/lib/db/workspace/auto-create";
+import { sendAuthEmail } from "./email";
 
 if (!process.env.BETTER_AUTH_SECRET) {
   throw new Error(
@@ -72,9 +69,6 @@ export const auth = betterAuth({
     database: {
       generateId: "uuid",
     },
-    // Cross-subdomain cookies for production SSO. Only enabled when the
-    // env var is explicitly set, so local dev (no var) keeps cross-port
-    // localhost cookies working as-is.
     ...(cookieDomain
       ? {
           crossSubDomainCookies: {
@@ -84,7 +78,39 @@ export const auth = betterAuth({
         }
       : {}),
   },
-  plugins: [nextCookies()],
+  // Magic link is the primary sign-in. emailAndPassword left disabled — we
+  // can enable it later if anyone explicitly wants password-based login.
+  plugins: [
+    nextCookies(),
+    magicLink({
+      sendMagicLink: async ({ email, url }) => {
+        await sendAuthEmail({
+          to: email,
+          subject: "Your LifeOS sign-in link",
+          body:
+            "Tap the button below to sign in to LifeOS. The link expires in 5 minutes — if it does, just request a new one.",
+          url,
+        });
+      },
+    }),
+  ],
+  databaseHooks: {
+    user: {
+      create: {
+        after: async (user) => {
+          // Auto-provision a workspace + ownership row for every new user.
+          // Idempotent — won't double-create if hook fires twice.
+          try {
+            await ensureWorkspaceForUser(user);
+          } catch (e) {
+            // Don't fail the sign-up over a workspace error — log and continue.
+            // User can be assigned a workspace manually later if needed.
+            console.error("ensureWorkspaceForUser failed:", e);
+          }
+        },
+      },
+    },
+  },
 });
 
 export type AuthInstance = typeof auth;

@@ -22,10 +22,8 @@ import { NextResponse } from "next/server";
 import { auth } from "./server";
 import type { AppUser, AuthSession } from "./types";
 
-const EC_AUTH_URL = `${
-  process.env.NEXT_PUBLIC_EC_URL?.trim() ||
-  "https://app.evergreenwellnessmktg.com"
-}/auth`;
+// Sign-in URL — LifeOS hosts its own /auth page (multi-user mode).
+const SIGN_IN_URL = "/auth";
 
 const FALLBACK_USER_ID = process.env.LIFEOS_FALLBACK_USER_ID?.trim();
 const FALLBACK_USER_NAME =
@@ -110,8 +108,8 @@ export async function requireUserContext(): Promise<{
     return { session, user };
   }
 
-  // No session and no fallback configured — redirect to EC's auth.
-  redirect(EC_AUTH_URL);
+  // No session and no fallback configured — send to LifeOS's sign-in page.
+  redirect(SIGN_IN_URL);
 }
 
 export async function requireUser(): Promise<AppUser> {

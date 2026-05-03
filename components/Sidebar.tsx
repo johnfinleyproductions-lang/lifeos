@@ -54,9 +54,7 @@ const NAV: NavGroup[] = [
   },
 ];
 
-const EC_AUTH_URL = `${
-  process.env.NEXT_PUBLIC_EC_URL?.trim() || "https://app.evergreenwellnessmktg.com"
-}/auth`;
+const SIGN_IN_URL = "/auth";
 
 export function Sidebar({ user }: { user: AppUser | null }) {
   return (
@@ -98,10 +96,10 @@ export function Sidebar({ user }: { user: AppUser | null }) {
           </div>
         ) : (
           <Link
-            href={EC_AUTH_URL}
+            href={SIGN_IN_URL}
             className="block text-center text-xs px-3 py-2 rounded-lg bg-accent-green/10 text-accent-green hover:bg-accent-green/20 transition"
           >
-            Sign in via Evergreen Core
+            Sign in
           </Link>
         )}
       </div>
