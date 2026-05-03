@@ -6,18 +6,16 @@
  * BETTER_AUTH_SECRET + the same database means LifeOS can read EC's session
  * cookie and look up the session row directly.
  *
+ * Production SSO: when BETTER_AUTH_COOKIE_DOMAIN is set (e.g. on Coolify),
+ * we enable crossSubDomainCookies so a session set at app.<domain> validates
+ * at lifeos.<domain>. EC must have the same env var with the same value —
+ * see DEPLOY.md for the EC patch (the ONE EC code change in this build).
+ *
  * What is NOT here (and why):
  * - No socialProviders, magicLink, emailAndPassword — LifeOS never creates
  *   users or sessions; users sign in via EC's modal. If a user hits LifeOS
  *   without a session, redirect them to EC's `/auth` to sign in there.
- * - No databaseHooks — only EC owns user lifecycle (profile sync, default
- *   workspace creation, email contact sync).
- * - No cookieDomain — cookies work across localhost ports for dev. For
- *   production deploy, both EC and LifeOS need to add
- *   `advanced.crossSubDomainCookies = { enabled: true, domain: ".evergreenwellnessmktg.com" }`.
- *   This is Phase 10 work; Phase 1 ships dev-only.
- * - No `advanced.database.generateId` — LifeOS doesn't insert into auth tables.
- *   EC's existing setting (`generateId: "uuid"`) is what controls those rows.
+ * - No databaseHooks — only EC owns user lifecycle.
  */
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
@@ -54,6 +52,8 @@ const trustedOrigins = Array.from(
   ),
 );
 
+const cookieDomain = process.env.BETTER_AUTH_COOKIE_DOMAIN?.trim();
+
 export const auth = betterAuth({
   appName: "LifeOS",
   baseURL: BETTER_AUTH_URL,
@@ -72,6 +72,17 @@ export const auth = betterAuth({
     database: {
       generateId: "uuid",
     },
+    // Cross-subdomain cookies for production SSO. Only enabled when the
+    // env var is explicitly set, so local dev (no var) keeps cross-port
+    // localhost cookies working as-is.
+    ...(cookieDomain
+      ? {
+          crossSubDomainCookies: {
+            enabled: true,
+            domain: cookieDomain,
+          },
+        }
+      : {}),
   },
   plugins: [nextCookies()],
 });
