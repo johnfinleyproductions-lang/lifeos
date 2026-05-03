@@ -36,9 +36,6 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "sharp"
-    ],
-    "neverBuiltDependencies": [
-      "esbuild"
     ]
   }
 }
