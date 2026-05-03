@@ -17,8 +17,13 @@ RUN pnpm install --no-frozen-lockfile
 
 FROM base AS builder
 WORKDIR /app
-# Builder also needs devDeps for `next build` (typescript, tailwind, etc.)
-ENV NODE_ENV=development
+# Builder MUST have NODE_ENV=production. Next.js 16's `next build` uses
+# production React internally — setting NODE_ENV=development here triggers
+# "Cannot read properties of null (reading 'useContext')" when prerendering
+# /_global-error. The devDependencies installed in the deps stage carry
+# over via the COPY below; they're already on disk and don't get pruned
+# by NODE_ENV switching at this point.
+ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
