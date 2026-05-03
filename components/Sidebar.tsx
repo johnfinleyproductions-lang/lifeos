@@ -18,16 +18,16 @@ const NAV: NavGroup[] = [
     label: "Command Center",
     items: [
       { label: "Today", href: "/" },
-      { label: "AI Coach", href: "/coach", comingIn: "Phase 8" },
+      { label: "AI Coach", href: "/coach" },
     ],
   },
   {
     label: "Vision",
     items: [
       { label: "Quests", href: "/quests" },
-      { label: "Compass", href: "/compass", comingIn: "Phase 3b" },
-      { label: "Future", href: "/future", comingIn: "Phase 3b" },
-      { label: "Ideal Week", href: "/week", comingIn: "Phase 3b" },
+      { label: "Compass", href: "/compass" },
+      { label: "Future", href: "/future" },
+      { label: "Ideal Week", href: "/week" },
     ],
   },
   {
