@@ -4,7 +4,11 @@ RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
 FROM base AS deps
 WORKDIR /app
 COPY package.json pnpm-lock.yaml* ./
-RUN pnpm install --frozen-lockfile
+# --no-frozen-lockfile lets Docker's pnpm migrate the lockfile if our local
+# pnpm version differs from the Dockerfile's pinned 9.0.0. Trade-off: Docker
+# may resolve slightly different subdependency versions than local. Acceptable
+# for now; can tighten by pinning matching pnpm versions on both ends.
+RUN pnpm install --no-frozen-lockfile
 
 FROM base AS builder
 WORKDIR /app
