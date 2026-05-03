@@ -35,7 +35,10 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 
-COPY --from=builder /app/public ./public
+# public/ skipped — we don't ship static assets in the repo. Next.js 16 with
+# app router uses app/icon.png, app/favicon.ico, etc. (file-based routing for
+# metadata) instead. If we ever add a public/ directory later, restore:
+#   COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/drizzle ./drizzle
