@@ -3,6 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { MorningManifesto } from "@/lib/manifesto/schema";
+import { VoiceButton } from "@/components/voice/VoiceButton";
+
+function appendVoice(prev: string, text: string): string {
+  return prev.trim().length > 0 ? `${prev} ${text}` : text;
+}
 
 const TOTAL_STEPS = 5;
 
@@ -152,15 +157,21 @@ export function ManifestoWizard({ initial }: Props) {
                 </button>
               ))}
             </div>
-            <input
-              type="text"
-              value={
-                MOOD_OPTIONS.includes(mood) ? "" : mood
-              }
-              onChange={(e) => setMood(e.target.value)}
-              placeholder="…or type your own"
-              className="w-full bg-ink-900 border border-white/5 rounded-lg px-3 py-2 text-sm focus:border-accent-violet focus:outline-none"
-            />
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={
+                  MOOD_OPTIONS.includes(mood) ? "" : mood
+                }
+                onChange={(e) => setMood(e.target.value)}
+                placeholder="…or type your own"
+                className="flex-1 bg-ink-900 border border-white/5 rounded-lg px-3 py-2 text-sm focus:border-accent-violet focus:outline-none"
+              />
+              <VoiceButton
+                size="sm"
+                onTranscript={(t) => setMood(t)}
+              />
+            </div>
           </Step>
         )}
 
@@ -178,8 +189,16 @@ export function ManifestoWizard({ initial }: Props) {
               placeholder="… someone who finishes what they start."
               className="w-full bg-ink-900 border border-white/5 rounded-lg px-4 py-3 font-serif text-xl leading-snug focus:border-accent-green focus:outline-none resize-none"
             />
-            <div className="text-[11px] text-ink-400 mt-2 text-right tabular-nums">
-              {manifesto.length} / 280
+            <div className="flex items-center justify-between text-[11px] text-ink-400 mt-2">
+              <VoiceButton
+                size="sm"
+                onTranscript={(t) =>
+                  setManifesto((prev) => appendVoice(prev, t))
+                }
+              />
+              <span className="tabular-nums">
+                {manifesto.length} / 280
+              </span>
             </div>
           </Step>
         )}
@@ -191,7 +210,7 @@ export function ManifestoWizard({ initial }: Props) {
           >
             <div className="space-y-2.5">
               {[0, 1, 2].map((i) => (
-                <div key={i} className="flex items-center gap-3">
+                <div key={i} className="flex items-center gap-2">
                   <div className="w-6 h-6 rounded-full bg-ink-700 grid place-items-center text-xs text-ink-300 shrink-0">
                     {i + 1}
                   </div>
@@ -211,6 +230,14 @@ export function ManifestoWizard({ initial }: Props) {
                     }
                     className="flex-1 bg-ink-900 border border-white/5 rounded-lg px-3 py-2 text-sm focus:border-accent-green focus:outline-none"
                   />
+                  <VoiceButton
+                    size="sm"
+                    onTranscript={(t) => {
+                      const next = [...priorities];
+                      next[i] = appendVoice(next[i], t);
+                      setPriorities(next);
+                    }}
+                  />
                 </div>
               ))}
             </div>
@@ -222,15 +249,23 @@ export function ManifestoWizard({ initial }: Props) {
             heading="If today goes sideways, the one thing you must protect is…"
             subhead="Could be a person, a window of focus, your morning routine — anything."
           >
-            <input
-              type="text"
-              value={protect}
-              onChange={(e) => setProtect(e.target.value)}
-              autoFocus
-              maxLength={200}
-              placeholder="… the 90 minutes after lunch."
-              className="w-full bg-ink-900 border border-white/5 rounded-lg px-4 py-3 text-base focus:border-accent-rose focus:outline-none"
-            />
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={protect}
+                onChange={(e) => setProtect(e.target.value)}
+                autoFocus
+                maxLength={200}
+                placeholder="… the 90 minutes after lunch."
+                className="flex-1 bg-ink-900 border border-white/5 rounded-lg px-4 py-3 text-base focus:border-accent-rose focus:outline-none"
+              />
+              <VoiceButton
+                size="md"
+                onTranscript={(t) =>
+                  setProtect((prev) => appendVoice(prev, t))
+                }
+              />
+            </div>
           </Step>
         )}
 
@@ -248,6 +283,17 @@ export function ManifestoWizard({ initial }: Props) {
               placeholder="… that the dog forgave me for skipping the walk."
               className="w-full bg-ink-900 border border-white/5 rounded-lg px-4 py-3 text-base focus:border-accent-gold focus:outline-none resize-none"
             />
+            <div className="flex items-center justify-between text-[11px] text-ink-400 mt-2">
+              <VoiceButton
+                size="sm"
+                onTranscript={(t) =>
+                  setGratitude((prev) => appendVoice(prev, t))
+                }
+              />
+              <span className="tabular-nums">
+                {gratitude.length} / 200
+              </span>
+            </div>
           </Step>
         )}
       </div>

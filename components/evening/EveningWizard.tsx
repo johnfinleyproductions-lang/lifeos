@@ -3,6 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { EveningShutdown } from "@/lib/manifesto/evening-schema";
+import { VoiceButton } from "@/components/voice/VoiceButton";
+
+function appendVoice(prev: string, text: string): string {
+  return prev.trim().length > 0 ? `${prev} ${text}` : text;
+}
 
 const RATING_LABELS = ["off", "rough", "okay", "good", "alive"] as const;
 
@@ -185,13 +190,19 @@ export function EveningWizard({
                 </button>
               ))}
             </div>
-            <input
-              type="text"
-              value={MOOD_OPTIONS.includes(dayMood) ? "" : dayMood}
-              onChange={(e) => setDayMood(e.target.value)}
-              placeholder="…or type your own"
-              className="w-full bg-ink-900 border border-white/5 rounded-lg px-3 py-2 text-sm focus:border-accent-violet focus:outline-none"
-            />
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={MOOD_OPTIONS.includes(dayMood) ? "" : dayMood}
+                onChange={(e) => setDayMood(e.target.value)}
+                placeholder="…or type your own"
+                className="flex-1 bg-ink-900 border border-white/5 rounded-lg px-3 py-2 text-sm focus:border-accent-violet focus:outline-none"
+              />
+              <VoiceButton
+                size="sm"
+                onTranscript={(t) => setDayMood(t)}
+              />
+            </div>
           </Step>
         )}
 
@@ -257,8 +268,14 @@ export function EveningWizard({
               placeholder="… I shipped Phase 1 of LifeOS."
               className="w-full bg-ink-900 border border-white/5 rounded-lg px-4 py-3 font-serif text-lg leading-snug focus:border-accent-green focus:outline-none resize-none"
             />
-            <div className="text-[11px] text-ink-400 mt-2 text-right tabular-nums">
-              {win.length} / 280
+            <div className="flex items-center justify-between text-[11px] text-ink-400 mt-2">
+              <VoiceButton
+                size="sm"
+                onTranscript={(t) =>
+                  setWin((prev) => appendVoice(prev, t))
+                }
+              />
+              <span className="tabular-nums">{win.length} / 280</span>
             </div>
           </Step>
         )}
@@ -281,6 +298,15 @@ export function EveningWizard({
               placeholder="… that I get distracted at the planning step, not the execution step."
               className="w-full bg-ink-900 border border-white/5 rounded-lg px-4 py-3 text-base leading-snug focus:border-accent-sky focus:outline-none resize-none"
             />
+            <div className="flex items-center justify-between text-[11px] text-ink-400 mt-2">
+              <VoiceButton
+                size="sm"
+                onTranscript={(t) =>
+                  setLesson((prev) => appendVoice(prev, t))
+                }
+              />
+              <span className="tabular-nums">{lesson.length} / 280</span>
+            </div>
           </Step>
         )}
 
@@ -298,6 +324,17 @@ export function EveningWizard({
               placeholder="… open the file before coffee."
               className="w-full bg-ink-900 border border-white/5 rounded-lg px-4 py-3 text-base focus:border-accent-gold focus:outline-none resize-none"
             />
+            <div className="flex items-center justify-between text-[11px] text-ink-400 mt-2">
+              <VoiceButton
+                size="sm"
+                onTranscript={(t) =>
+                  setTomorrowSeed((prev) => appendVoice(prev, t))
+                }
+              />
+              <span className="tabular-nums">
+                {tomorrowSeed.length} / 200
+              </span>
+            </div>
           </Step>
         )}
 
@@ -315,6 +352,15 @@ export function EveningWizard({
               placeholder="Story I told myself: … / Truer story: …"
               className="w-full bg-ink-900 border border-white/5 rounded-lg px-4 py-3 text-base leading-snug focus:border-accent-violet focus:outline-none resize-none"
             />
+            <div className="flex items-center justify-between text-[11px] text-ink-400 mt-2">
+              <VoiceButton
+                size="sm"
+                onTranscript={(t) =>
+                  setReframe((prev) => appendVoice(prev, t))
+                }
+              />
+              <span className="tabular-nums">{reframe.length} / 280</span>
+            </div>
           </Step>
         )}
 
@@ -332,6 +378,15 @@ export function EveningWizard({
               placeholder="… the email I'm anxious about. It can wait until morning."
               className="w-full bg-ink-900 border border-white/5 rounded-lg px-4 py-3 text-base leading-snug focus:border-accent-rose focus:outline-none resize-none"
             />
+            <div className="flex items-center justify-between text-[11px] text-ink-400 mt-2">
+              <VoiceButton
+                size="sm"
+                onTranscript={(t) =>
+                  setRelease((prev) => appendVoice(prev, t))
+                }
+              />
+              <span className="tabular-nums">{release.length} / 280</span>
+            </div>
           </Step>
         )}
       </div>
