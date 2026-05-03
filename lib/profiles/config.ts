@@ -52,6 +52,13 @@ export const PROFILES: ProfileConfig[] = [
     initial: "E",
     accentClass: "text-accent-green bg-accent-green/15 border-accent-green/30",
   },
+  {
+    slug: "dad",
+    name: "Dad",
+    email: "dad@lifeos.local",
+    initial: "D",
+    accentClass: "text-accent-gold bg-accent-gold/15 border-accent-gold/30",
+  },
 ];
 
 export function getProfile(slug: string): ProfileConfig | undefined {
