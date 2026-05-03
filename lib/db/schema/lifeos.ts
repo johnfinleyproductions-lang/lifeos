@@ -19,3 +19,5 @@ export * from "./lifeosCompass";
 export * from "./lifeosProtocolRuns";
 export * from "./lifeosConfidenceEntries";
 export * from "./lifeosReframesSeen";
+export * from "./lifeosJournalEntries";
+export * from "./lifeosOpenLoops";

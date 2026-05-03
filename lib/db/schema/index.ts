@@ -27,6 +27,8 @@ export * from "./lifeosCompass";
 export * from "./lifeosProtocolRuns";
 export * from "./lifeosConfidenceEntries";
 export * from "./lifeosReframesSeen";
+export * from "./lifeosJournalEntries";
+export * from "./lifeosOpenLoops";
 
 // External — never migrated, only queried
 export * from "./external/auth";
