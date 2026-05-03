@@ -45,7 +45,7 @@ const NAV: NavGroup[] = [
       { label: "Identity", href: "/identity" },
       { label: "Journal", href: "/journal", badge: "NEW" },
       { label: "Discipline", href: "/discipline" },
-      { label: "Insights", href: "/insights", comingIn: "Phase 7" },
+      { label: "Insights", href: "/insights" },
     ],
   },
   {
