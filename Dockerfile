@@ -4,17 +4,24 @@ RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
 FROM base AS deps
 WORKDIR /app
 COPY package.json pnpm-lock.yaml* ./
+# Force NODE_ENV=development for install so devDependencies (TypeScript,
+# Tailwind, drizzle-kit) are installed. Without this, if the build host
+# has NODE_ENV=production set (e.g. Coolify default), pnpm skips devDeps
+# and `pnpm build` fails on missing tsc / tailwindcss / etc. The runner
+# stage below resets NODE_ENV=production for the actual server runtime.
+#
 # --no-frozen-lockfile lets Docker's pnpm migrate the lockfile if our local
-# pnpm version differs from the Dockerfile's pinned 9.0.0. Trade-off: Docker
-# may resolve slightly different subdependency versions than local. Acceptable
-# for now; can tighten by pinning matching pnpm versions on both ends.
+# pnpm version differs from the Dockerfile's pinned 9.0.0.
+ENV NODE_ENV=development
 RUN pnpm install --no-frozen-lockfile
 
 FROM base AS builder
 WORKDIR /app
+# Builder also needs devDeps for `next build` (typescript, tailwind, etc.)
+ENV NODE_ENV=development
+ENV NEXT_TELEMETRY_DISABLED=1
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-ENV NEXT_TELEMETRY_DISABLED=1
 RUN pnpm build
 
 FROM base AS runner
