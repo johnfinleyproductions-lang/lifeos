@@ -132,12 +132,66 @@ export function householdZone(): string {
   return resolvedZone;
 }
 
+const ENV_DAY_START = "LIFEOS_DAY_START";
+const DEFAULT_DAY_START = 4;
+
+let resolvedDayStart: number | null = null;
+
+/**
+ * The local hour at which the household's day begins. Default 4.
+ *
+ * Writing an evening shutdown at 00:30 means the day that just ended, not
+ * the one thirty minutes old, and with a midnight boundary that entry
+ * landed on tomorrow's sheet. Every other tool in this category either
+ * built this early and treats it as trivial (Habitica's custom day start,
+ * Rize's 4am default) or never built it and has a years-old open request
+ * (Day One, Sunsama, Toggl, Fitbit), where the advice is to edit the
+ * entry's date afterwards.
+ *
+ * 4 is also the safe hour, not merely the conventional one. Chicago's
+ * clocks change at 02:00, so 04:00 local exists exactly once on every day
+ * of the year: there is no repeated or skipped hour to disambiguate, which
+ * is not true of midnight in zones that transition at midnight.
+ *
+ * 0 restores the plain calendar day.
+ */
+export function dayStartHour(): number {
+  if (resolvedDayStart !== null) return resolvedDayStart;
+
+  const raw = process.env[ENV_DAY_START]?.trim();
+  if (!raw) {
+    resolvedDayStart = DEFAULT_DAY_START;
+    return resolvedDayStart;
+  }
+
+  const n = Number(raw);
+  if (!Number.isInteger(n) || n < 0 || n > 23) {
+    throw new TimezoneConfigError(
+      `${ENV_DAY_START}="${raw}" is not an hour. Use a whole number from 0 to 23 ` +
+        `(4 means the day runs 04:00 to 04:00). Refusing to start rather than ` +
+        `file entries under the wrong day.`,
+    );
+  }
+  resolvedDayStart = n;
+  return resolvedDayStart;
+}
+
+/**
+ * True when the real local clock has not yet reached the day start, so the
+ * household day is still yesterday's. For copy like "Still Saturday until
+ * four" on a wizard opened after midnight.
+ */
+export function beforeDayStart(instant: Date = now(), zone = householdZone()): boolean {
+  return localParts(instant, zone).hour < dayStartHour();
+}
+
 /**
  * Validate the configuration and the clock seam. Called from
  * instrumentation.ts at server start; throws on a bad zone.
  */
 export function assertTimeConfig(): void {
   householdZone();
+  dayStartHour();
   now(); // resolves and announces the fake clock, if any
 }
 
@@ -289,8 +343,23 @@ export function isDayKey(value: unknown): value is DayKey {
   return typeof value === "string" && DAY_KEY_RE.test(value);
 }
 
-/** The calendar day an instant falls on, in the household zone. */
+/**
+ * The household day an instant falls on.
+ *
+ * Shifted by dayStartHour(), so 00:30 belongs to the day that just ended.
+ * The shift is applied to the local wall clock and then the key is stepped
+ * back a whole day, rather than by subtracting hours from the instant:
+ * stepping a key is exact, while subtracting four hours from an instant on
+ * the night the clocks change lands an hour out.
+ */
 export function dayKeyOf(instant: Date, zone = householdZone()): DayKey {
+  const p = localParts(instant, zone);
+  const key = makeDayKey(p.year, p.month, p.day);
+  return p.hour < dayStartHour() ? addDays(key, -1) : key;
+}
+
+/** The plain calendar date of an instant, ignoring the day boundary. */
+export function calendarDayOf(instant: Date, zone = householdZone()): DayKey {
   const p = localParts(instant, zone);
   return makeDayKey(p.year, p.month, p.day);
 }
@@ -344,7 +413,8 @@ export function dayOfYear(key: DayKey): number {
 // ---------------------------------------------------------------------------
 
 /**
- * The instant at which `key` begins in the household zone: local midnight.
+ * The instant at which `key` begins in the household zone: local
+ * dayStartHour(), 04:00 by default.
  *
  * Offsets are sampled a day either side of the target so the night of a
  * transition is covered, and each candidate is checked against the wall
@@ -355,7 +425,8 @@ export function dayOfYear(key: DayKey): number {
  */
 export function startOfDay(key: DayKey, zone = householdZone()): Date {
   const { year, month, day } = parseDayKey(key);
-  const wall = Date.UTC(year, month - 1, day, 0, 0, 0);
+  const startHour = dayStartHour();
+  const wall = Date.UTC(year, month - 1, day, startHour, 0, 0);
   const offsets = new Set<number>();
   for (const probe of [wall - 86_400_000, wall, wall + 86_400_000]) {
     offsets.add(offsetAt(new Date(probe), zone));
@@ -366,7 +437,7 @@ export function startOfDay(key: DayKey, zone = householdZone()): Date {
     const t = wall - o;
     const p = localParts(new Date(t), zone);
     const onDay = makeDayKey(p.year, p.month, p.day) === key;
-    if (onDay && p.hour === 0 && p.minute === 0) {
+    if (onDay && p.hour === startHour && p.minute === 0) {
       exact = exact === null ? t : Math.min(exact, t);
     } else if (onDay) {
       sameDay = sameDay === null ? t : Math.min(sameDay, t);

@@ -69,6 +69,7 @@ constraints. The ones you cannot skip:
 | `LIFEOS_HOUSEHOLD_CODE` | Gates profile switching. Unset means nobody can pick a profile. |
 | `LIFEOS_PROFILES` | JSON array of the people this install knows about. |
 | `LIFEOS_TIMEZONE` | Which calendar a day is filed under. Defaults to `America/Chicago`. |
+| `LIFEOS_DAY_START` | The hour a day begins, so a late entry files under the right day. Defaults to `4`. |
 
 Two of those fail closed by design. With no household code, `/pick-profile` and
 the switch endpoint stay shut. With no profile list, the picker shows nobody and
@@ -92,6 +93,12 @@ and the morning and evening of one night landed on two different rows. Day
 arithmetic runs on `YYYY-MM-DD` keys rather than timestamps, which makes the
 23-hour and 25-hour days of a daylight-saving change invisible to it.
 `docs/timezone.md` has the full audit and the reasoning.
+
+A day runs from 04:00 to 04:00, not midnight to midnight, because an evening
+shutdown written at 00:30 means the day that just ended. `LIFEOS_DAY_START`
+moves it. Only the boundary shifts: the clock on screen stays honest, so at
+00:30 the greeting still says you are up late while the sheet still carries
+yesterday's date.
 
 If you add anything that touches a date, route it through that module rather
 than calling `new Date()` or date-fns directly. `scripts/check-time.mjs` is the

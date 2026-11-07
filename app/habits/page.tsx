@@ -1,5 +1,6 @@
 import { and, eq, inArray } from "drizzle-orm";
-import { formatDay, lastNDays, todayKey } from "@/lib/time/day";
+import { dayKeyOf, formatDay, lastNDays, todayKey } from "@/lib/time/day";
+import { keptIn } from "@/lib/habits/cadence";
 import { db } from "@/lib/db";
 import {
   lifeosHabits,
@@ -58,9 +59,13 @@ export default async function HabitsPage() {
     label: formatDay(d, "EEEEEE"), // Mo, Tu, We
   }));
 
+  const windowKeys = days.map((d) => d.date);
+
   const habitsWithCompletions = habits.map((h) => {
     const dates = datesByHabit.get(h.id) ?? [];
     const set = new Set(dates);
+    // A habit cannot have missed a day it did not exist for.
+    const since = h.createdAt ? dayKeyOf(h.createdAt) : null;
     return {
       id: h.id,
       name: h.name,
@@ -68,6 +73,7 @@ export default async function HabitsPage() {
       description: h.description,
       last7Days: days.map((d) => ({ ...d, done: set.has(d.date) })),
       pressings: marks ? pressingsFor(dates, h.cadence) : null,
+      kept: keptIn(h.cadence, since, windowKeys, set),
     };
   });
 

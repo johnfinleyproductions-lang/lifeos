@@ -43,6 +43,9 @@ const quarter = await import("../lib/quests/quarter.ts");
 const {
   addDays,
   dayKeyOf,
+  calendarDayOf,
+  beforeDayStart,
+  dayStartHour,
   dayOfYear,
   daysBetween,
   endOfDay,
@@ -77,8 +80,13 @@ const chicagoEvening = new Date("2026-11-07T19:00:00-06:00"); // 01:00Z on the 8
 check("19:00 Chicago is the 7th", dayKeyOf(chicagoEvening), "2026-11-07");
 check("23:30 Chicago is still the 7th", dayKeyOf(new Date("2026-11-07T23:30:00-06:00")), "2026-11-07");
 check("23:59:59 Chicago is still the 7th", dayKeyOf(new Date("2026-11-07T23:59:59-06:00")), "2026-11-07");
-check("00:00 Chicago is the 8th", dayKeyOf(new Date("2026-11-08T00:00:00-06:00")), "2026-11-08");
-check("00:30 Chicago is the 8th (midnight boundary, no rollover offset)", dayKeyOf(new Date("2026-11-08T00:30:00-06:00")), "2026-11-08");
+check("00:00 Chicago still belongs to the 7th", dayKeyOf(new Date("2026-11-08T00:00:00-06:00")), "2026-11-07");
+check("00:30 Chicago still belongs to the 7th", dayKeyOf(new Date("2026-11-08T00:30:00-06:00")), "2026-11-07");
+check("03:59 Chicago is still the day before", dayKeyOf(new Date("2026-11-08T03:59:59-06:00")), "2026-11-07");
+check("04:00 Chicago starts the new day", dayKeyOf(new Date("2026-11-08T04:00:00-06:00")), "2026-11-08");
+check("calendarDayOf ignores the boundary", calendarDayOf(new Date("2026-11-08T00:30:00-06:00")), "2026-11-08");
+check("beforeDayStart at 00:30", beforeDayStart(new Date("2026-11-08T00:30:00-06:00")), true);
+check("beforeDayStart at 09:00", beforeDayStart(new Date("2026-11-08T09:00:00-06:00")), false);
 check("06:00 Chicago morning is the 7th", dayKeyOf(new Date("2026-11-07T06:00:00-06:00")), "2026-11-07");
 
 // What the old code did: date-fns format() in the process zone.
@@ -91,31 +99,39 @@ check("06:00 Chicago morning is the 7th", dayKeyOf(new Date("2026-11-07T06:00:00
 }
 
 // --- fall back: 1 Nov 2026, 02:00 CDT -> 01:00 CST, 25-hour day -----------
-check("fall-back day has 25 hours", hoursInDay("2026-11-01"), 25);
-check("fall-back day starts at 05:00Z (CDT)", startOfDay("2026-11-01").toISOString(), "2026-11-01T05:00:00.000Z");
-check("day after fall-back starts at 06:00Z (CST)", startOfDay("2026-11-02").toISOString(), "2026-11-02T06:00:00.000Z");
+// The transition is at 02:00, which sits inside the household day that
+// began at 04:00 on 31 Oct, so that is the 25-hour day now, not 1 Nov.
+check("fall-back: 31 Oct is the 25-hour day", hoursInDay("2026-10-31"), 25);
+check("fall-back: 1 Nov is an ordinary 24", hoursInDay("2026-11-01"), 24);
+check("fall-back day starts 04:00 CST = 10:00Z", startOfDay("2026-11-01").toISOString(), "2026-11-01T10:00:00.000Z");
+check("day after fall-back starts 04:00 CST = 10:00Z", startOfDay("2026-11-02").toISOString(), "2026-11-02T10:00:00.000Z");
 check("endOfDay(11-01) == startOfDay(11-02)", endOfDay("2026-11-01").getTime(), startOfDay("2026-11-02").getTime());
-check("01:30 CDT (first time) is 11-01", dayKeyOf(new Date("2026-11-01T06:30:00Z")), "2026-11-01");
-check("01:30 CST (second time) is 11-01", dayKeyOf(new Date("2026-11-01T07:30:00Z")), "2026-11-01");
+check("01:30 CDT (first time) belongs to 10-31", dayKeyOf(new Date("2026-11-01T06:30:00Z")), "2026-10-31");
+check("01:30 CST (second time) belongs to 10-31", dayKeyOf(new Date("2026-11-01T07:30:00Z")), "2026-10-31");
+check("04:00 CST on 11-01 starts 11-01", dayKeyOf(new Date("2026-11-01T10:00:00Z")), "2026-11-01");
 check("local hour at 06:59:59Z is 1", localParts(new Date("2026-11-01T06:59:59Z")).hour, 1);
 check("local hour at 07:00:00Z is 1 again", localParts(new Date("2026-11-01T07:00:00Z")).hour, 1);
 check("23:59 CST on 11-01 is still 11-01", dayKeyOf(new Date("2026-11-02T05:59:00Z")), "2026-11-01");
-check("00:00 CST on 11-02 is 11-02", dayKeyOf(new Date("2026-11-02T06:00:00Z")), "2026-11-02");
+check("00:00 CST on 11-02 belongs to 11-01", dayKeyOf(new Date("2026-11-02T06:00:00Z")), "2026-11-01");
 check("evening of 11-01 (19:00 CST = 01:00Z next day) is 11-01", dayKeyOf(new Date("2026-11-02T01:00:00Z")), "2026-11-01");
 
 // --- spring forward: 8 Mar 2026, 02:00 CST -> 03:00 CDT, 23-hour day ------
-check("spring-forward day has 23 hours", hoursInDay("2026-03-08"), 23);
-check("spring-forward day starts at 06:00Z (CST)", startOfDay("2026-03-08").toISOString(), "2026-03-08T06:00:00.000Z");
-check("day after spring-forward starts at 05:00Z (CDT)", startOfDay("2026-03-09").toISOString(), "2026-03-09T05:00:00.000Z");
+// 02:00 on 8 Mar sits inside the household day that began at 04:00 on the
+// 7th, so the 23-hour day is the 7th.
+check("spring-forward: 7 Mar is the 23-hour day", hoursInDay("2026-03-07"), 23);
+check("spring-forward: 8 Mar is an ordinary 24", hoursInDay("2026-03-08"), 24);
+check("spring-forward day starts 04:00 CDT = 09:00Z", startOfDay("2026-03-08").toISOString(), "2026-03-08T09:00:00.000Z");
+check("day after spring-forward starts 04:00 CDT = 09:00Z", startOfDay("2026-03-09").toISOString(), "2026-03-09T09:00:00.000Z");
 check("01:59:59 CST is hour 1", localParts(new Date("2026-03-08T07:59:59Z")).hour, 1);
 check("the next second is 03:00 CDT", localParts(new Date("2026-03-08T08:00:00Z")).hour, 3);
 check("23:30 CDT on 03-08 is 03-08", dayKeyOf(new Date("2026-03-09T04:30:00Z")), "2026-03-08");
-check("00:30 CDT on 03-09 is 03-09", dayKeyOf(new Date("2026-03-09T05:30:00Z")), "2026-03-09");
+check("00:30 CDT on 03-09 belongs to 03-08", dayKeyOf(new Date("2026-03-09T05:30:00Z")), "2026-03-08");
+check("03:30 CDT on 03-08 belongs to 03-07", dayKeyOf(new Date("2026-03-08T08:30:00Z")), "2026-03-07");
 
 // --- ordinary days are 24h ----------------------------------------------
 check("an ordinary day has 24 hours", hoursInDay("2026-11-07"), 24);
-check("ordinary start", startOfDay("2026-11-07").toISOString(), "2026-11-07T06:00:00.000Z");
-check("summer start", startOfDay("2026-07-04").toISOString(), "2026-07-04T05:00:00.000Z");
+check("ordinary start is 04:00 CST", startOfDay("2026-11-07").toISOString(), "2026-11-07T10:00:00.000Z");
+check("summer start is 04:00 CDT", startOfDay("2026-07-04").toISOString(), "2026-07-04T09:00:00.000Z");
 
 // --- day-key arithmetic across the transitions -------------------------
 check("addDays across fall-back", addDays("2026-10-31", 1), "2026-11-01");
@@ -194,5 +210,31 @@ check("valid zone", isValidTimeZone("Europe/London"), true);
 check("invalid zone", isValidTimeZone("Mars/Olympus_Mons"), false);
 check("empty zone", isValidTimeZone(""), false);
 check("fixed offsets are not zones", isValidTimeZone("UTC-6"), false);
+
+
+// ---------------------------------------------------------------------------
+// Habit cadence: the denominators the review found lying
+// ---------------------------------------------------------------------------
+{
+  const { keptIn, keptLine } = await import("@/lib/habits/cadence.ts");
+  const w = lastNDays(7, "2026-11-07"); // Sun 1 Nov .. Sat 7 Nov
+  const line = (cadence, since, done) =>
+    keptLine(cadence, keptIn(cadence, since, w, new Set(done)));
+
+  // Was "weekly, 1 of the last 7", which reads as failure at the target.
+  check("weekly kept once reads as kept", line("weekly", null, ["2026-11-04"]), "weekly, kept");
+  check("weekly not yet kept", line("weekly", null, []), "weekly, 0 of 1 week");
+  // Was "5 of the last 7" for a perfect week.
+  check("weekdays perfect week", line("weekdays", null,
+    ["2026-11-02","2026-11-03","2026-11-04","2026-11-05","2026-11-06"]), "weekdays, 5 of 5");
+  check("weekdays missed one", line("weekdays", null,
+    ["2026-11-02","2026-11-03","2026-11-04","2026-11-05"]), "weekdays, 4 of 5");
+  check("daily perfect week", line("daily", null, w), "daily, 7 of 7");
+  // Was 14%: the six days before the habit existed counted as misses.
+  check("created today and struck", line("daily", "2026-11-07", ["2026-11-07"]), "daily, 1 of 1");
+  check("created today, not struck", line("daily", "2026-11-07", []), "daily, 0 of 1");
+  check("nothing due yet shows no fraction", line("daily", "2026-11-08", []), "daily");
+  check("weekdays created on a Saturday has nothing due", line("weekdays", "2026-11-07", []), "weekdays");
+}
 
 console.log(`${n} checks, ${process.exitCode ? "FAILURES" : "all passed"}`);

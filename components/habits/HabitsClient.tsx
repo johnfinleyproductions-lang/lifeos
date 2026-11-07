@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { format, parseISO } from "date-fns";
+import { formatDay } from "@/lib/time/day";
+import { keptLine, type Kept } from "@/lib/habits/cadence";
 import { Watermark } from "@/components/field/Watermark";
 
 type DayState = {
@@ -26,6 +27,8 @@ type Habit = {
   last7Days: DayState[];
   /** the specimen label; null when field marks are hidden in Settings */
   pressings: Pressings | null;
+  /** occasions due in the window and how many were kept, by cadence */
+  kept: Kept;
 };
 
 /**
@@ -36,7 +39,7 @@ type Habit = {
 function labelFor(p: Pressings): string {
   if (p.count === 0) return "Not pressed yet";
   const first = p.first
-    ? `first on ${format(parseISO(p.first), "d MMM yyyy")}`
+    ? `first on ${formatDay(p.first, "d MMM yyyy")}`
     : null;
   const run =
     p.longestRun > 1
@@ -134,7 +137,6 @@ export function HabitsClient({ habits }: { habits: Habit[] }) {
 
       {habits.map((h) => {
         const todayDone = h.last7Days[h.last7Days.length - 1].done;
-        const streakCount = h.last7Days.filter((d) => d.done).length;
         return (
           <div key={h.id} className="sheet">
             <div className="flex items-center justify-between gap-4 mb-4">
@@ -146,7 +148,7 @@ export function HabitsClient({ habits }: { habits: Habit[] }) {
                   {h.name}
                 </div>
                 <div className="lbl mt-1">
-                  {h.cadence}, {streakCount} of the last 7
+                  {keptLine(h.cadence, h.kept)}
                 </div>
                 {h.pressings && (
                   <div className="lbl mt-0.5 tabular-nums">
