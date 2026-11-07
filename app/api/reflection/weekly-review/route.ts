@@ -3,7 +3,6 @@ import { format } from "date-fns";
 import { db } from "@/lib/db";
 import { lifeosProtocolRuns } from "@/lib/db/schema/lifeos";
 import { requireApiUser } from "@/lib/auth/server-helpers";
-import { requireActiveWorkspaceId } from "@/lib/workspace/active";
 import { weeklyReviewPayloadSchema } from "@/lib/reflection/weekly-review-schema";
 
 /**
@@ -32,14 +31,12 @@ export async function POST(request: Request) {
     );
   }
 
-  const workspaceId = await requireActiveWorkspaceId(user.id);
   const today = format(new Date(), "yyyy-MM-dd");
 
   const [run] = await db
     .insert(lifeosProtocolRuns)
     .values({
       userId: user.id,
-      workspaceId,
       slug: "weekly_review",
       runDate: today,
       payload: parsed.data,

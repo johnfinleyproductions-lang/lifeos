@@ -27,7 +27,9 @@ export const lifeosHabits = pgTable(
       .primaryKey()
       .default(sql`gen_random_uuid()`),
     userId: uuid("user_id").notNull(),
-    workspaceId: uuid("workspace_id").notNull(),
+    // Written by nobody since Phase 2. Kept, nullable, because
+    // existing rows carry a real value worth not throwing away.
+    workspaceId: uuid("workspace_id"),
     name: text("name").notNull(),
     cadence: text("cadence").notNull().default("daily"),
     description: text("description"),

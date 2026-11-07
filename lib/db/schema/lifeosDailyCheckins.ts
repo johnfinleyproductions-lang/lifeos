@@ -28,7 +28,9 @@ export const lifeosDailyCheckins = pgTable(
     id: uuid("id")
       .primaryKey()
       .default(sql`gen_random_uuid()`),
-    workspaceId: uuid("workspace_id").notNull(),
+    // Written by nobody since Phase 2. Kept, nullable, because
+    // existing rows carry a real value worth not throwing away.
+    workspaceId: uuid("workspace_id"),
     userId: uuid("user_id").notNull(),
     entryDate: date("entry_date").notNull(),
     morning: jsonb("morning"),
@@ -48,10 +50,6 @@ export const lifeosDailyCheckins = pgTable(
     ),
     userDateIdx: index("idx_lifeos_checkins_user_date").on(
       table.userId,
-      table.entryDate,
-    ),
-    workspaceDateIdx: index("idx_lifeos_checkins_workspace_date").on(
-      table.workspaceId,
       table.entryDate,
     ),
   }),

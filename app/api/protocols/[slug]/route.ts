@@ -6,7 +6,6 @@ import {
   lifeosConfidenceEntries,
 } from "@/lib/db/schema/lifeos";
 import { requireApiUser } from "@/lib/auth/server-helpers";
-import { requireActiveWorkspaceId } from "@/lib/workspace/active";
 import { protocolRunSchema } from "@/lib/protocols/schema";
 import { getProtocol } from "@/lib/protocols/definitions";
 
@@ -45,14 +44,12 @@ export async function POST(
     );
   }
 
-  const workspaceId = await requireActiveWorkspaceId(user.id);
   const today = format(new Date(), "yyyy-MM-dd");
 
   const [run] = await db
     .insert(lifeosProtocolRuns)
     .values({
       userId: user.id,
-      workspaceId,
       slug,
       runDate: today,
       payload: parsed.data.payload,
@@ -65,7 +62,6 @@ export async function POST(
   if (slug === "daily_confidence" && parsed.data.payload.proof?.trim()) {
     await db.insert(lifeosConfidenceEntries).values({
       userId: user.id,
-      workspaceId,
       kind: "auto_protocol",
       source: run.id,
       title: "Daily Confidence",

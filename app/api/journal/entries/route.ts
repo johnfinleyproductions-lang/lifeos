@@ -3,7 +3,6 @@ import { format } from "date-fns";
 import { db } from "@/lib/db";
 import { lifeosJournalEntries } from "@/lib/db/schema/lifeos";
 import { requireApiUser } from "@/lib/auth/server-helpers";
-import { requireActiveWorkspaceId } from "@/lib/workspace/active";
 import { createJournalEntrySchema } from "@/lib/journal/schema";
 
 /**
@@ -31,14 +30,12 @@ export async function POST(request: Request) {
     );
   }
 
-  const workspaceId = await requireActiveWorkspaceId(user.id);
   const today = format(new Date(), "yyyy-MM-dd");
 
   const [created] = await db
     .insert(lifeosJournalEntries)
     .values({
       userId: user.id,
-      workspaceId,
       entryDate: parsed.data.entryDate ?? today,
       mode: parsed.data.mode,
       body: parsed.data.body,

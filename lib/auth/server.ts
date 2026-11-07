@@ -17,7 +17,6 @@ import { nextCookies } from "better-auth/next-js";
 import { magicLink } from "better-auth/plugins";
 import { db } from "@/lib/db";
 import * as dbSchema from "@/lib/db/schema";
-import { ensureWorkspaceForUser } from "@/lib/db/workspace/auto-create";
 import { sendAuthEmail } from "./email";
 
 if (!process.env.BETTER_AUTH_SECRET) {
@@ -94,23 +93,6 @@ export const auth = betterAuth({
       },
     }),
   ],
-  databaseHooks: {
-    user: {
-      create: {
-        after: async (user) => {
-          // Auto-provision a workspace + ownership row for every new user.
-          // Idempotent — won't double-create if hook fires twice.
-          try {
-            await ensureWorkspaceForUser(user);
-          } catch (e) {
-            // Don't fail the sign-up over a workspace error — log and continue.
-            // User can be assigned a workspace manually later if needed.
-            console.error("ensureWorkspaceForUser failed:", e);
-          }
-        },
-      },
-    },
-  },
 });
 
 export type AuthInstance = typeof auth;

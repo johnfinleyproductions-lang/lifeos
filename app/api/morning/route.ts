@@ -4,7 +4,6 @@ import { format } from "date-fns";
 import { db } from "@/lib/db";
 import { lifeosDailyCheckins } from "@/lib/db/schema/lifeos";
 import { requireApiUser } from "@/lib/auth/server-helpers";
-import { requireActiveWorkspaceId } from "@/lib/workspace/active";
 import { morningManifestoSchema } from "@/lib/manifesto/schema";
 
 /**
@@ -33,7 +32,6 @@ export async function POST(request: Request) {
     );
   }
 
-  const workspaceId = await requireActiveWorkspaceId(user.id);
   const today = format(new Date(), "yyyy-MM-dd");
 
   const existing = await db
@@ -60,7 +58,6 @@ export async function POST(request: Request) {
 
   await db.insert(lifeosDailyCheckins).values({
     userId: user.id,
-    workspaceId,
     entryDate: today,
     morning: parsed.data,
   });

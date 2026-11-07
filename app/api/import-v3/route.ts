@@ -3,7 +3,6 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { lifeosDailyCheckins } from "@/lib/db/schema/lifeos";
 import { requireApiUser } from "@/lib/auth/server-helpers";
-import { requireActiveWorkspaceId } from "@/lib/workspace/active";
 import { v3ImportSchema } from "@/lib/manifesto/v3-import-schema";
 
 /**
@@ -36,7 +35,6 @@ export async function POST(request: Request) {
     );
   }
 
-  const workspaceId = await requireActiveWorkspaceId(user.id);
 
   let imported = 0;
   let updated = 0;
@@ -78,7 +76,6 @@ export async function POST(request: Request) {
       } else {
         await db.insert(lifeosDailyCheckins).values({
           userId: user.id,
-          workspaceId,
           entryDate: entry.date,
           morning: entry.morning ?? null,
           evening: entry.evening ?? null,

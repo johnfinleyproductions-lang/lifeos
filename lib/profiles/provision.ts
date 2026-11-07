@@ -1,7 +1,6 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { authUsers } from "@/lib/db/schema/auth";
-import { ensureWorkspaceForUser } from "@/lib/db/workspace/auto-create";
 import type { ProfileConfig } from "./config";
 
 /**
@@ -28,12 +27,7 @@ export async function findOrCreateUserForProfile(
     .limit(1);
 
   if (existing.length > 0) {
-    const userId = existing[0].id;
-    // Make sure they have a workspace too.
-    await ensureWorkspaceForUser({ id: userId, name: profile.name }).catch(
-      (e) => console.error("ensureWorkspaceForUser failed:", e),
-    );
-    return userId;
+    return existing[0].id;
   }
 
   // 2. Create a new user.
@@ -45,12 +39,6 @@ export async function findOrCreateUserForProfile(
       emailVerified: true,
     })
     .returning({ id: authUsers.id });
-
-  // 3. Auto-provision their workspace.
-  await ensureWorkspaceForUser({
-    id: created.id,
-    name: profile.name,
-  }).catch((e) => console.error("ensureWorkspaceForUser failed:", e));
 
   return created.id;
 }

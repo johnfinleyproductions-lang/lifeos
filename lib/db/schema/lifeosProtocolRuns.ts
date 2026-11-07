@@ -27,7 +27,9 @@ export const lifeosProtocolRuns = pgTable(
       .primaryKey()
       .default(sql`gen_random_uuid()`),
     userId: uuid("user_id").notNull(),
-    workspaceId: uuid("workspace_id").notNull(),
+    // Written by nobody since Phase 2. Kept, nullable, because
+    // existing rows carry a real value worth not throwing away.
+    workspaceId: uuid("workspace_id"),
     slug: text("slug").notNull(),
     runDate: date("run_date").notNull(),
     payload: jsonb("payload").notNull(),

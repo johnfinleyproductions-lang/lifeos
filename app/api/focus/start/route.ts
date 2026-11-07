@@ -3,7 +3,6 @@ import { and, eq, isNull } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { lifeosFocusSessions } from "@/lib/db/schema/lifeos";
 import { requireApiUser } from "@/lib/auth/server-helpers";
-import { requireActiveWorkspaceId } from "@/lib/workspace/active";
 import { startFocusSchema } from "@/lib/focus/schema";
 
 /**
@@ -48,12 +47,10 @@ export async function POST(request: Request) {
     );
   }
 
-  const workspaceId = await requireActiveWorkspaceId(user.id);
   const [created] = await db
     .insert(lifeosFocusSessions)
     .values({
       userId: user.id,
-      workspaceId,
       label: parsed.data.label,
       startedAt: new Date(),
     })

@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { lifeosHabits } from "@/lib/db/schema/lifeos";
 import { requireApiUser } from "@/lib/auth/server-helpers";
-import { requireActiveWorkspaceId } from "@/lib/workspace/active";
 import { createHabitSchema } from "@/lib/habits/schema";
 
 export async function POST(request: Request) {
@@ -24,13 +23,11 @@ export async function POST(request: Request) {
     );
   }
 
-  const workspaceId = await requireActiveWorkspaceId(user.id);
 
   const [created] = await db
     .insert(lifeosHabits)
     .values({
       userId: user.id,
-      workspaceId,
       name: parsed.data.name,
       cadence: parsed.data.cadence,
       description: parsed.data.description,

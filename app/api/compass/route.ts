@@ -3,7 +3,6 @@ import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { lifeosCompass } from "@/lib/db/schema/lifeos";
 import { requireApiUser } from "@/lib/auth/server-helpers";
-import { requireActiveWorkspaceId } from "@/lib/workspace/active";
 import { upsertCompassSchema } from "@/lib/compass/schema";
 
 /**
@@ -34,7 +33,6 @@ export async function PATCH(request: Request) {
     );
   }
 
-  const workspaceId = await requireActiveWorkspaceId(user.id);
 
   const [existing] = await db
     .select({ id: lifeosCompass.id })
@@ -58,7 +56,6 @@ export async function PATCH(request: Request) {
     .insert(lifeosCompass)
     .values({
       userId: user.id,
-      workspaceId,
       ...parsed.data,
     })
     .returning();

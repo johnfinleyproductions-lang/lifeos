@@ -38,7 +38,9 @@ export const lifeosCompass = pgTable(
       .primaryKey()
       .default(sql`gen_random_uuid()`),
     userId: uuid("user_id").notNull(),
-    workspaceId: uuid("workspace_id").notNull(),
+    // Written by nobody since Phase 2. Kept, nullable, because
+    // existing rows carry a real value worth not throwing away.
+    workspaceId: uuid("workspace_id"),
     mission: text("mission"),
     eulogy: text("eulogy"),
     successDefinition: text("success_definition"),
