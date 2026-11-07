@@ -8,10 +8,12 @@ export function ProfilePicker({
   profiles,
   activeSlug,
   locked,
+  notice = null,
 }: {
   profiles: ProfileConfig[];
   activeSlug: string | null;
   locked: boolean;
+  notice?: string | null;
 }) {
   const router = useRouter();
   const [picking, setPicking] = useState<string | null>(null);
@@ -122,6 +124,12 @@ export function ProfilePicker({
           Each profile keeps its own log. Pick yours.
         </p>
       </div>
+
+      {notice && (
+        <p className="alert" role="status">
+          {notice}
+        </p>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {profiles.map((p) => {
