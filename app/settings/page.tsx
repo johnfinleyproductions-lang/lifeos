@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireUserContext } from "@/lib/auth/server-helpers";
 import { RitualDepthToggle } from "@/components/settings/RitualDepthToggle";
+import { FieldMarksToggle } from "@/components/settings/FieldMarksToggle";
 import { PageStamp } from "@/components/PageStamp";
 
 const EC_URL =
@@ -53,6 +54,13 @@ export default async function SettingsPage() {
         subtitle="Default depth for the morning and evening wizards."
       >
         <RitualDepthToggle />
+      </Section>
+
+      <Section
+        title="Field marks"
+        subtitle="The collection's small notes around the app. Nothing here is a target, and hiding them loses nothing."
+      >
+        <FieldMarksToggle />
       </Section>
 
       <Section title="Data" subtitle="Migrate from a previous LifeOS install.">
