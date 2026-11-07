@@ -21,7 +21,13 @@ export default async function JournalPastPage() {
     .select()
     .from(lifeosJournalEntries)
     .where(eq(lifeosJournalEntries.userId, user.id))
-    .orderBy(desc(lifeosJournalEntries.createdAt))
+    // By the day the entry belongs to, then by when it was written. Ordering
+    // on created_at alone misfiled anything backdated or written after
+    // midnight. idx_lifeos_journal_user_date covers (user_id, entry_date).
+    .orderBy(
+      desc(lifeosJournalEntries.entryDate),
+      desc(lifeosJournalEntries.createdAt),
+    )
     .limit(200);
 
   // Group by entry_date for visual rhythm
@@ -40,7 +46,7 @@ export default async function JournalPastPage() {
         backHref="/journal"
         backLabel="Today's page"
         right={
-          <Link href="/journal/decisions" className="btn btn-sm btn-ghost">
+          <Link href="/journal/decisions" className="btn btn-sm btn-ghost min-h-9">
             Decisions log
           </Link>
         }

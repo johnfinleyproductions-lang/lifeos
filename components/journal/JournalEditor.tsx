@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { LENSES } from "@/lib/journal/lenses";
+import { LENSES, getLens } from "@/lib/journal/lenses";
 import {
   type JournalMode,
   type DecisionCategory,
@@ -11,31 +11,60 @@ import {
 } from "@/lib/journal/schema";
 import { VoiceButton } from "@/components/voice/VoiceButton";
 
-const MODE_OPTIONS: {
-  key: JournalMode;
-  label: string;
-  blurb: string;
-}[] = [
-  { key: "stream", label: "Stream", blurb: "Free-form. Write to feel." },
+/**
+ * Two ways to write. Framework is the default: one lens already chosen,
+ * its question printed above the page, so there is never a blank sheet
+ * to stare down. Stream is one tap away and keeps the question as a
+ * placeholder; "talk to future you" is a chip inside Stream, since it was
+ * only ever a Stream entry with a template placeholder.
+ */
+type Surface = "framework" | "stream";
+
+const SURFACES: { key: Surface; label: string; blurb: string }[] = [
   {
     key: "framework",
     label: "Framework",
-    blurb: "Pick a lens. Write to decide.",
+    blurb: "The day's lens. Write to decide.",
   },
-  { key: "conversation", label: "Conversation", blurb: "Talk to future you." },
+  { key: "stream", label: "Stream", blurb: "Free-form. Write to feel." },
 ];
 
-const STREAM_PLACEHOLDER = "Dear universe,";
 const CONVERSATION_PLACEHOLDER = `Me, today:
 
 Me, at eighty:
 `;
 
-export function JournalEditor() {
+const MODE_LABEL: Record<string, string> = {
+  stream: "Stream",
+  framework: "Framework",
+  conversation: "Conversation",
+};
+
+export type TodayEntry = {
+  id: string;
+  mode: string;
+  body: string;
+  frameworkLens: string | null;
+  isDecision: boolean;
+  decisionSummary: string | null;
+  decisionDoor: string | null;
+  /** Already formatted in the household zone, e.g. "7:42 AM". */
+  time: string;
+};
+
+type Props = {
+  dailyLensKey: string;
+  todayEntries?: TodayEntry[];
+};
+
+export function JournalEditor({ dailyLensKey, todayEntries = [] }: Props) {
   const router = useRouter();
-  const [mode, setMode] = useState<JournalMode>("stream");
+  const dailyLens = getLens(dailyLensKey) ?? LENSES[0];
+
+  const [surface, setSurface] = useState<Surface>("framework");
+  const [conversation, setConversation] = useState(false);
+  const [lensKey, setLensKey] = useState<string>(dailyLens.key);
   const [body, setBody] = useState("");
-  const [lensKey, setLensKey] = useState<string | null>(null);
   const [isDecision, setIsDecision] = useState(false);
   const [decisionSummary, setDecisionSummary] = useState("");
   const [decisionCategory, setDecisionCategory] = useState<
@@ -46,18 +75,22 @@ export function JournalEditor() {
   const [error, setError] = useState<string | null>(null);
   const [savedFlash, setSavedFlash] = useState(false);
 
-  const lens = lensKey ? LENSES.find((l) => l.key === lensKey) : null;
+  const lens = getLens(lensKey) ?? dailyLens;
+  const mode: JournalMode =
+    surface === "framework"
+      ? "framework"
+      : conversation
+        ? "conversation"
+        : "stream";
 
   function placeholder() {
-    if (mode === "stream") return STREAM_PLACEHOLDER;
     if (mode === "conversation") return CONVERSATION_PLACEHOLDER;
-    if (mode === "framework" && lens) return `Write under: ${lens.prompt}`;
-    return "Pick a lens above.";
+    if (mode === "stream") return dailyLens.prompt;
+    return "Write under the question.";
   }
 
   const canSave =
     body.trim().length > 0 &&
-    (mode !== "framework" || Boolean(lensKey)) &&
     (!isDecision ||
       (decisionSummary.trim().length > 0 && decisionCategory && decisionDoor));
 
@@ -72,7 +105,7 @@ export function JournalEditor() {
         body: JSON.stringify({
           mode,
           body: body.trim(),
-          frameworkLens: mode === "framework" ? lensKey : undefined,
+          frameworkLens: mode === "framework" ? lens.key : undefined,
           isDecision,
           decisionSummary: isDecision ? decisionSummary.trim() : undefined,
           decisionCategory: isDecision ? decisionCategory : undefined,
@@ -83,16 +116,15 @@ export function JournalEditor() {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error ?? "Failed to save");
       }
-      // Reset for the next entry. Don't redirect — staying in the editor
-      // matches journaling rhythm (often write a few in one sitting).
+      // Clear for the next entry. The saved words reappear under the page
+      // once the server re-renders today's list.
       setBody("");
       setIsDecision(false);
       setDecisionSummary("");
       setDecisionCategory("");
       setDecisionDoor("");
-      if (mode !== "framework") setLensKey(null);
       setSavedFlash(true);
-      setTimeout(() => setSavedFlash(false), 1500);
+      setTimeout(() => setSavedFlash(false), 2500);
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to save");
@@ -105,15 +137,15 @@ export function JournalEditor() {
 
   return (
     <div className="space-y-5">
-      {/* Mode: three hard keys, the pressed one filled. */}
-      <div className="grid grid-cols-3 gap-2" role="group" aria-label="Mode">
-        {MODE_OPTIONS.map((opt) => {
-          const on = mode === opt.key;
+      {/* Surface: two hard keys, the pressed one filled. */}
+      <div className="grid grid-cols-2 gap-2" role="group" aria-label="Mode">
+        {SURFACES.map((opt) => {
+          const on = surface === opt.key;
           return (
             <button
               key={opt.key}
               type="button"
-              onClick={() => setMode(opt.key)}
+              onClick={() => setSurface(opt.key)}
               aria-pressed={on}
               className={`text-left px-3.5 py-3 border-[1.5px] border-ink-50 ${
                 on
@@ -139,12 +171,17 @@ export function JournalEditor() {
         })}
       </div>
 
-      {/* Lens picker, framework mode only */}
-      {mode === "framework" && (
+      {/* Lens picker. The day's lens is pre-pressed; any other is a tap away. */}
+      {surface === "framework" && (
         <section>
           <div className="tab-row">
             <span className="tab">Lens</span>
             <span className="fill" />
+            <span className="text-[11.5px] text-ink-400">
+              {lens.key === dailyLens.key
+                ? "today's lens"
+                : `today's is ${dailyLens.title}`}
+            </span>
           </div>
           <div className="sheet">
             <div className="flex flex-wrap gap-1.5">
@@ -154,36 +191,68 @@ export function JournalEditor() {
                   type="button"
                   onClick={() => setLensKey(l.key)}
                   aria-pressed={lensKey === l.key}
-                  className="chip"
+                  className="chip min-h-9"
                 >
                   {l.title}
+                  {l.key === dailyLens.key && (
+                    <span
+                      aria-hidden="true"
+                      className="inline-block w-[7px] h-[7px] bg-accent-spot"
+                    />
+                  )}
                 </button>
               ))}
             </div>
-            {lens && (
-              <div className="mt-4 pt-4 border-t-[1.5px] border-ink-500">
-                <div className="t-h2">{lens.prompt}</div>
-                <div className="text-[13px] text-ink-300 mt-1.5">
-                  {lens.description}
-                </div>
-              </div>
-            )}
           </div>
         </section>
       )}
 
+      {/* Stream's one chip: the letter to future you. */}
+      {surface === "stream" && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={() => setConversation((c) => !c)}
+            aria-pressed={conversation}
+            className="chip min-h-9"
+          >
+            Talk to future you
+          </button>
+          <span className="text-[12px] text-ink-400">
+            {conversation
+              ? "Two voices on the page, taking turns."
+              : "Or just write. The question is there if you want it."}
+          </span>
+        </div>
+      )}
+
       {/* The page. The user's writing, so the serif, with the sheet as the
-          frame and the misregistration as the focus state. */}
+          frame and the misregistration as the focus state. The question is
+          printed above the writing, part of the page, not a placeholder. */}
       <div className="sheet sheet-hi focus-within:shadow-mis">
+        {surface === "framework" && (
+          <div className="mb-4 pb-4 border-b-[1.5px] border-ink-500">
+            <label
+              htmlFor="journal-page"
+              className="block font-serif text-[clamp(20px,2.6vw,26px)] leading-[1.25] tracking-[-0.01em] text-balance"
+            >
+              {lens.prompt}
+            </label>
+            <div className="text-[13px] text-ink-300 mt-1.5">
+              {lens.description}
+            </div>
+          </div>
+        )}
         <textarea
+          id="journal-page"
           value={body}
           onChange={(e) => setBody(e.target.value)}
           placeholder={placeholder()}
-          rows={mode === "stream" ? 16 : 12}
+          rows={surface === "stream" ? 16 : 12}
           maxLength={20000}
-          aria-label="Entry"
+          aria-label={surface === "framework" ? undefined : "Entry"}
           className={`w-full bg-transparent border-0 p-0 outline-none resize-none font-serif text-ink-100 placeholder:text-ink-400 placeholder:italic ${
-            mode === "framework"
+            surface === "framework"
               ? "text-[17px] leading-[1.6]"
               : "text-[19px] leading-[1.6]"
           }`}
@@ -199,7 +268,7 @@ export function JournalEditor() {
                 style={{ fontVariationSettings: "'wght' 700" }}
                 role="status"
               >
-                Saved
+                Saved, below
               </span>
             )}
             <VoiceButton
@@ -214,10 +283,10 @@ export function JournalEditor() {
 
       {/* Decision tagging */}
       <div className="sheet">
-        <label className="flex items-center gap-3 cursor-pointer">
+        <label className="flex items-center gap-3 cursor-pointer min-h-9">
           <input
             type="checkbox"
-            className="ck"
+            className="ck w-9 h-9 [flex:0_0_36px] checked:after:left-[12px] checked:after:top-[15px] checked:after:w-[14px] checked:after:h-[7px] checked:after:border-b-[3px] checked:after:border-l-[3px]"
             checked={isDecision}
             onChange={() => setIsDecision(!isDecision)}
           />
@@ -243,6 +312,7 @@ export function JournalEditor() {
               value={decisionSummary}
               onChange={(e) => setDecisionSummary(e.target.value)}
               placeholder="One line: what was decided"
+              aria-label="What was decided"
               maxLength={280}
               className="inp"
             />
@@ -260,7 +330,7 @@ export function JournalEditor() {
                     type="button"
                     onClick={() => setDecisionCategory(key)}
                     aria-pressed={decisionCategory === key}
-                    className="chip"
+                    className="chip min-h-9"
                   >
                     {label}
                   </button>
@@ -333,6 +403,70 @@ export function JournalEditor() {
           {submitting ? "Saving" : "Save entry"}
         </button>
       </div>
+
+      {/* Today, under the page: what has been written so far. */}
+      <section className="pt-2">
+        <div className="tab-row">
+          <span className="tab">Today</span>
+          <span className="fill" />
+          <span className="text-[11.5px] text-ink-400 tabular-nums">
+            {todayEntries.length === 0
+              ? "nothing yet"
+              : `${todayEntries.length} ${todayEntries.length === 1 ? "entry" : "entries"}`}
+          </span>
+        </div>
+        {todayEntries.length === 0 ? (
+          <p className="text-[13.5px] text-ink-400 italic m-0">
+            What you save stays here for the rest of the day, then files into
+            Past entries.
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {todayEntries.map((e) => {
+              const l = e.frameworkLens ? getLens(e.frameworkLens) : null;
+              const meta = [
+                MODE_LABEL[e.mode] ?? e.mode,
+                l?.title,
+                e.isDecision ? "decision" : null,
+              ].filter(Boolean);
+              return (
+                <article key={e.id} className="sheet">
+                  <div className="flex items-baseline justify-between gap-3 mb-3">
+                    <div className="lbl">{meta.join(", ")}</div>
+                    <span className="text-[11.5px] text-ink-400 tabular-nums shrink-0">
+                      {e.time}
+                    </span>
+                  </div>
+                  {l && <div className="t-h2 mb-2">{l.prompt}</div>}
+                  <div className="t-read whitespace-pre-wrap [overflow-wrap:anywhere]">
+                    {e.body}
+                  </div>
+                  {e.isDecision && e.decisionSummary && (
+                    <div className="mt-4 pt-3 border-t-[1.5px] border-ink-500 flex gap-3.5">
+                      <span
+                        className="shrink-0 w-[84px] text-[11.5px] text-ink-400 pt-[3px]"
+                        style={{
+                          fontVariationSettings: "'wdth' 100, 'wght' 680",
+                        }}
+                      >
+                        Decided
+                      </span>
+                      <span className="flex-1 font-serif text-base leading-[1.5]">
+                        {e.decisionSummary}
+                        {e.decisionDoor && (
+                          <span className="text-ink-400 text-[13px] font-sans ml-2">
+                            {e.decisionDoor.replace("_", "-")} door
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </section>
     </div>
   );
 }
