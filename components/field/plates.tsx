@@ -195,6 +195,121 @@ export const PLATES: Record<string, React.ReactNode> = {
       <circle cx="20" cy="14" r="1.6" />
     </g>
   ),
+
+  /* ---- the collection's own plates ---- */
+
+  /* a plant press, from the side: two boards, the straps round them,
+     and the leaf being flattened between */
+  press: (
+    <g {...S}>
+      <path d="M8 12h24v3H8z" />
+      <path d="M8 25h24v3H8z" />
+      <path d="M13 20.5c3-4.5 10-5.5 15-3.5-4 3.5-10 4.5-15 3.5z" />
+      <path d="M14.5 20.5c4-1.5 8-2.5 12-3" />
+      <path d="M12 9v22M28 9v22" />
+      <path d="M10.5 9h3M26.5 9h3M10.5 31h3M26.5 31h3" />
+    </g>
+  ),
+
+  /* a disc, dawn on one side and dusk hatched on the other: a day with
+     both ends logged */
+  disc: (
+    <g {...S}>
+      <circle cx="20" cy="21" r="10" />
+      <path d="M20 11c-1.6 4-1.6 16 0 20" />
+      <path d="M22.5 13.5l5 4M22 19l7.5 5M23 25l5 4" />
+      <path d="M20 7.5V5M11 14l-2-1.5M9.5 21H7" />
+    </g>
+  ),
+
+  /* a flower head, open: a day rated alive. Seven petals, none alike. */
+  bloom: (
+    <g {...S}>
+      {[0, 49, 105, 154, 206, 258, 309].map((a, i) => (
+        <path
+          key={i}
+          d="M20 16.5c-2.2-3.5-1.4-8.5 0.6-9.6 2 1.2 2.6 6.3 0.6 9.6z"
+          transform={`rotate(${a} 20 19)`}
+        />
+      ))}
+      <circle cx="20" cy="19" r="2.6" />
+      <path d="M20 22v13" />
+      <path d="M20 30c-4-1-6-3-6-6 3 0 5 2 6 6z" />
+    </g>
+  ),
+
+  /* a sheaf: pressed sheets stacked and tied */
+  sheaf: (
+    <g {...S}>
+      <path d="M14 7h18v17H14z" />
+      <path d="M14 10h-3v17h18v-3" />
+      <path d="M11 13H8v17h18v-3" />
+      <path d="M23 7v17M14 15h18" />
+    </g>
+  ),
+
+  /* a tree, which is what a thousand small things add up to */
+  tree: (
+    <g {...S}>
+      <path d="M20 35V22" />
+      <path d="M20 27l-4-3.5M20 24l4.5-4" />
+      <path d="M20 22c-7 1-11-3-9-8 1-5 6-6 9-4 3-3 8-2 9 3 2 5-2 10-9 9z" />
+      <path d="M14 35h12" />
+    </g>
+  ),
+
+  /* a canvas hide with its viewing slit: hours sat with one thing */
+  hide: (
+    <g {...S}>
+      <path d="M20 8L7 32h26z" />
+      <path d="M20 8v24" />
+      <path d="M15.5 23.5h9" />
+      <path d="M14 32c1-3 2-6 3.5-8.5M26 32c-1-3-2-6-3.5-8.5" />
+      <path d="M4 33.5c10-1 22-1 32 0" />
+    </g>
+  ),
+
+  /* field glasses */
+  glasses: (
+    <g {...S}>
+      <path d="M9 15h8v14H9zM23 15h8v14h-8z" />
+      <path d="M17 20h6" />
+      <circle cx="13" cy="24" r="2" />
+      <circle cx="27" cy="24" r="2" />
+      <path d="M11 15v-3h4v3M25 15v-3h4v3" />
+    </g>
+  ),
+
+  /* a cairn: the stones left at the top */
+  cairn: (
+    <g {...S}>
+      <path d="M8 33c0-4.5 5.5-7 12.5-7S33 28.5 33 33z" />
+      <path d="M12 26c0-3.5 3.5-5.5 8-5.5s8.5 2 8.5 5.5" />
+      <path d="M16 20.5c0-2.5 2-4 4.5-4s4 1.5 4 4" />
+      <path d="M22 12.5c-1 1.5-1 3-1 4" />
+      <path d="M4 33h32" />
+    </g>
+  ),
+
+  /* a survey flag */
+  flag: (
+    <g {...S}>
+      <path d="M14 35V7" />
+      <path d="M14 8l14 4-14 4z" />
+      <path d="M10 35h8" />
+      <path d="M14 18.5l9 2.5-9 2.5" />
+    </g>
+  ),
+
+  /* a specimen cabinet, six drawers */
+  cabinet: (
+    <g {...S}>
+      <path d="M9 9h22v24H9z" />
+      <path d="M9 17h22M9 25h22" />
+      <path d="M20 9v24" />
+      <path d="M14 13h1.5M25 13h1.5M14 21h1.5M25 21h1.5M14 29h1.5M25 29h1.5" />
+    </g>
+  ),
 };
 
 /**
@@ -210,7 +325,8 @@ export function Plate({
 }: {
   name: keyof typeof PLATES | string;
   size?: number;
-  under?: string;
+  /** the second ink; null prints one pass only, for a plate not yet collected */
+  under?: string | null;
   className?: string;
 }) {
   const art = PLATES[name];
@@ -226,12 +342,14 @@ export function Plate({
       className={className}
       style={{ overflow: "visible" }}
     >
-      <g
-        transform="translate(1.6 1.6)"
-        style={{ color: `rgb(${under} / 0.55)` }}
-      >
-        {art}
-      </g>
+      {under && (
+        <g
+          transform="translate(1.6 1.6)"
+          style={{ color: `rgb(${under} / 0.55)` }}
+        >
+          {art}
+        </g>
+      )}
       {art}
     </svg>
   );
