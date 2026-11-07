@@ -114,7 +114,7 @@ export function Sidebar({ user }: { user: AppUser | null }) {
       >
         <nav className="flex-1 py-3.5" aria-label="Sections">
           {NAV.map((group) => (
-            <div key={group.label} className="mb-4">
+            <div key={group.label} className="mb-3">
               <div
                 className="text-[11px] text-ink-400 px-[18px] pb-1.5"
                 style={{ fontVariationSettings: "'wdth' 100, 'wght' 640" }}
@@ -178,7 +178,7 @@ function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
     <Link
       href={item.href}
       aria-current={active ? "page" : undefined}
-      className={`flex items-center gap-2.5 w-full px-[18px] py-[7px] text-[14.5px] border-l-[3px] ${
+      className={`flex items-center gap-2.5 w-full px-[18px] py-[6px] text-[14.5px] border-l-[3px] ${
         active
           ? "bg-ink-50 text-ink-900 border-l-accent-spot"
           : "border-l-transparent text-ink-300 hover:bg-ink-800 hover:text-ink-50"

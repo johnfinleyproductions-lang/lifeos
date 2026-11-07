@@ -13,7 +13,7 @@ const SUGGESTED_OPENERS = [
   "How's my week looking so far?",
   "What should I focus on today?",
   "Talk me through where I am on my quests.",
-  "I'm stuck on something — can I think out loud?",
+  "I'm stuck on something. Can I think out loud?",
   "What patterns do you see in my last 7 days?",
 ];
 
@@ -59,9 +59,7 @@ export function CoachChat() {
     // Filter out any prior empty-assistant placeholders before sending —
     // those are UI state only, the server's zod schema requires non-empty
     // content on every message.
-    const cleanHistory = messages.filter(
-      (m) => m.content.trim().length > 0,
-    );
+    const cleanHistory = messages.filter((m) => m.content.trim().length > 0);
     const nextMessages = [...cleanHistory, userMsg];
     setMessages([...nextMessages]);
     setInput("");
@@ -103,8 +101,7 @@ export function CoachChat() {
             // Some servers also expose .delta.reasoning_content (Qwen-style
             // thinking tokens) which we collect separately so the visible
             // answer doesn't include the model's internal reasoning.
-            const piece: string | undefined =
-              evt.choices?.[0]?.delta?.content;
+            const piece: string | undefined = evt.choices?.[0]?.delta?.content;
             if (typeof piece === "string" && piece.length > 0) {
               setMessages((prev) => {
                 const updated = [...prev];
@@ -142,25 +139,22 @@ export function CoachChat() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-180px)]">
+    <div className="flex flex-col h-[calc(100vh-220px)] md:h-[calc(100vh-180px)]">
       <div ref={scrollRef} className="flex-1 overflow-y-auto pr-2 -mr-2 mb-4">
         {messages.length === 0 ? (
-          <div className="card">
-            <div className="card-glow" />
-            <div className="font-serif text-xl text-ink-50 mb-2">
-              Where do you want to start?
-            </div>
-            <p className="text-sm text-ink-300 mb-5">
-              I can see your check-ins, quests, habits, focus, balance, and
-              confidence file. Not your journal — that stays private.
+          <div className="sheet">
+            <div className="t-h2 mb-2">Where do you want to start?</div>
+            <p className="text-[14.5px] text-ink-300 mb-5 max-w-[60ch]">
+              The coach can see your check-ins, quests, habits, focus, balance
+              and confidence file. Never your journal; that stays private.
             </p>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5">
               {SUGGESTED_OPENERS.map((s) => (
                 <button
                   key={s}
                   type="button"
                   onClick={() => send(s)}
-                  className="text-xs px-3 py-2 rounded-lg border border-ink-600 text-ink-200 hover:border-ink-50 hover:text-ink-50 transition"
+                  className="chip"
                 >
                   {s}
                 </button>
@@ -168,7 +162,7 @@ export function CoachChat() {
             </div>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-5">
             {messages.map((m, i) => (
               <Message key={i} role={m.role} content={m.content} />
             ))}
@@ -177,27 +171,24 @@ export function CoachChat() {
       </div>
 
       {error && (
-        <div className="text-xs text-accent-rose bg-accent-rose/10 border border-accent-rose/30 rounded-lg px-3 py-2 mb-2">
+        <div className="alert mb-2" role="alert">
           {error}
         </div>
       )}
 
       {/* Voice settings strip */}
       {ttsSupported && (
-        <div className="flex items-center justify-between mb-2 px-1">
+        <div className="flex items-center justify-between mb-2">
           <button
             type="button"
             onClick={() => {
               if (speakResponses) stopSpeaking();
               setSpeakResponses(!speakResponses);
             }}
-            className={`text-[11px] px-2 py-1 rounded-full transition ${
-              speakResponses
-                ? "bg-accent-violet/15 text-accent-violet border border-accent-violet/30"
-                : "text-ink-400 hover:text-ink-200"
-            }`}
+            aria-pressed={speakResponses}
+            className="chip"
           >
-            {speakResponses ? "🔊 Speak responses on" : "🔇 Speak responses off"}
+            {speakResponses ? "Speaking replies aloud" : "Read replies aloud"}
           </button>
         </div>
       )}
@@ -207,7 +198,7 @@ export function CoachChat() {
           e.preventDefault();
           send(input);
         }}
-        className="card flex items-end gap-3"
+        className="sheet sheet-hi flex items-end gap-3 focus-within:shadow-mis-sm"
       >
         <VoiceButton
           onTranscript={appendVoice}
@@ -226,19 +217,18 @@ export function CoachChat() {
           rows={2}
           maxLength={4000}
           placeholder={
-            streaming
-              ? "Coach is thinking…"
-              : "Ask anything — type or tap the mic"
+            streaming ? "The coach is thinking" : "Ask anything, or tap the mic"
           }
           disabled={streaming}
-          className="flex-1 bg-transparent text-base text-ink-100 focus:outline-none resize-none"
+          aria-label="Message"
+          className="flex-1 bg-transparent border-0 p-0 outline-none resize-none font-serif text-[17px] leading-[1.5] text-ink-100 placeholder:text-ink-400 placeholder:italic disabled:opacity-60"
         />
         <button
           type="submit"
           disabled={streaming || !input.trim()}
-          className="px-4 py-2 rounded-lg bg-accent-violet/15 text-accent-violet border border-accent-violet/30 text-sm hover:bg-accent-violet/25 disabled:opacity-30 transition shrink-0"
+          className="btn shrink-0"
         >
-          {streaming ? "…" : "Send"}
+          {streaming ? "Sending" : "Send"}
         </button>
       </form>
     </div>
@@ -268,10 +258,12 @@ function Message({
   role: "user" | "assistant";
   content: string;
 }) {
+  // The user's own words sit in the serif on a raised sheet; the coach
+  // answers in the display face under a filled tab.
   if (role === "user") {
     return (
       <div className="flex justify-end">
-        <div className="max-w-[80%] bg-accent-sky/10 border border-accent-sky/20 rounded-2xl rounded-tr-sm px-4 py-2.5 text-sm text-ink-100 whitespace-pre-wrap">
+        <div className="max-w-[80%] sheet sheet-hi px-4 py-3 font-serif text-[16px] leading-[1.5] whitespace-pre-wrap">
           {content}
         </div>
       </div>
@@ -282,18 +274,15 @@ function Message({
   return (
     <div className="flex justify-start">
       <div className="max-w-[85%]">
-        <div className="text-[10px] lbl text-accent-violet mb-1">
-          Coach
+        <div className="tab-row mb-2">
+          <span className="tab">Coach</span>
         </div>
-        <div className="text-base text-ink-100 whitespace-pre-wrap leading-relaxed">
-          {visible ||
-            (isThinking ? (
-              <span className="text-ink-400 italic">
-                Reasoning through it…
-              </span>
-            ) : (
-              <span className="text-ink-400 italic">Thinking…</span>
-            ))}
+        <div className="text-[15.5px] whitespace-pre-wrap leading-[1.55]">
+          {visible || (
+            <span className="text-ink-400 italic">
+              {isThinking ? "Reasoning through it" : "Thinking"}
+            </span>
+          )}
         </div>
       </div>
     </div>

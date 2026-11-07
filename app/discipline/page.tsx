@@ -30,92 +30,76 @@ export default async function DisciplinePage() {
         }
       />
 
-      {/* 7-day scorecard */}
       <section className="mb-8">
-        <div className="lbl mb-3">
-          Last 7 days
+        <div className="tab-row">
+          <span className="tab">Last seven days</span>
+          <span className="fill" />
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div className="sheet grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-x-4 gap-y-5">
+          <Stat label="Mornings" value={`${scorecard.morningDays}`} unit="/7" />
+          <Stat label="Evenings" value={`${scorecard.eveningDays}`} unit="/7" />
           <Stat
-            label="Morning ✓"
-            value={`${scorecard.morningDays}`}
-            unit="/ 7"
-            accent="text-accent-green"
-          />
-          <Stat
-            label="Evening ✓"
-            value={`${scorecard.eveningDays}`}
-            unit="/ 7"
-            accent="text-accent-rose"
-          />
-          <Stat
-            label="Habits hit"
+            label="Habits struck"
             value={`${scorecard.habitPct}`}
             unit="%"
-            accent="text-accent-green"
           />
           <Stat
-            label="Focus min"
+            label="Focus"
             value={String(scorecard.focusMinutes)}
-            accent="text-accent-sky"
+            unit="min"
           />
+          <Stat label="Focus blocks" value={String(scorecard.focusSessions)} />
           <Stat
-            label="Focus sessions"
-            value={String(scorecard.focusSessions)}
-            accent="text-accent-sky"
-          />
-          <Stat
-            label="Quest avg"
+            label="Quest average"
             value={`${scorecard.questAvgProgress}`}
             unit="%"
-            accent="text-accent-violet"
           />
         </div>
       </section>
 
-      {/* Balance from latest weekly review */}
       <section className="mb-8">
-        <div className="flex items-baseline justify-between mb-3">
-          <div className="lbl">
-            Balance · most recent review
-          </div>
-          {!balance && (
-            <div className="text-[11px] text-ink-400">
-              Run a weekly review to populate.
-            </div>
-          )}
+        <div className="tab-row">
+          <span className="tab">Balance</span>
+          <span className="fill" />
+          <span className="text-[11.5px] text-ink-400">
+            {balance ? "most recent review" : "no review yet"}
+          </span>
         </div>
-        <div className="card">
-          <div className="card-glow" />
+        <div className="sheet">
           {balance ? (
-            <div className="space-y-2">
+            <div className="flex flex-col gap-2">
               {BALANCE_DIMENSIONS.map((d) => (
                 <div key={d.key} className="flex items-center gap-3">
-                  <div className="w-28 text-sm text-ink-200">{d.label}</div>
-                  <div className="flex-1 h-2 bg-ink-700 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full ${d.accentClass} rounded-full transition-all`}
+                  <span className="w-28 shrink-0 text-[13px] text-ink-300">
+                    {d.label}
+                  </span>
+                  <span className="plot flex-1">
+                    <span
+                      className={d.accentClass}
                       style={{ width: `${(balance[d.key] / 10) * 100}%` }}
                     />
-                  </div>
-                  <div className="w-8 text-right text-sm text-ink-400 tabular-nums">
+                  </span>
+                  <span className="w-8 text-right text-[12.5px] text-ink-400 tabular-nums">
                     {balance[d.key]}
-                  </div>
+                  </span>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="text-sm text-ink-300 italic">
-              No balance data yet. The weekly review captures it.
-            </div>
+            <p className="text-[14.5px] text-ink-300 m-0">
+              No balance readings yet. The weekly review takes them.
+            </p>
           )}
         </div>
       </section>
 
-      {/* Year heatmap */}
       <section>
-        <div className="lbl mb-3">
-          The year
+        <div className="tab-row">
+          <span className="tab">The year</span>
+          <span className="fill" />
+          <span className="text-[11.5px] text-ink-400">
+            365 days of check-ins
+          </span>
         </div>
         <YearHeatmap cells={heatmap} />
       </section>
@@ -127,24 +111,17 @@ function Stat({
   label,
   value,
   unit,
-  accent,
 }: {
   label: string;
   value: string;
   unit?: string;
-  accent: string;
 }) {
   return (
-    <div className="card">
-      <div className="card-glow" />
-      <div className={`text-[10px] lbl mb-1 ${accent}`}>
-        {label}
-      </div>
-      <div className="t-h2 text-ink-50 tabular-nums">
+    <div>
+      <div className="stat-l">{label}</div>
+      <div className="stat-v">
         {value}
-        {unit && (
-          <span className="text-sm text-ink-400 ml-1">{unit}</span>
-        )}
+        {unit && <small>{unit}</small>}
       </div>
     </div>
   );

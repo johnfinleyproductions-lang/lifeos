@@ -48,71 +48,54 @@ export function CompassEditor({ initial }: Props) {
   }
 
   return (
-    <div className="space-y-6">
-      <Field
-        label="Mission"
-        sub="One sentence. The thing your life is for."
-        accent="text-accent-violet"
-      >
+    <div className="space-y-7">
+      <Field label="Mission" sub="One sentence. The thing your life is for.">
         <textarea
           value={mission}
           onChange={(e) => setMission(e.target.value)}
           rows={3}
           maxLength={2000}
-          placeholder="My mission is to…"
-          className="w-full bg-ink-900 border border-ink-600 rounded-lg px-4 py-3 font-serif text-base leading-snug focus:border-accent-violet/40 focus:outline-none resize-none"
+          placeholder="My mission is to"
+          className="ta"
         />
       </Field>
 
       <Field
         label="Eulogy"
-        sub="How do you want to be remembered? Write it in third person."
-        accent="text-accent-rose"
+        sub="How do you want to be remembered? Write it in the third person."
       >
         <textarea
           value={eulogy}
           onChange={(e) => setEulogy(e.target.value)}
           rows={6}
           maxLength={4000}
-          placeholder="They were the kind of person who…"
-          className="w-full bg-ink-900 border border-ink-600 rounded-lg px-4 py-3 font-serif text-base leading-snug focus:border-accent-rose/40 focus:outline-none resize-none"
+          placeholder="They were the kind of person who"
+          className="ta"
         />
       </Field>
 
       <Field
         label="Definition of success"
         sub="Yours, not anyone else's. What does a good life look like for you?"
-        accent="text-accent-gold"
       >
         <textarea
           value={success}
           onChange={(e) => setSuccess(e.target.value)}
           rows={4}
           maxLength={2000}
-          placeholder="Success looks like…"
-          className="w-full bg-ink-900 border border-ink-600 rounded-lg px-4 py-3 text-base leading-snug focus:border-accent-gold/40 focus:outline-none resize-none"
+          placeholder="Success looks like"
+          className="ta"
         />
       </Field>
 
-      {error && (
-        <div className="text-sm text-accent-rose bg-accent-rose/10 border border-accent-rose/30 rounded-lg px-3 py-2">
-          {error}
-        </div>
-      )}
-
-      <div className="flex items-center justify-between">
-        <span className="text-[11px] text-ink-400">
-          {savedFlash ? "✓ saved" : "Save updates the same compass row."}
-        </span>
-        <button
-          type="button"
-          onClick={save}
-          disabled={submitting}
-          className="px-5 py-2 rounded-lg bg-accent-violet/15 text-accent-violet border border-accent-violet/30 text-sm hover:bg-accent-violet/25 disabled:opacity-30 transition"
-        >
-          {submitting ? "Saving…" : "Save compass"}
-        </button>
-      </div>
+      <SaveRow
+        error={error}
+        saved={savedFlash}
+        idle="Save updates the same compass row."
+        submitting={submitting}
+        onSave={save}
+        label="Save compass"
+      />
     </div>
   );
 }
@@ -120,23 +103,64 @@ export function CompassEditor({ initial }: Props) {
 function Field({
   label,
   sub,
-  accent,
   children,
 }: {
   label: string;
   sub: string;
-  accent: string;
   children: React.ReactNode;
 }) {
   return (
-    <div>
-      <div className="mb-2">
-        <div className={`text-xs lbl ${accent}`}>
-          {label}
-        </div>
-        <div className="text-sm text-ink-300 mt-0.5">{sub}</div>
+    <section>
+      <div className="tab-row mb-2.5">
+        <span className="tab">{label}</span>
+        <span className="fill" />
       </div>
+      <p className="text-[13.5px] text-ink-300 mb-2.5">{sub}</p>
       {children}
-    </div>
+    </section>
+  );
+}
+
+/** The save row the three compass editors share. */
+export function SaveRow({
+  error,
+  saved,
+  idle,
+  submitting,
+  onSave,
+  label,
+}: {
+  error: string | null;
+  saved: boolean;
+  idle: string;
+  submitting: boolean;
+  onSave: () => void;
+  label: string;
+}) {
+  return (
+    <>
+      {error && (
+        <div className="alert" role="alert">
+          {error}
+        </div>
+      )}
+      <div className="flex items-center justify-between gap-4 pt-5 border-t-[1.5px] border-ink-50">
+        <span
+          className={`text-[12.5px] ${saved ? "text-accent-spot" : "text-ink-400"}`}
+          style={saved ? { fontVariationSettings: "'wght' 700" } : undefined}
+          role="status"
+        >
+          {saved ? "Saved" : idle}
+        </span>
+        <button
+          type="button"
+          onClick={onSave}
+          disabled={submitting}
+          className="btn btn-spot shrink-0"
+        >
+          {submitting ? "Saving" : label}
+        </button>
+      </div>
+    </>
   );
 }

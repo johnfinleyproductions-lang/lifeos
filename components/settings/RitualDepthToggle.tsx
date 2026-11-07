@@ -15,7 +15,7 @@ const OPTIONS: {
   {
     value: "quick",
     label: "Quick",
-    desc: "Just the essentials. Three prompts, ~30 seconds.",
+    desc: "Just the essentials. Three prompts, about thirty seconds.",
   },
   {
     value: "standard",
@@ -25,7 +25,7 @@ const OPTIONS: {
   {
     value: "deep",
     label: "Deep",
-    desc: "Five plus reframe + release at evening. ~3 minutes.",
+    desc: "Five, plus reframe and release at evening. About three minutes.",
   },
 ];
 
@@ -44,42 +44,44 @@ export function RitualDepthToggle() {
   }
 
   return (
-    <div className="space-y-2">
-      {OPTIONS.map((opt) => {
-        const active = hydrated && depth === opt.value;
-        return (
-          <button
-            key={opt.value}
-            type="button"
-            onClick={() => pick(opt.value)}
-            className={`w-full text-left p-4 rounded-xl border transition ${
-              active
-                ? "border-accent-violet/50 bg-accent-violet/5"
-                : "border-ink-600 hover:border-ink-50"
-            }`}
-          >
-            <div className="flex items-center justify-between mb-1">
-              <div
-                className={`font-serif text-base ${
-                  active ? "text-accent-violet" : "text-ink-100"
-                }`}
-              >
-                {opt.label}
-              </div>
-              {active && (
-                <span className="text-[10px] lbl text-accent-violet">
-                  current
+    <div>
+      <div className="space-y-2" role="group" aria-label="Ritual depth">
+        {OPTIONS.map((opt) => {
+          const active = hydrated && depth === opt.value;
+          return (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => pick(opt.value)}
+              aria-pressed={active}
+              className={`w-full text-left px-4 py-3.5 border-[1.5px] border-ink-50 ${
+                active
+                  ? "bg-ink-50 text-ink-900"
+                  : "bg-transparent hover:bg-ink-700"
+              }`}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <span
+                  className="text-[15px]"
+                  style={{ fontVariationSettings: "'wdth' 96, 'wght' 720" }}
+                >
+                  {opt.label}
                 </span>
-              )}
-            </div>
-            <div className="text-xs text-ink-300">{opt.desc}</div>
-          </button>
-        );
-      })}
-      <div className="text-[11px] text-ink-400 mt-3">
+                {active && <span className="tab tab-spot">Current</span>}
+              </div>
+              <div
+                className={`text-[13px] mt-1 ${active ? "opacity-70" : "text-ink-300"}`}
+              >
+                {opt.desc}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+      <p className="text-[11.5px] text-ink-400 mt-3">
         Saved to this browser. Phase 5 will sync this to your account so it
         follows you across devices.
-      </div>
+      </p>
     </div>
   );
 }

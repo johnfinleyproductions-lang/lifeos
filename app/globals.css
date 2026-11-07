@@ -132,24 +132,6 @@
 }
 
 @layer components {
-  /* ---------------------------------------------------------------
-     Compatibility layer.
-     `.card` and `.card-glow` appear 105 times across 28 components.
-     Redefining them here converts every page that has not been
-     restyled yet, rather than leaving those pages unstyled. The glow
-     was a radial gradient on hover, which is exactly what this system
-     rejects, so it becomes inert and the markup stays valid.
-     --------------------------------------------------------------- */
-  .card {
-    background: rgb(var(--surface-2));
-    border: 1.5px solid rgb(var(--text-1));
-    padding: 1.125rem;
-    position: relative;
-  }
-  .card-glow {
-    display: none;
-  }
-
   /* ---------- type ---------- */
   .t-h1 {
     font-variation-settings: "wdth" 100, "wght" 800;

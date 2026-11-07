@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { FuturePaths } from "@/lib/compass/schema";
+import { SaveRow } from "./CompassEditor";
 
 const HORIZONS: {
   key: keyof FuturePaths;
@@ -17,18 +18,17 @@ const HORIZONS: {
   {
     key: "threeYear",
     label: "3 years",
-    prompt: "Three years out — what's true that isn't true today?",
+    prompt: "Three years out. What is true that is not true today?",
   },
   {
     key: "fiveYear",
     label: "5 years",
-    prompt: "Five years from now — describe the day, the work, the people.",
+    prompt: "Five years from now. Describe the day, the work, the people.",
   },
   {
     key: "tenYear",
     label: "10 years",
-    prompt:
-      "Ten years out — the long view. What does the life look like?",
+    prompt: "Ten years out, the long view. What does the life look like?",
   },
 ];
 
@@ -74,17 +74,14 @@ export function FutureEditor({ initial }: { initial: FuturePaths }) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
       {HORIZONS.map((h) => (
-        <div key={h.key}>
-          <div className="mb-2">
-            <div className="text-xs lbl text-accent-violet">
-              {h.label}
-            </div>
-            <div className="font-serif text-lg text-ink-100 mt-0.5">
-              {h.prompt}
-            </div>
+        <section key={h.key}>
+          <div className="tab-row mb-2.5">
+            <span className="tab">{h.label}</span>
+            <span className="fill" />
           </div>
+          <p className="t-h2 mb-3">{h.prompt}</p>
           <textarea
             value={paths[h.key] ?? ""}
             onChange={(e) =>
@@ -92,33 +89,20 @@ export function FutureEditor({ initial }: { initial: FuturePaths }) {
             }
             rows={4}
             maxLength={2000}
-            placeholder="Sketch it…"
-            className="w-full bg-ink-900 border border-ink-600 rounded-lg px-4 py-3 text-base leading-snug focus:border-accent-violet/40 focus:outline-none resize-none"
+            placeholder="Sketch it"
+            className="ta"
           />
-        </div>
+        </section>
       ))}
 
-      {error && (
-        <div className="text-sm text-accent-rose bg-accent-rose/10 border border-accent-rose/30 rounded-lg px-3 py-2">
-          {error}
-        </div>
-      )}
-
-      <div className="flex items-center justify-between">
-        <span className="text-[11px] text-ink-400">
-          {savedFlash
-            ? "✓ saved"
-            : "Future-self sketches. Update as the picture sharpens."}
-        </span>
-        <button
-          type="button"
-          onClick={save}
-          disabled={submitting}
-          className="px-5 py-2 rounded-lg bg-accent-violet/15 text-accent-violet border border-accent-violet/30 text-sm hover:bg-accent-violet/25 disabled:opacity-30 transition"
-        >
-          {submitting ? "Saving…" : "Save future"}
-        </button>
-      </div>
+      <SaveRow
+        error={error}
+        saved={savedFlash}
+        idle="Future-self sketches. Update as the picture sharpens."
+        submitting={submitting}
+        onSave={save}
+        label="Save future"
+      />
     </div>
   );
 }

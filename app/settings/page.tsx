@@ -18,59 +18,59 @@ export default async function SettingsPage() {
       />
 
       <Section title="You">
-        <div className="card">
-          <div className="card-glow" />
+        <div className="sheet">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-accent-violet/30 grid place-items-center text-lg font-medium text-accent-violet">
-              {user.name?.[0]?.toUpperCase() ?? "?"}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-base text-ink-100">{user.name}</div>
-              <div className="text-sm text-ink-400 truncate">{user.email}</div>
-            </div>
-            <Link
-              href={EC_URL}
-              className="text-xs text-ink-400 hover:text-ink-100 transition shrink-0"
+            <span
+              className="w-12 h-12 shrink-0 grid place-items-center bg-accent-spot text-white text-[22px]"
+              style={{ fontVariationSettings: "'wdth' 100, 'wght' 800" }}
             >
-              Manage in EC →
+              {user.name?.[0]?.toUpperCase() ?? "?"}
+            </span>
+            <div className="flex-1 min-w-0">
+              <div
+                className="text-[16px]"
+                style={{ fontVariationSettings: "'wght' 700" }}
+              >
+                {user.name}
+              </div>
+              <div className="text-[13px] text-ink-400 truncate">
+                {user.email}
+              </div>
+            </div>
+            <Link href={EC_URL} className="btn btn-sm btn-ghost shrink-0">
+              Manage in EC
             </Link>
           </div>
-          <p className="text-[11px] text-ink-400 mt-4 leading-relaxed">
-            Your account lives in Evergreen Core. LifeOS reads the same
-            session — sign in or out over there and this app follows.
+          <p className="text-[12.5px] text-ink-400 mt-4 mb-0 leading-relaxed">
+            Your account lives in Evergreen Core. LifeOS reads the same session:
+            sign in or out over there and this app follows.
           </p>
         </div>
       </Section>
 
       <Section
         title="Ritual depth"
-        subtitle="Default depth for the morning + evening wizards."
+        subtitle="Default depth for the morning and evening wizards."
       >
         <RitualDepthToggle />
       </Section>
 
-      <Section
-        title="Data"
-        subtitle="Migrate from a previous LifeOS install."
-      >
-        <div className="card">
-          <div className="card-glow" />
-          <div className="font-serif text-base text-ink-100 mb-1">
-            Import from v3
-          </div>
-          <p className="text-xs text-ink-300 leading-relaxed mb-3">
+      <Section title="Data" subtitle="Migrate from a previous LifeOS install.">
+        <div className="sheet">
+          <div className="t-h2 mb-1.5">Import from v3</div>
+          <p className="text-[13.5px] text-ink-300 leading-relaxed mb-3">
             Have a JSON export from the standalone v3 build? POST it to{" "}
-            <code className="text-accent-sky bg-ink-700 px-1.5 py-0.5 rounded text-[11px]">
+            <code className="font-mono text-[12px] bg-ink-700 border border-ink-500 px-1.5 py-0.5">
               /api/import-v3
             </code>{" "}
-            with your session cookie. The endpoint upserts entries by date —
-            morning and evening jsonb fields are passed through as-is.
+            with your session cookie. The endpoint upserts entries by date; the
+            morning and evening jsonb fields pass through as they are.
           </p>
-          <details className="text-[11px] text-ink-400">
-            <summary className="cursor-pointer hover:text-ink-200">
+          <details className="text-[12px] text-ink-400">
+            <summary className="cursor-pointer hover:text-ink-100">
               Example curl
             </summary>
-            <pre className="mt-2 p-3 bg-ink-700 rounded text-[10px] overflow-x-auto leading-relaxed">{`curl -X POST http://localhost:3001/api/import-v3 \\
+            <pre className="mt-2 p-3 bg-ink-700 border border-ink-500 font-mono text-[11px] overflow-x-auto leading-relaxed">{`curl -X POST http://localhost:3001/api/import-v3 \\
   -H "Content-Type: application/json" \\
   --cookie "$(cat ~/lifeos.cookie)" \\
   -d @v3-export.json`}</pre>
@@ -79,23 +79,29 @@ export default async function SettingsPage() {
       </Section>
 
       <Section title="About">
-        <div className="card">
-          <div className="card-glow" />
-          <div className="text-sm text-ink-200 space-y-1">
-            <div>
-              <span className="text-ink-400">Build:</span> Phase 2 · v0.2
-            </div>
-            <div>
-              <span className="text-ink-400">Database:</span> Shared with
-              Evergreen Core (M90t Postgres)
-            </div>
-            <div>
-              <span className="text-ink-400">Auth:</span> Better Auth · shared
-              session
-            </div>
-          </div>
+        <div className="sheet py-1">
+          <Row label="Build" value="Phase 2, v0.2" />
+          <Row
+            label="Database"
+            value="Shared with Evergreen Core (M90t Postgres)"
+          />
+          <Row label="Auth" value="Better Auth, shared session" />
         </div>
       </Section>
+    </div>
+  );
+}
+
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex gap-3.5 py-2.5 border-b border-ink-600 last:border-b-0">
+      <span
+        className="shrink-0 w-[84px] text-[11.5px] text-ink-400 pt-[2px]"
+        style={{ fontVariationSettings: "'wdth' 100, 'wght' 680" }}
+      >
+        {label}
+      </span>
+      <span className="flex-1 text-[14px]">{value}</span>
     </div>
   );
 }
@@ -111,14 +117,13 @@ function Section({
 }) {
   return (
     <section className="mb-8">
-      <div className="mb-3">
-        <h2 className="lbl">
-          {title}
-        </h2>
-        {subtitle && (
-          <p className="text-sm text-ink-300 mt-0.5">{subtitle}</p>
-        )}
+      <div className="tab-row">
+        <span className="tab">{title}</span>
+        <span className="fill" />
       </div>
+      {subtitle && (
+        <p className="text-[13.5px] text-ink-300 -mt-1.5 mb-3.5">{subtitle}</p>
+      )}
       {children}
     </section>
   );

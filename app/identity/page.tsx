@@ -8,7 +8,7 @@ import {
   lifeosDailyCheckins,
 } from "@/lib/db/schema/lifeos";
 import { requireUserContext } from "@/lib/auth/server-helpers";
-import { PROTOCOLS, ACCENT_TEXT } from "@/lib/protocols/definitions";
+import { PROTOCOLS } from "@/lib/protocols/definitions";
 import { morningManifestoSchema } from "@/lib/manifesto/schema";
 import { PageStamp } from "@/components/PageStamp";
 
@@ -58,60 +58,65 @@ export default async function IdentityPage() {
       />
 
       {identityStatement && (
-        <div className="card mb-10">
-          <div className="card-glow" />
-          <div className="text-xs lbl text-accent-violet mb-2">
-            Today&apos;s identity statement
-          </div>
-          <p className="t-h2 text-ink-50 leading-snug">
-            {identityStatement}
-          </p>
-          <div className="text-[11px] text-ink-400 mt-3">
-            From your{" "}
-            <Link
-              href="/morning"
-              className="hover:text-ink-200 transition underline"
-            >
-              morning manifesto
+        <section className="mb-10">
+          <div className="tab-row">
+            <span className="tab tab-spot">
+              Today&apos;s identity statement
+            </span>
+            <span className="fill" />
+            <Link href="/morning" className="btn btn-sm btn-ghost">
+              Revise
             </Link>
-            .
           </div>
-        </div>
+          <div className="sheet sheet-hi shadow-mis px-[26px] py-6">
+            <p className="font-serif text-[clamp(21px,2.6vw,30px)] leading-[1.22] tracking-[-0.01em] m-0 max-w-[32ch] text-balance">
+              <span className="text-accent-spot">&ldquo;</span>
+              {identityStatement}
+              <span className="text-accent-spot">&rdquo;</span>
+            </p>
+            <p className="text-[11.5px] text-ink-400 mt-4 mb-0">
+              From this morning&apos;s manifesto.
+            </p>
+          </div>
+        </section>
       )}
 
       <Section
         title="Confidence file"
-        subtitle="Evidence of who you're becoming. Auto-grows from Daily Confidence runs."
+        count={confidenceEntries.length}
+        subtitle="Evidence of who you're becoming. Grows on its own from Daily Confidence runs."
       >
         {confidenceEntries.length === 0 ? (
-          <div className="card text-center py-10">
-            <p className="text-sm text-ink-300 mb-2">
-              No entries yet.
-            </p>
-            <p className="text-xs text-ink-400">
+          <div className="sheet sheet-bare border-dashed text-center py-8">
+            <p className="text-[14.5px] text-ink-300 m-0">No entries yet.</p>
+            <p className="text-[12.5px] text-ink-400 mt-1 mb-0">
               Run the Daily Confidence protocol to start collecting.
             </p>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="sheet py-1">
             {confidenceEntries.map((e) => (
-              <div key={e.id} className="card py-4">
-                <div className="card-glow" />
-                <div className="flex items-baseline justify-between gap-3 mb-1">
-                  <div className="font-serif text-base text-ink-100">
+              <div
+                key={e.id}
+                className="py-3.5 border-b border-ink-600 last:border-b-0"
+              >
+                <div className="flex items-baseline justify-between gap-3">
+                  <div className="font-serif text-[17px] leading-[1.35]">
                     {e.title}
                   </div>
-                  <div className="text-[11px] text-ink-400 shrink-0">
-                    {format(new Date(e.createdAt), "MMM d")}
+                  <div className="text-[11.5px] text-ink-400 shrink-0 tabular-nums">
+                    {format(new Date(e.createdAt), "d MMM")}
                   </div>
                 </div>
                 {e.body && (
-                  <p className="text-sm text-ink-300 leading-relaxed">
+                  <p className="font-serif text-[15px] text-ink-300 leading-[1.5] mt-1 mb-0">
                     {e.body}
                   </p>
                 )}
-                <div className="text-[10px] lbl text-ink-500 mt-2">
-                  {e.kind === "manual" ? "manual" : e.kind.replace("auto_", "")}
+                <div className="lbl mt-2">
+                  {e.kind === "manual"
+                    ? "added by hand"
+                    : e.kind.replace("auto_", "from ")}
                 </div>
               </div>
             ))}
@@ -121,28 +126,27 @@ export default async function IdentityPage() {
 
       <Section
         title="Protocols"
-        subtitle="9 guided exercises for the inner work. Run any of them anytime."
+        count={PROTOCOLS.length}
+        subtitle="Guided exercises for the inner work. Run any of them any time."
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {PROTOCOLS.map((p) => (
             <Link
               key={p.slug}
               href={`/protocols/${p.slug}`}
-              className="card hover:bg-ink-800 transition"
+              className="sheet hover:bg-ink-700 hover:shadow-mis-ink flex flex-col"
             >
-              <div className="card-glow" />
               <div
-                className={`text-xs lbl mb-1 ${
-                  ACCENT_TEXT[p.accent]
-                }`}
+                className="text-[16px] leading-tight"
+                style={{ fontVariationSettings: "'wdth' 100, 'wght' 700" }}
               >
                 {p.title}
               </div>
-              <div className="font-serif text-base text-ink-100 mb-1 leading-snug">
+              <div className="text-[13.5px] text-ink-300 mt-1.5 leading-[1.4] flex-1">
                 {p.subtitle}
               </div>
-              <div className="text-[11px] text-ink-400">
-                ~{p.estimatedMinutes} min · {p.prompts.length}{" "}
+              <div className="lbl mt-3">
+                About {p.estimatedMinutes} min, {p.prompts.length}{" "}
                 {p.prompts.length === 1 ? "prompt" : "prompts"}
               </div>
             </Link>
@@ -155,20 +159,17 @@ export default async function IdentityPage() {
           title="Future letter"
           subtitle={`Last written ${format(
             new Date(latestFutureLetter.createdAt),
-            "MMMM d, yyyy",
-          )}`}
+            "d MMMM yyyy",
+          )}.`}
         >
           <Link
             href="/protocols/future_letter"
-            className="card block hover:bg-ink-800 transition"
+            className="sheet flex items-center justify-between gap-4 hover:bg-ink-700"
           >
-            <div className="card-glow" />
-            <p className="text-sm text-ink-300 mb-2">
+            <span className="text-[14.5px] text-ink-300">
               The version of you, five years from here.
-            </p>
-            <div className="text-accent-violet text-xs">
-              Open future letter →
-            </div>
+            </span>
+            <span className="btn btn-sm btn-ghost shrink-0">Open</span>
           </Link>
         </Section>
       )}
@@ -179,22 +180,30 @@ export default async function IdentityPage() {
 function Section({
   title,
   subtitle,
+  count,
   children,
 }: {
   title: string;
   subtitle?: string;
+  count?: number;
   children: React.ReactNode;
 }) {
   return (
     <section className="mb-10">
-      <div className="mb-4">
-        <h2 className="lbl">
-          {title}
-        </h2>
-        {subtitle && (
-          <p className="text-sm text-ink-300 mt-0.5">{subtitle}</p>
+      <div className="tab-row">
+        <span className="tab">{title}</span>
+        <span className="fill" />
+        {count !== undefined && (
+          <span className="text-[11.5px] text-ink-400 tabular-nums">
+            {count}
+          </span>
         )}
       </div>
+      {subtitle && (
+        <p className="text-[13.5px] text-ink-300 -mt-1.5 mb-3.5 max-w-[62ch]">
+          {subtitle}
+        </p>
+      )}
       {children}
     </section>
   );

@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth/server";
 import { AuthForm } from "@/components/auth/AuthForm";
 
 export const metadata = {
-  title: "Sign in · LifeOS",
+  title: "Sign in, LifeOS",
 };
 
 /**
@@ -28,7 +28,7 @@ export default async function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6 py-10">
+    <div className="min-h-[70vh] flex items-center justify-center px-2 py-10">
       <AuthForm />
     </div>
   );

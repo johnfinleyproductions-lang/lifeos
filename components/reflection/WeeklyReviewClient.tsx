@@ -2,7 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { BALANCE_DIMENSIONS, type BalanceScore } from "@/lib/reflection/balance";
+import {
+  BALANCE_DIMENSIONS,
+  type BalanceScore,
+} from "@/lib/reflection/balance";
 import type { Scorecard } from "@/lib/reflection/auto-detect";
 
 type Quest = {
@@ -44,11 +47,7 @@ export function WeeklyReviewClient({
   const [lesson, setLesson] = useState("");
   const [reframe, setReframe] = useState("");
   const [nextWeekFeel, setNextWeekFeel] = useState("");
-  const [nextPriorities, setNextPriorities] = useState<string[]>([
-    "",
-    "",
-    "",
-  ]);
+  const [nextPriorities, setNextPriorities] = useState<string[]>(["", "", ""]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -101,41 +100,38 @@ export function WeeklyReviewClient({
   }
 
   return (
-    <div className="card max-w-3xl mx-auto">
-      <div className="card-glow" />
-
-      <div className="flex items-center justify-between mb-6">
-        <div className="text-xs lbl text-accent-gold">
-          Weekly review · {phase} / {TOTAL_PHASES}
-        </div>
-        <div className="flex gap-1">
-          {Array.from({ length: TOTAL_PHASES }).map((_, i) => (
-            <span
-              key={i}
-              className={`h-1 w-8 rounded-full ${
-                i < phase ? "bg-accent-gold" : "bg-ink-700"
-              }`}
-            />
-          ))}
-        </div>
+    <div className="wiz">
+      <div className="wiz-bar" aria-hidden="true">
+        {Array.from({ length: TOTAL_PHASES }).map((_, i) => (
+          <i
+            key={i}
+            className={
+              i + 1 < phase ? "on" : i + 1 === phase ? "cur" : undefined
+            }
+          />
+        ))}
       </div>
 
-      <div className="min-h-[320px]">
+      <div className="wiz-card">
+        <div className="wiz-step">
+          Phase {phase} of {TOTAL_PHASES}
+        </div>
+
         {phase === 1 && (
           <Step
             heading="What happened this week?"
-            sub="Just write. The data sidebar is for reference."
+            sub="Just write. The numbers are there for reference."
           >
-            <div className="grid md:grid-cols-3 gap-2 mb-5 text-xs">
-              <Stat label="Morning ✓" value={`${scorecard.morningDays}/7`} />
-              <Stat label="Evening ✓" value={`${scorecard.eveningDays}/7`} />
+            <div className="sheet sheet-bare grid grid-cols-3 gap-x-3 gap-y-3 mb-5 py-3.5">
+              <Stat label="Mornings" value={`${scorecard.morningDays}/7`} />
+              <Stat label="Evenings" value={`${scorecard.eveningDays}/7`} />
               <Stat
                 label="Habits"
-                value={`${scorecard.habitCompletions}/${scorecard.habitTotal || "—"}`}
+                value={`${scorecard.habitCompletions}/${scorecard.habitTotal || "0"}`}
               />
               <Stat label="Focus min" value={String(scorecard.focusMinutes)} />
               <Stat
-                label="Quest avg"
+                label="Quest average"
                 value={`${scorecard.questAvgProgress}%`}
               />
               <Stat
@@ -149,8 +145,8 @@ export function WeeklyReviewClient({
               autoFocus
               rows={6}
               maxLength={2000}
-              placeholder="The week, in your own words…"
-              className="w-full bg-ink-900 border border-ink-600 rounded-lg px-4 py-3 text-base leading-relaxed focus:border-accent-spot focus:outline-none resize-none"
+              placeholder="The week, in your own words."
+              className="ta"
             />
           </Step>
         )}
@@ -158,7 +154,7 @@ export function WeeklyReviewClient({
         {phase === 2 && (
           <Step
             heading="The wins."
-            sub="Auto-detected ones are pre-filled. Edit, add, or replace."
+            sub="The detected ones are filled in. Edit, add, or replace."
           >
             <textarea
               value={wins}
@@ -167,7 +163,7 @@ export function WeeklyReviewClient({
               rows={8}
               maxLength={2000}
               placeholder="One per line."
-              className="w-full bg-ink-900 border border-ink-600 rounded-lg px-4 py-3 text-base leading-relaxed focus:border-accent-green/40 focus:outline-none resize-none"
+              className="ta"
             />
           </Step>
         )}
@@ -175,26 +171,26 @@ export function WeeklyReviewClient({
         {phase === 3 && (
           <Step
             heading="Quest check."
-            sub="Quick note per active quest — what shifted, what stuck?"
+            sub="A quick note per active quest. What shifted, what stuck?"
           >
             {activeQuests.length === 0 ? (
-              <div className="text-sm text-ink-400 italic">
-                No active quests. Skip to next phase.
-              </div>
+              <p className="text-[14.5px] text-ink-400 italic">
+                No active quests. Skip to the next phase.
+              </p>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {activeQuests.map((q) => (
-                  <div key={q.id} className="border-l-2 border-ink-600 pl-4">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[10px] lbl text-ink-400">
-                        {q.domain} · {q.type}
+                  <div key={q.id}>
+                    <div className="flex items-baseline justify-between gap-3 mb-1.5">
+                      <div
+                        className="text-[15.5px] leading-tight"
+                        style={{ fontVariationSettings: "'wght' 680" }}
+                      >
+                        {q.title}
+                      </div>
+                      <span className="lbl shrink-0 tabular-nums">
+                        {q.domain}, {q.type}, {q.progress}%
                       </span>
-                      <span className="text-[10px] text-ink-400">
-                        {q.progress}%
-                      </span>
-                    </div>
-                    <div className="font-serif text-base text-ink-100 mb-2">
-                      {q.title}
                     </div>
                     <input
                       type="text"
@@ -207,7 +203,7 @@ export function WeeklyReviewClient({
                       }
                       maxLength={500}
                       placeholder="What moved?"
-                      className="w-full bg-ink-900 border border-ink-600 rounded-lg px-3 py-2 text-sm focus:border-accent-spot focus:outline-none"
+                      className="inp"
                     />
                   </div>
                 ))}
@@ -219,33 +215,49 @@ export function WeeklyReviewClient({
         {phase === 4 && (
           <Step
             heading="Balance check."
-            sub="Rate each dimension out of 10 for this week."
+            sub="Rate each dimension out of ten for this week."
           >
             <div className="space-y-4">
               {BALANCE_DIMENSIONS.map((d) => (
                 <div key={d.key}>
-                  <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center justify-between gap-3 mb-1">
                     <div>
-                      <div className="text-sm text-ink-100">{d.label}</div>
-                      <div className="text-[11px] text-ink-400">{d.blurb}</div>
+                      <div
+                        className="text-[14.5px]"
+                        style={{ fontVariationSettings: "'wght' 680" }}
+                      >
+                        {d.label}
+                      </div>
+                      <div className="text-[11.5px] text-ink-400">
+                        {d.blurb}
+                      </div>
                     </div>
-                    <span className="font-serif text-2xl text-ink-100 tabular-nums">
+                    <span className="t-num text-[22px] tabular-nums">
                       {balance[d.key]}
                     </span>
                   </div>
-                  <input
-                    type="range"
-                    min={0}
-                    max={10}
-                    value={balance[d.key]}
-                    onChange={(e) =>
-                      setBalance((prev) => ({
-                        ...prev,
-                        [d.key]: Number(e.target.value),
-                      }))
-                    }
-                    className="w-full"
-                  />
+                  <div className="range-wrap">
+                    <span className="plot">
+                      <span
+                        className={d.accentClass}
+                        style={{ width: `${(balance[d.key] / 10) * 100}%` }}
+                      />
+                    </span>
+                    <input
+                      type="range"
+                      min={0}
+                      max={10}
+                      value={balance[d.key]}
+                      onChange={(e) =>
+                        setBalance((prev) => ({
+                          ...prev,
+                          [d.key]: Number(e.target.value),
+                        }))
+                      }
+                      aria-label={d.label}
+                      className="range"
+                    />
+                  </div>
                 </div>
               ))}
             </div>
@@ -255,7 +267,7 @@ export function WeeklyReviewClient({
         {phase === 5 && (
           <Step
             heading="What are you carrying forward?"
-            sub="One clear lesson. One reframe (if any)."
+            sub="One clear lesson. One reframe, if there is one."
           >
             <textarea
               value={lesson}
@@ -264,15 +276,15 @@ export function WeeklyReviewClient({
               rows={3}
               maxLength={1000}
               placeholder="The lesson."
-              className="w-full bg-ink-900 border border-ink-600 rounded-lg px-4 py-3 text-base focus:border-accent-sky/40 focus:outline-none resize-none mb-4"
+              className="ta mb-4"
             />
             <textarea
               value={reframe}
               onChange={(e) => setReframe(e.target.value)}
               rows={3}
               maxLength={1000}
-              placeholder="A reframe (optional)."
-              className="w-full bg-ink-900 border border-ink-600 rounded-lg px-4 py-3 text-base focus:border-accent-violet/40 focus:outline-none resize-none"
+              placeholder="A reframe, optional."
+              className="ta"
             />
           </Step>
         )}
@@ -280,7 +292,7 @@ export function WeeklyReviewClient({
         {phase === 6 && (
           <Step
             heading="Plant next week."
-            sub="How should it feel? Top 3 priorities."
+            sub="How should it feel? Then the three that matter most."
           >
             <input
               type="text"
@@ -288,18 +300,19 @@ export function WeeklyReviewClient({
               onChange={(e) => setNextWeekFeel(e.target.value)}
               autoFocus
               maxLength={280}
-              placeholder="Next week, I want it to feel…"
-              className="w-full bg-ink-900 border border-ink-600 rounded-lg px-4 py-3 text-base focus:border-accent-gold/40 focus:outline-none mb-4"
+              placeholder="Next week, I want it to feel"
+              className="inp mb-5"
             />
-            <div className="lbl mb-2">
-              Top 3 priorities
-            </div>
-            <div className="space-y-2">
+            <div className="lbl mb-2">The three</div>
+            <div className="flex flex-col gap-2.5">
               {[0, 1, 2].map((i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <div className="w-6 h-6 rounded-full bg-ink-700 grid place-items-center text-xs text-ink-300 shrink-0">
+                <div key={i} className="flex items-center gap-2.5">
+                  <span
+                    className="w-[26px] shrink-0 tabular-nums text-[15px] text-ink-400"
+                    style={{ fontVariationSettings: "'wdth' 80, 'wght' 800" }}
+                  >
                     {i + 1}
-                  </div>
+                  </span>
                   <input
                     type="text"
                     value={nextPriorities[i]}
@@ -309,43 +322,47 @@ export function WeeklyReviewClient({
                       setNextPriorities(next);
                     }}
                     maxLength={140}
-                    placeholder={i === 0 ? "The one that matters most" : "…"}
-                    className="flex-1 bg-ink-900 border border-ink-600 rounded-lg px-3 py-2 text-sm focus:border-accent-spot focus:outline-none"
+                    placeholder={i === 0 ? "The one that matters most" : ""}
+                    className="inp"
                   />
                 </div>
               ))}
             </div>
           </Step>
         )}
-      </div>
 
-      {error && (
-        <div className="mt-4 text-sm text-accent-rose bg-accent-rose/10 border border-accent-rose/30 rounded-lg px-3 py-2">
-          {error}
+        {error && (
+          <div className="alert mt-4" role="alert">
+            {error} Nothing was lost; press it again.
+          </div>
+        )}
+
+        <div className="wiz-foot">
+          {phase > 1 ? (
+            <button
+              type="button"
+              onClick={back}
+              disabled={submitting}
+              className="btn btn-ghost"
+            >
+              Back
+            </button>
+          ) : (
+            <span />
+          )}
+          <button
+            type="button"
+            onClick={next}
+            disabled={!canContinue || submitting}
+            className={`btn btn-next ${phase === TOTAL_PHASES ? "btn-spot" : ""}`}
+          >
+            {submitting
+              ? "Saving"
+              : phase === TOTAL_PHASES
+                ? "Close the week"
+                : "Next"}
+          </button>
         </div>
-      )}
-
-      <div className="flex items-center justify-between mt-8">
-        <button
-          type="button"
-          onClick={back}
-          disabled={phase === 1 || submitting}
-          className="text-sm text-ink-300 hover:text-ink-100 disabled:opacity-30 transition"
-        >
-          ← Back
-        </button>
-        <button
-          type="button"
-          onClick={next}
-          disabled={!canContinue || submitting}
-          className="px-5 py-2 rounded-lg bg-accent-gold/15 text-accent-gold border border-accent-gold/30 text-sm hover:bg-accent-gold/25 disabled:opacity-30 transition"
-        >
-          {submitting
-            ? "Saving…"
-            : phase === TOTAL_PHASES
-              ? "Close the week →"
-              : "Continue →"}
-        </button>
       </div>
     </div>
   );
@@ -362,10 +379,8 @@ function Step({
 }) {
   return (
     <div>
-      <h2 className="t-h2 text-ink-50 mb-1.5 leading-snug">
-        {heading}
-      </h2>
-      <p className="text-sm text-ink-300 mb-5">{sub}</p>
+      <h2 className="wiz-q">{heading}</h2>
+      <p className="wiz-h">{sub}</p>
       {children}
     </div>
   );
@@ -373,13 +388,9 @@ function Step({
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg bg-ink-800 border border-ink-600 px-3 py-2">
-      <div className="text-[10px] lbl text-ink-400">
-        {label}
-      </div>
-      <div className="font-serif text-base text-ink-100 tabular-nums">
-        {value}
-      </div>
+    <div>
+      <div className="stat-l">{label}</div>
+      <div className="t-num text-[17px] mt-0.5">{value}</div>
     </div>
   );
 }

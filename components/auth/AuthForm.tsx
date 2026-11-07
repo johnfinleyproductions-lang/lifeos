@@ -32,19 +32,16 @@ export function AuthForm() {
 
   if (sent) {
     return (
-      <div className="card max-w-md w-full text-center">
-        <div className="card-glow" />
-        <div className="t-h1 text-ink-50 mb-3">
-          Check your email.
-        </div>
-        <p className="text-sm text-ink-300 leading-relaxed mb-4">
+      <div className="sheet sheet-hi shadow-mis max-w-md w-full">
+        <div className="t-h1 mb-3">Check your email.</div>
+        <p className="text-[14.5px] text-ink-300 leading-relaxed mb-3">
           A sign-in link is on its way to{" "}
-          <span className="text-ink-100">{email}</span>. Tap it from any
-          device — phone, laptop, anywhere — and you&apos;ll land on Today.
+          <span className="text-ink-100 font-serif">{email}</span>. Tap it from
+          any device and you will land on Today.
         </p>
-        <p className="text-xs text-ink-400 leading-relaxed">
-          The link expires in 5 minutes. If you don&apos;t see the email in
-          a minute, check spam — or come back here and try again.
+        <p className="text-[12.5px] text-ink-400 leading-relaxed">
+          The link expires in five minutes. If it has not arrived in a minute,
+          check spam, or come back here and try again.
         </p>
         <button
           type="button"
@@ -52,23 +49,25 @@ export function AuthForm() {
             setSent(false);
             setError(null);
           }}
-          className="mt-6 text-xs text-ink-400 hover:text-ink-100 transition"
+          className="btn btn-sm btn-ghost mt-6"
         >
-          Use a different email →
+          Use a different email
         </button>
       </div>
     );
   }
 
   return (
-    <form onSubmit={send} className="card max-w-md w-full">
-      <div className="card-glow" />
-      <div className="font-serif text-4xl text-ink-50 mb-2 leading-none">
+    <form onSubmit={send} className="sheet sheet-hi shadow-mis max-w-md w-full">
+      <div
+        className="text-[40px] leading-[0.92] tracking-[-0.035em] mb-2"
+        style={{ fontVariationSettings: "'wdth' 88, 'wght' 800" }}
+      >
         LifeOS
       </div>
-      <p className="text-sm text-ink-300 mb-8">
-        Enter your email. We&apos;ll send you a sign-in link — no password,
-        nothing to remember.
+      <p className="text-[14.5px] text-ink-300 mb-7">
+        Enter your email and we will send a sign-in link. No password, nothing
+        to remember.
       </p>
       <input
         type="email"
@@ -79,22 +78,23 @@ export function AuthForm() {
         required
         autoComplete="email"
         inputMode="email"
-        className="w-full bg-ink-900 border border-ink-600 rounded-lg px-4 py-3 text-base focus:border-accent-violet/40 focus:outline-none mb-4"
+        aria-label="Email"
+        className="inp mb-4"
       />
       {error && (
-        <div className="text-sm text-accent-rose bg-accent-rose/10 border border-accent-rose/30 rounded-lg px-3 py-2 mb-4">
+        <div className="alert mb-4" role="alert">
           {error}
         </div>
       )}
       <button
         type="submit"
         disabled={submitting || !email.trim()}
-        className="w-full py-3 rounded-lg bg-accent-violet/15 text-accent-violet border border-accent-violet/30 text-sm hover:bg-accent-violet/25 disabled:opacity-30 transition"
+        className="btn btn-spot w-full"
       >
-        {submitting ? "Sending…" : "Send sign-in link"}
+        {submitting ? "Sending" : "Send sign-in link"}
       </button>
-      <p className="text-[11px] text-ink-400 mt-6 text-center leading-relaxed">
-        First time here? You&apos;ll be signed up automatically.
+      <p className="text-[11.5px] text-ink-400 mt-5 leading-relaxed">
+        First time here? You will be signed up automatically.
       </p>
     </form>
   );

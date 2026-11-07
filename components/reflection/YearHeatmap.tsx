@@ -4,11 +4,11 @@ import type { HeatmapCell } from "@/lib/reflection/auto-detect";
  * 365-day grid. Columns are weeks (oldest left, newest right), rows are
  * day-of-week (Sun top, Sat bottom).
  *
- * Each cell colored by check-in state:
- *   - both morning + evening   bright green
- *   - morning only             muted green
- *   - evening only             muted violet
- *   - neither                  empty grid square
+ * Each cell is inked by check-in state:
+ *   - both morning + evening   solid ink
+ *   - morning only             the gold ink
+ *   - evening only             the violet ink
+ *   - neither                  an empty cell
  */
 export function YearHeatmap({ cells }: { cells: HeatmapCell[] }) {
   // Group into weeks. Each cell knows its weekday (0=Sun..6=Sat).
@@ -36,20 +36,16 @@ export function YearHeatmap({ cells }: { cells: HeatmapCell[] }) {
     weeks.push(currentWeek);
   }
 
-  function colorFor(cell: HeatmapCell | null): string {
+  function inkFor(cell: HeatmapCell | null): string {
     if (!cell) return "bg-transparent";
-    if (cell.morning && cell.evening) return "bg-accent-green/70";
-    if (cell.morning) return "bg-accent-green/30";
-    if (cell.evening) return "bg-accent-violet/30";
-    return "bg-ink-700/60";
+    if (cell.morning && cell.evening) return "bg-ink-50";
+    if (cell.morning) return "bg-accent-gold";
+    if (cell.evening) return "bg-accent-violet";
+    return "bg-ink-600";
   }
 
   return (
-    <div className="card overflow-x-auto">
-      <div className="card-glow" />
-      <div className="lbl mb-3">
-        365-day check-in
-      </div>
+    <div className="sheet overflow-x-auto">
       <div
         className="inline-grid grid-flow-col gap-[3px]"
         style={{ gridTemplateRows: "repeat(7, minmax(0, 1fr))" }}
@@ -59,16 +55,16 @@ export function YearHeatmap({ cells }: { cells: HeatmapCell[] }) {
             <div
               key={`${wi}-${di}`}
               title={cell ? cell.date : ""}
-              className={`w-2.5 h-2.5 rounded-sm ${colorFor(cell)}`}
+              className={`w-2.5 h-2.5 ${inkFor(cell)}`}
             />
           )),
         )}
       </div>
-      <div className="flex items-center gap-3 text-[10px] text-ink-400 mt-4">
-        <Legend swatch="bg-accent-green/70" label="Both" />
-        <Legend swatch="bg-accent-green/30" label="Morning" />
-        <Legend swatch="bg-accent-violet/30" label="Evening" />
-        <Legend swatch="bg-ink-700/60" label="None" />
+      <div className="flex items-center gap-4 text-[11px] text-ink-400 mt-4">
+        <Legend swatch="bg-ink-50" label="Both" />
+        <Legend swatch="bg-accent-gold" label="Morning" />
+        <Legend swatch="bg-accent-violet" label="Evening" />
+        <Legend swatch="bg-ink-600" label="Neither" />
       </div>
     </div>
   );
@@ -77,7 +73,7 @@ export function YearHeatmap({ cells }: { cells: HeatmapCell[] }) {
 function Legend({ swatch, label }: { swatch: string; label: string }) {
   return (
     <div className="flex items-center gap-1.5">
-      <span className={`w-2.5 h-2.5 rounded-sm ${swatch}`} />
+      <span className={`w-2.5 h-2.5 ${swatch}`} />
       <span>{label}</span>
     </div>
   );

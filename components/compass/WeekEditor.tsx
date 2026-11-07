@@ -2,11 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  type IdealWeek,
-  DAYS,
-  DAY_LABELS,
-} from "@/lib/compass/schema";
+import { type IdealWeek, DAYS, DAY_LABELS } from "@/lib/compass/schema";
+import { SaveRow } from "./CompassEditor";
 
 export function WeekEditor({ initial }: { initial: IdealWeek }) {
   const router = useRouter();
@@ -52,18 +49,18 @@ export function WeekEditor({ initial }: { initial: IdealWeek }) {
   }
 
   return (
-    <div className="space-y-4">
-      <p className="text-sm text-ink-300 mb-2">
-        Sketch your ideal week — the rhythm you want, not the schedule you
-        have. Anchors, blocks, rituals. Update freely.
+    <div className="space-y-6">
+      <p className="text-[14.5px] text-ink-300 max-w-[62ch]">
+        Sketch the rhythm you want, not the schedule you have. Anchors, blocks,
+        rituals. Update freely.
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {DAYS.map((day) => (
-          <div key={day} className="card">
-            <div className="card-glow" />
-            <div className="text-xs lbl text-accent-sky mb-2">
-              {DAY_LABELS[day]}
+          <div key={day} className="sheet focus-within:shadow-mis-sm">
+            <div className="tab-row mb-2.5">
+              <span className="tab">{DAY_LABELS[day]}</span>
+              <span className="fill" />
             </div>
             <textarea
               value={week[day] ?? ""}
@@ -72,32 +69,22 @@ export function WeekEditor({ initial }: { initial: IdealWeek }) {
               }
               rows={5}
               maxLength={2000}
-              placeholder="Morning routine, blocks, rituals…"
-              className="w-full bg-transparent text-sm text-ink-100 leading-relaxed focus:outline-none resize-none"
+              placeholder="Morning routine, blocks, rituals"
+              aria-label={DAY_LABELS[day]}
+              className="w-full bg-transparent border-0 p-0 outline-none resize-none font-serif text-[16px] leading-[1.55] text-ink-100 placeholder:text-ink-400 placeholder:italic"
             />
           </div>
         ))}
       </div>
 
-      {error && (
-        <div className="text-sm text-accent-rose bg-accent-rose/10 border border-accent-rose/30 rounded-lg px-3 py-2">
-          {error}
-        </div>
-      )}
-
-      <div className="flex items-center justify-between">
-        <span className="text-[11px] text-ink-400">
-          {savedFlash ? "✓ saved" : "All seven days save together."}
-        </span>
-        <button
-          type="button"
-          onClick={save}
-          disabled={submitting}
-          className="px-5 py-2 rounded-lg bg-accent-sky/15 text-accent-sky border border-accent-sky/30 text-sm hover:bg-accent-sky/25 disabled:opacity-30 transition"
-        >
-          {submitting ? "Saving…" : "Save week"}
-        </button>
-      </div>
+      <SaveRow
+        error={error}
+        saved={savedFlash}
+        idle="All seven days save together."
+        submitting={submitting}
+        onSave={save}
+        label="Save week"
+      />
     </div>
   );
 }

@@ -2,13 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  type Protocol,
-  ACCENT_TEXT,
-  ACCENT_BG,
-  ACCENT_BORDER,
-  ACCENT_BAR,
-} from "@/lib/protocols/definitions";
+import type { Protocol } from "@/lib/protocols/definitions";
 
 /**
  * Generic runner for any protocol definition.
@@ -26,11 +20,6 @@ export function ProtocolRunner({ protocol }: { protocol: Protocol }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [startedAt] = useState(() => Date.now());
-
-  const accentText = ACCENT_TEXT[protocol.accent];
-  const accentBg = ACCENT_BG[protocol.accent];
-  const accentBorder = ACCENT_BORDER[protocol.accent];
-  const accentBar = ACCENT_BAR[protocol.accent];
 
   const totalSteps = protocol.prompts.length;
 
@@ -72,70 +61,57 @@ export function ProtocolRunner({ protocol }: { protocol: Protocol }) {
     setStep(Math.max(0, step - 1));
   }
 
-  // Intro
+  // Intro: the protocol's own sheet, before the wizard card takes over.
   if (step === 0) {
     return (
-      <div className="card max-w-2xl mx-auto">
-        <div className="card-glow" />
-        <div
-          className={`text-xs lbl ${accentText} mb-2`}
-        >
-          {protocol.title}
+      <div className="wiz">
+        <div className="wiz-card">
+          <div className="wiz-step">{protocol.title}</div>
+          <h1 className="t-h1 mb-3">{protocol.subtitle}</h1>
+          <p className="text-[15px] text-ink-300 leading-[1.5] mb-6">
+            {protocol.description}
+          </p>
+          <div className="wiz-foot">
+            <span className="wiz-count">
+              About {protocol.estimatedMinutes} min, {totalSteps}{" "}
+              {totalSteps === 1 ? "prompt" : "prompts"}
+            </span>
+            <button
+              type="button"
+              onClick={() => setStep(1)}
+              className="btn btn-spot btn-next"
+            >
+              Begin
+            </button>
+          </div>
         </div>
-        <h1 className="t-h1 text-ink-50 mb-3 leading-snug">
-          {protocol.subtitle}
-        </h1>
-        <p className="text-base text-ink-300 leading-relaxed mb-6">
-          {protocol.description}
-        </p>
-        <div className="text-xs text-ink-400 mb-6">
-          ~{protocol.estimatedMinutes} min · {totalSteps}{" "}
-          {totalSteps === 1 ? "prompt" : "prompts"}
-        </div>
-        <button
-          type="button"
-          onClick={() => setStep(1)}
-          className={`w-full py-3 rounded-lg ${accentBg} ${accentText} ${accentBorder} border text-sm hover:opacity-80 transition`}
-        >
-          Begin →
-        </button>
       </div>
     );
   }
 
   const prompt = protocol.prompts[step - 1];
   const value = responses[prompt.id] ?? "";
-  const canContinue =
-    Boolean(prompt.optional) || value.trim().length > 0;
+  const canContinue = Boolean(prompt.optional) || value.trim().length > 0;
+  const max = prompt.maxLength ?? (prompt.type === "text" ? 200 : 1000);
 
   return (
-    <div className="card max-w-2xl mx-auto">
-      <div className="card-glow" />
-      <div className="flex items-center justify-between mb-6">
-        <div
-          className={`text-xs lbl ${accentText}`}
-        >
-          {protocol.title} · {step} / {totalSteps}
-        </div>
-        <div className="flex gap-1">
-          {Array.from({ length: totalSteps }).map((_, i) => (
-            <span
-              key={i}
-              className={`h-1 w-8 rounded-full transition ${
-                i < step ? accentBar : "bg-ink-700"
-              }`}
-            />
-          ))}
-        </div>
+    <div className="wiz">
+      <div className="wiz-bar" aria-hidden="true">
+        {Array.from({ length: totalSteps }).map((_, i) => (
+          <i
+            key={i}
+            className={i + 1 < step ? "on" : i + 1 === step ? "cur" : undefined}
+          />
+        ))}
       </div>
 
-      <div className="min-h-[260px]">
-        <h2 className="t-h2 text-ink-50 mb-1.5 leading-snug">
-          {prompt.label}
-        </h2>
-        {prompt.subhead && (
-          <p className="text-sm text-ink-300 mb-5">{prompt.subhead}</p>
-        )}
+      <div className="wiz-card">
+        <div className="wiz-step">
+          {protocol.title}, step {step} of {totalSteps}
+        </div>
+
+        <h2 className="wiz-q">{prompt.label}</h2>
+        {prompt.subhead && <p className="wiz-h">{prompt.subhead}</p>}
 
         {prompt.type === "text" ? (
           <input
@@ -144,8 +120,8 @@ export function ProtocolRunner({ protocol }: { protocol: Protocol }) {
             onChange={(e) => setResponse(prompt.id, e.target.value)}
             autoFocus
             placeholder={prompt.placeholder}
-            maxLength={prompt.maxLength ?? 200}
-            className="w-full bg-ink-900 border border-ink-600 rounded-lg px-4 py-3 text-base focus:border-accent-spot focus:outline-none"
+            maxLength={max}
+            className="inp"
           />
         ) : (
           <textarea
@@ -154,44 +130,43 @@ export function ProtocolRunner({ protocol }: { protocol: Protocol }) {
             autoFocus
             rows={6}
             placeholder={prompt.placeholder}
-            maxLength={prompt.maxLength ?? 1000}
-            className="w-full bg-ink-900 border border-ink-600 rounded-lg px-4 py-3 text-base leading-snug focus:border-accent-spot focus:outline-none resize-none"
+            maxLength={max}
+            className="ta"
           />
         )}
 
-        <div className="text-[11px] text-ink-400 mt-2 text-right tabular-nums">
-          {value.length} /{" "}
-          {prompt.maxLength ?? (prompt.type === "text" ? 200 : 1000)}
+        <div className="flex items-center justify-end mt-2">
+          <span
+            className={`wiz-count ${value.length > max - Math.round(max * 0.08) ? "over" : ""}`}
+          >
+            {value.length}/{max}
+          </span>
         </div>
-      </div>
 
-      {error && (
-        <div className="mt-4 text-sm text-accent-rose bg-accent-rose/10 border border-accent-rose/30 rounded-lg px-3 py-2">
-          {error}
+        {error && (
+          <div className="alert mt-4" role="alert">
+            {error} Nothing was lost; press it again.
+          </div>
+        )}
+
+        <div className="wiz-foot">
+          <button
+            type="button"
+            onClick={back}
+            disabled={submitting}
+            className="btn btn-ghost"
+          >
+            Back
+          </button>
+          <button
+            type="button"
+            onClick={next}
+            disabled={!canContinue || submitting}
+            className={`btn btn-next ${step === totalSteps ? "btn-spot" : ""}`}
+          >
+            {submitting ? "Saving" : step === totalSteps ? "Save" : "Next"}
+          </button>
         </div>
-      )}
-
-      <div className="flex items-center justify-between mt-6">
-        <button
-          type="button"
-          onClick={back}
-          disabled={submitting}
-          className="text-sm text-ink-300 hover:text-ink-100 disabled:opacity-30 transition"
-        >
-          ← Back
-        </button>
-        <button
-          type="button"
-          onClick={next}
-          disabled={!canContinue || submitting}
-          className={`px-5 py-2 rounded-lg ${accentBg} ${accentText} ${accentBorder} border text-sm hover:opacity-80 disabled:opacity-30 transition`}
-        >
-          {submitting
-            ? "Saving…"
-            : step === totalSteps
-              ? "Save →"
-              : "Continue →"}
-        </button>
       </div>
     </div>
   );
