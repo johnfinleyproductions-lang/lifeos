@@ -7,10 +7,9 @@ import { lifeosProtocolRuns } from "@/lib/db/schema/lifeos";
 import { requireUserContext } from "@/lib/auth/server-helpers";
 import { BALANCE_DIMENSIONS } from "@/lib/reflection/balance";
 import {
-  readingsOf,
   setReadings,
-  weeklyReviewPayloadSchema,
-  type WeeklyReviewPayload,
+  weeklyReviewInputSchema,
+  type WeeklyReviewInput,
 } from "@/lib/reflection/weekly-review-schema";
 import { PageStamp } from "@/components/PageStamp";
 
@@ -43,7 +42,7 @@ export default async function PastReviewsPage() {
     .limit(104);
 
   const reviews = runs.flatMap((r) => {
-    const parsed = weeklyReviewPayloadSchema.safeParse(r.payload);
+    const parsed = weeklyReviewInputSchema.safeParse(r.payload);
     return parsed.success
       ? [{ id: r.id, runDate: r.runDate, payload: parsed.data }]
       : [];
@@ -85,9 +84,9 @@ function ReviewSheet({
   payload,
 }: {
   runDate: string;
-  payload: WeeklyReviewPayload;
+  payload: WeeklyReviewInput;
 }) {
-  const readings = setReadings(readingsOf(payload));
+  const readings = setReadings(payload.balance);
   const wins = payload.wins
     .split("\n")
     .map((w) => w.trim())

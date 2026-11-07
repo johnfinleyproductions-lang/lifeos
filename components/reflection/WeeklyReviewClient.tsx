@@ -290,9 +290,11 @@ export function WeeklyReviewClient({
                           </button>
                         )}
                         <span
-                          className={`t-num text-[22px] tabular-nums ${
-                            isSet ? "" : "text-ink-400 text-[13px] italic"
-                          }`}
+                          className={
+                            isSet
+                              ? "t-num text-[22px] tabular-nums"
+                              : "text-[12.5px] text-ink-400 italic"
+                          }
                           aria-live="polite"
                         >
                           {isSet ? value : "not set"}

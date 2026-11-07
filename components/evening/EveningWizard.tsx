@@ -170,8 +170,10 @@ export function EveningWizard({
                   aria-pressed={depth === c.key}
                   className="chip min-h-9"
                 >
-                  {c.label}
-                  <span className="opacity-60 font-normal">, {c.hint}</span>
+                  <span>
+                    {c.label}
+                    <span className="opacity-60 font-normal">, {c.hint}</span>
+                  </span>
                 </button>
               ))}
             </div>

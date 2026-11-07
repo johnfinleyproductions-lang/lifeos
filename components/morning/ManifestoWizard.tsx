@@ -224,8 +224,10 @@ export function ManifestoWizard({
                   aria-pressed={depth === c.key}
                   className="chip min-h-9"
                 >
-                  {c.label}
-                  <span className="opacity-60 font-normal">, {c.hint}</span>
+                  <span>
+                    {c.label}
+                    <span className="opacity-60 font-normal">, {c.hint}</span>
+                  </span>
                 </button>
               ))}
             </div>
@@ -309,7 +311,7 @@ export function ManifestoWizard({
                       <span
                         className={`text-[11.5px] min-w-0 ${
                           s.struck
-                            ? "text-ink-400 line-through decoration-accent-spot decoration-2"
+                            ? "text-ink-400 line-through decoration-ink-400 decoration-[1.5px]"
                             : "text-ink-300"
                         }`}
                         style={{ fontVariationSettings: "'wght' 640" }}
