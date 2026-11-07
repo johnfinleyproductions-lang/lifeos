@@ -1,4 +1,5 @@
 import type { HeatmapCell } from "@/lib/reflection/auto-detect";
+import { weekdayOf } from "@/lib/time/day";
 
 /**
  * 365-day grid. Columns are weeks (oldest left, newest right), rows are
@@ -18,7 +19,7 @@ export function YearHeatmap({ cells }: { cells: HeatmapCell[] }) {
   let firstDayWeekday = -1;
 
   for (const cell of cells) {
-    const dow = new Date(cell.date + "T00:00:00").getDay();
+    const dow = weekdayOf(cell.date);
     if (firstDayWeekday < 0) {
       firstDayWeekday = dow;
       // Pad earlier days of the same week with nulls

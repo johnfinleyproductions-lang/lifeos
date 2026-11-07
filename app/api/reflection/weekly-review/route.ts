@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { format } from "date-fns";
+import { todayKey } from "@/lib/time/day";
 import { db } from "@/lib/db";
 import { lifeosProtocolRuns } from "@/lib/db/schema/lifeos";
 import { requireApiUser } from "@/lib/auth/server-helpers";
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const today = format(new Date(), "yyyy-MM-dd");
+  const today = todayKey();
 
   const [run] = await db
     .insert(lifeosProtocolRuns)

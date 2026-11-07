@@ -1,5 +1,5 @@
 import { and, desc, eq, gte, isNotNull, isNull } from "drizzle-orm";
-import { format, startOfDay } from "date-fns";
+import { startOfDay, todayKey } from "@/lib/time/day";
 import { db } from "@/lib/db";
 import { lifeosFocusSessions } from "@/lib/db/schema/lifeos";
 import { requireUserContext } from "@/lib/auth/server-helpers";
@@ -20,7 +20,7 @@ export default async function FocusPage() {
     )
     .limit(1);
 
-  const dayStart = startOfDay(new Date());
+  const dayStart = startOfDay(todayKey());
   const completed = await db
     .select()
     .from(lifeosFocusSessions)

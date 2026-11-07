@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
-import { format } from "date-fns";
+import { todayKey } from "@/lib/time/day";
 import { db } from "@/lib/db";
 import {
   lifeosHabits,
@@ -22,7 +22,7 @@ export async function POST(
   if (unauthorizedResponse) return unauthorizedResponse;
 
   const { id: habitId } = await params;
-  const today = format(new Date(), "yyyy-MM-dd");
+  const today = todayKey();
 
   // Verify the habit belongs to this user. Otherwise we'd let anyone toggle
   // any habit they know the UUID for.

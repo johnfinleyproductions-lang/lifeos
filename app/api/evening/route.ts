@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
-import { format } from "date-fns";
+import { todayKey } from "@/lib/time/day";
 import { db } from "@/lib/db";
 import { lifeosDailyCheckins } from "@/lib/db/schema/lifeos";
 import { requireApiUser } from "@/lib/auth/server-helpers";
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const today = format(new Date(), "yyyy-MM-dd");
+  const today = todayKey();
 
   const existing = await db
     .select({ id: lifeosDailyCheckins.id })

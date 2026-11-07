@@ -1,6 +1,12 @@
 import { cache } from "react";
 import { and, eq, gte, inArray, isNotNull } from "drizzle-orm";
-import { format, startOfDay, subDays } from "date-fns";
+import {
+  addDays,
+  dayKeyOf,
+  lastNDays,
+  startOfDay,
+  todayKey,
+} from "@/lib/time/day";
 import { db } from "@/lib/db";
 import {
   lifeosDailyCheckins,
@@ -52,15 +58,10 @@ export type InsightsData = {
  */
 export const getInsights = cache(
   async (userId: string, windowDays = 30): Promise<InsightsData> => {
-    const today = new Date();
-    const startDate = format(subDays(today, windowDays - 1), "yyyy-MM-dd");
-    const endDate = format(today, "yyyy-MM-dd");
-    const dayStart = startOfDay(subDays(today, windowDays - 1));
-
-    const days: string[] = [];
-    for (let i = windowDays - 1; i >= 0; i--) {
-      days.push(format(subDays(today, i), "yyyy-MM-dd"));
-    }
+    const endDate = todayKey();
+    const startDate = addDays(endDate, -(windowDays - 1));
+    const dayStart = startOfDay(startDate);
+    const days = lastNDays(windowDays, endDate);
 
     const checkins = await db
       .select({
@@ -103,7 +104,7 @@ export const getInsights = cache(
 
     const focusByDate = new Map<string, number>();
     for (const f of focusRows) {
-      const date = format(f.startedAt, "yyyy-MM-dd");
+      const date = dayKeyOf(f.startedAt);
       focusByDate.set(
         date,
         (focusByDate.get(date) ?? 0) + (f.durationMinutes ?? 0),

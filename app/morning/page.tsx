@@ -1,5 +1,5 @@
 import { and, eq } from "drizzle-orm";
-import { format } from "date-fns";
+import { todayKey } from "@/lib/time/day";
 import { db } from "@/lib/db";
 import { lifeosDailyCheckins } from "@/lib/db/schema/lifeos";
 import { requireUserContext } from "@/lib/auth/server-helpers";
@@ -12,7 +12,7 @@ import {
 
 export default async function MorningPage() {
   const { user } = await requireUserContext();
-  const today = format(new Date(), "yyyy-MM-dd");
+  const today = todayKey();
 
   const rows = await db
     .select({ morning: lifeosDailyCheckins.morning })

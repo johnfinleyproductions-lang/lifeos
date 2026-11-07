@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { formatDay } from "@/lib/time/day";
 import type { InsightsData } from "./queries";
 
 export type Pattern = {
@@ -24,7 +24,7 @@ export function detectPatterns(data: InsightsData): Pattern[] {
     .filter((p) => p.eveningRating !== null)
     .sort((a, b) => (b.eveningRating ?? 0) - (a.eveningRating ?? 0))[0];
   if (bestDay && bestDay.eveningRating && bestDay.eveningRating >= 4) {
-    const dateLabel = format(new Date(bestDay.date), "EEEE, MMM d");
+    const dateLabel = formatDay(bestDay.date, "EEEE, MMM d");
     patterns.push({
       emoji: "🌟",
       title: "Best day this period",

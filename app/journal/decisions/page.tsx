@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { format } from "date-fns";
+import { formatInstant } from "@/lib/time/day";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { lifeosJournalEntries } from "@/lib/db/schema/lifeos";
@@ -106,7 +106,7 @@ export default async function JournalDecisionsPage() {
                   <div className="flex items-baseline justify-between gap-3 mb-3">
                     <div className="lbl">{meta.join(", ")}</div>
                     <span className="text-[11.5px] text-ink-400 tabular-nums shrink-0">
-                      {format(new Date(d.createdAt), "d MMM yyyy")}
+                      {formatInstant(new Date(d.createdAt), "d MMM yyyy")}
                     </span>
                   </div>
                   {d.decisionSummary && (

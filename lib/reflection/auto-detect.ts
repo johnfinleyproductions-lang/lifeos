@@ -1,6 +1,6 @@
 import { cache } from "react";
 import { and, count, desc, eq, gte, isNotNull } from "drizzle-orm";
-import { format, startOfDay, subDays } from "date-fns";
+import { addDays, lastNDays, startOfDay, todayKey } from "@/lib/time/day";
 import { db } from "@/lib/db";
 import {
   lifeosDailyCheckins,
@@ -33,8 +33,8 @@ export type Scorecard = {
 
 export const getScorecard = cache(
   async (userId: string): Promise<Scorecard> => {
-    const sevenDaysAgo = format(subDays(new Date(), 6), "yyyy-MM-dd");
-    const dayStart = startOfDay(subDays(new Date(), 6));
+    const sevenDaysAgo = addDays(todayKey(), -6);
+    const dayStart = startOfDay(sevenDaysAgo);
 
     const checkins = await db
       .select({
@@ -161,7 +161,8 @@ export type HeatmapCell = {
 
 export const getYearHeatmap = cache(
   async (userId: string): Promise<HeatmapCell[]> => {
-    const oneYearAgo = format(subDays(new Date(), 364), "yyyy-MM-dd");
+    const today = todayKey();
+    const oneYearAgo = addDays(today, -364);
     const rows = await db
       .select({
         entryDate: lifeosDailyCheckins.entryDate,
@@ -185,8 +186,7 @@ export const getYearHeatmap = cache(
     }
 
     const cells: HeatmapCell[] = [];
-    for (let i = 364; i >= 0; i--) {
-      const d = format(subDays(new Date(), i), "yyyy-MM-dd");
+    for (const d of lastNDays(365, today)) {
       const hit = byDate.get(d);
       cells.push({
         date: d,
@@ -205,8 +205,8 @@ export const getYearHeatmap = cache(
 export const getSuggestedWins = cache(
   async (userId: string): Promise<string[]> => {
     const wins: string[] = [];
-    const sevenDaysAgo = format(subDays(new Date(), 6), "yyyy-MM-dd");
-    const dayStart = startOfDay(subDays(new Date(), 6));
+    const sevenDaysAgo = addDays(todayKey(), -6);
+    const dayStart = startOfDay(sevenDaysAgo);
 
     // Completed quests in the last week
     const completedQuests = await db

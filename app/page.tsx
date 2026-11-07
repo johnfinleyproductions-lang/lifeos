@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Plate } from "@/components/field/plates";
 import { getAuthContext } from "@/lib/auth/server-helpers";
 import { getTodayCheckin } from "@/lib/checkin/today";
+import { dayOfYear, formatDay, localParts, todayKey } from "@/lib/time/day";
 import { ManifestoCard } from "@/components/today/ManifestoCard";
 import { QuestsCard } from "@/components/today/QuestsCard";
 import { BalanceCard } from "@/components/today/BalanceCard";
@@ -9,32 +10,7 @@ import { PlanCard } from "@/components/today/PlanCard";
 import { FocusHabitsCard } from "@/components/today/FocusHabitsCard";
 import { EveningSummaryCard } from "@/components/today/EveningSummaryCard";
 
-const DAYS = [
-  "Sunday",
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-];
-const MONTHS = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
-
-function greetingFor(date: Date) {
-  const h = date.getHours();
+function greetingFor(h: number) {
   if (h < 5) return "Still up";
   if (h < 12) return "Good morning";
   if (h < 17) return "Good afternoon";
@@ -42,18 +18,13 @@ function greetingFor(date: Date) {
   return "Late night";
 }
 
-function dayOfYear(d: Date) {
-  return Math.floor(
-    (d.getTime() - new Date(d.getFullYear(), 0, 0).getTime()) / 864e5,
-  );
-}
-
 export default async function TodayPage() {
   const { user } = await getAuthContext();
   const eveningDone = user
     ? (await getTodayCheckin(user.id)).evening !== null
     : false;
-  const now = new Date();
+  const now = localParts();
+  const today = todayKey();
 
   return (
     <div className="max-w-[1080px] mx-auto">
@@ -68,12 +39,12 @@ export default async function TodayPage() {
               className="text-xs text-ink-300"
               style={{ fontVariationSettings: "'wdth' 100, 'wght' 620" }}
             >
-              {DAYS[now.getDay()]}, {now.getDate()} {MONTHS[now.getMonth()]}
+              {formatDay(today, "EEEE, d MMMM")}
               <span className="inline-block w-5" />
-              <b className="text-ink-50 tabular-nums">No. {dayOfYear(now)}</b>
+              <b className="text-ink-50 tabular-nums">No. {dayOfYear(today)}</b>
             </div>
             <h1 className="t-h1 mt-[7px]">
-              {greetingFor(now)}
+              {greetingFor(now.hour)}
               {user ? `, ${user.name?.split(" ")[0]}` : ""}.
             </h1>
           </div>

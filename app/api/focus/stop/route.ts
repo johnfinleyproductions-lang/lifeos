@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { lifeosFocusSessions } from "@/lib/db/schema/lifeos";
 import { requireApiUser } from "@/lib/auth/server-helpers";
 import { stopFocusSchema } from "@/lib/focus/schema";
+import { now } from "@/lib/time/day";
 
 /**
  * POST /api/focus/stop — close the active focus session.
@@ -48,7 +49,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const endedAt = new Date();
+  const endedAt = now();
   const durationMinutes = Math.max(
     0,
     Math.round((endedAt.getTime() - active.startedAt.getTime()) / 60000),
