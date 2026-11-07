@@ -36,8 +36,7 @@ export function FocusClient({
   useEffect(() => {
     if (!active) return;
     const startMs = new Date(active.startedAt).getTime();
-    const tick = () =>
-      setElapsed(Math.floor((Date.now() - startMs) / 1000));
+    const tick = () => setElapsed(Math.floor((Date.now() - startMs) / 1000));
     tick();
     const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
@@ -96,100 +95,132 @@ export function FocusClient({
       : `${minutes}:${String(seconds).padStart(2, "0")}`;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {active ? (
-        <div className="card text-center py-10">
-          <div className="card-glow" />
-          <div className="text-xs lbl text-accent-sky mb-3">
-            In focus
+        /* Live, so it takes the spot ink and the misregistration. */
+        <section>
+          <div className="tab-row">
+            <span className="tab tab-spot">In focus</span>
+            <span className="fill" />
           </div>
-          <div className="font-serif text-7xl text-ink-50 tabular-nums mb-3">
-            {timeStr}
-          </div>
-          <div className="text-sm text-ink-300 mb-6">{active.label}</div>
-          <button
-            type="button"
-            onClick={stopSession}
-            disabled={submitting}
-            className="px-6 py-2.5 rounded-lg bg-accent-rose/15 text-accent-rose border border-accent-rose/30 text-sm hover:bg-accent-rose/25 disabled:opacity-30 transition"
-          >
-            {submitting ? "Stopping…" : "Stop session"}
-          </button>
-        </div>
-      ) : (
-        <div className="card">
-          <div className="card-glow" />
-          <div className="lbl mb-3">
-            Start a focus block
-          </div>
-          <input
-            type="text"
-            value={label}
-            onChange={(e) => setLabel(e.target.value)}
-            placeholder="What are you working on?"
-            maxLength={120}
-            autoFocus
-            onKeyDown={(e) => {
-              if (
-                e.key === "Enter" &&
-                label.trim().length > 0 &&
-                !submitting
-              )
-                startSession();
-            }}
-            className="w-full bg-ink-900 border border-ink-600 rounded-lg px-4 py-3 text-base focus:border-accent-sky focus:outline-none mb-4"
-          />
-          {error && (
-            <div className="text-xs text-accent-rose mb-3">{error}</div>
-          )}
-          <div className="flex justify-end">
+          <div className="sheet sheet-hi shadow-mis text-center py-9">
+            <div
+              className="t-num text-[clamp(56px,9vw,96px)] leading-none tracking-[-0.03em]"
+              style={{ fontVariationSettings: "'wdth' 84, 'wght' 800" }}
+              aria-live="off"
+            >
+              {timeStr}
+            </div>
+            <div
+              className="text-[15px] text-ink-300 mt-3 mb-7"
+              style={{ fontVariationSettings: "'wght' 600" }}
+            >
+              {active.label}
+            </div>
             <button
               type="button"
-              onClick={startSession}
-              disabled={submitting || label.trim().length === 0}
-              className="px-5 py-2 rounded-lg bg-accent-sky/15 text-accent-sky border border-accent-sky/30 text-sm hover:bg-accent-sky/25 disabled:opacity-30 transition"
+              onClick={stopSession}
+              disabled={submitting}
+              className="btn btn-spot btn-lg"
             >
-              {submitting ? "Starting…" : "Start →"}
+              {submitting ? "Stopping" : "Stop the block"}
             </button>
           </div>
-        </div>
+        </section>
+      ) : (
+        <section>
+          <div className="tab-row">
+            <span className="tab">Start a focus block</span>
+            <span className="fill" />
+          </div>
+          <div className="sheet sheet-hi">
+            <div className="flex flex-col sm:flex-row sm:items-stretch gap-2.5">
+              <input
+                type="text"
+                value={label}
+                onChange={(e) => setLabel(e.target.value)}
+                placeholder="What are you working on?"
+                maxLength={120}
+                autoFocus
+                onKeyDown={(e) => {
+                  if (
+                    e.key === "Enter" &&
+                    label.trim().length > 0 &&
+                    !submitting
+                  )
+                    startSession();
+                }}
+                className="inp"
+              />
+              <button
+                type="button"
+                onClick={startSession}
+                disabled={submitting || label.trim().length === 0}
+                className="btn shrink-0"
+              >
+                {submitting ? "Starting" : "Start"}
+              </button>
+            </div>
+            {error && (
+              <div className="alert mt-3" role="alert">
+                {error}
+              </div>
+            )}
+          </div>
+        </section>
       )}
 
-      <div className="card">
-        <div className="card-glow" />
-        <div className="flex items-center justify-between mb-4">
-          <div className="lbl">
-            Today
-          </div>
-          <div className="font-serif text-lg text-ink-100 tabular-nums">
-            {totalMinutes}{" "}
-            <span className="text-sm text-ink-400">min</span>
-          </div>
+      <section>
+        <div className="tab-row">
+          <span className="tab">Today</span>
+          <span className="fill" />
+          <span className="text-[11.5px] text-ink-400 tabular-nums">
+            {today.length} {today.length === 1 ? "block" : "blocks"}
+          </span>
         </div>
-        {today.length === 0 ? (
-          <div className="text-sm text-ink-400 italic">
-            No completed sessions yet today.
+        <div className="sheet">
+          <div className="flex items-baseline justify-between gap-4 mb-2">
+            <span className="stat-l">Logged</span>
+            <span className="stat-v mt-0">
+              {totalMinutes}
+              <small>min</small>
+            </span>
           </div>
-        ) : (
-          <div className="space-y-2">
-            {today.map((s) => (
-              <div
-                key={s.id}
-                className="flex items-center justify-between text-sm gap-3"
-              >
-                <span className="text-ink-100 truncate flex-1">{s.label}</span>
-                <span className="text-ink-400 tabular-nums shrink-0">
-                  {format(new Date(s.startedAt), "h:mm a")} ·{" "}
-                  {s.durationMinutes}m
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+          {today.length === 0 ? (
+            <p className="text-[14px] text-ink-400 m-0 pt-3 border-t-[1.5px] border-ink-50">
+              No completed blocks yet today.
+            </p>
+          ) : (
+            <div className="border-t-[1.5px] border-ink-50">
+              {today.map((s) => (
+                <div
+                  key={s.id}
+                  className="flex items-center justify-between gap-3 py-2.5 border-b border-ink-600 last:border-b-0"
+                >
+                  <span
+                    className="truncate flex-1 text-[15px]"
+                    style={{ fontVariationSettings: "'wght' 560" }}
+                  >
+                    {s.label}
+                  </span>
+                  <span className="text-[12.5px] text-ink-400 tabular-nums shrink-0">
+                    {format(new Date(s.startedAt), "h:mm a")}
+                  </span>
+                  <span className="t-num text-[14px] w-14 text-right shrink-0">
+                    {s.durationMinutes}
+                    <span className="text-ink-400 text-[11.5px]"> min</span>
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
 
       {error && active && (
-        <div className="text-xs text-accent-rose">{error}</div>
+        <div className="alert" role="alert">
+          {error}
+        </div>
       )}
     </div>
   );

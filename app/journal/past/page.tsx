@@ -7,10 +7,10 @@ import { requireUserContext } from "@/lib/auth/server-helpers";
 import { getLens } from "@/lib/journal/lenses";
 import { PageStamp } from "@/components/PageStamp";
 
-const MODE_ACCENT: Record<string, string> = {
-  stream: "text-accent-violet",
-  framework: "text-accent-sky",
-  conversation: "text-accent-gold",
+const MODE_LABEL: Record<string, string> = {
+  stream: "Stream",
+  framework: "Framework",
+  conversation: "Conversation",
 };
 
 export default async function JournalPastPage() {
@@ -46,89 +46,74 @@ export default async function JournalPastPage() {
       />
 
       {entries.length === 0 ? (
-        <div className="card text-center py-12">
-          <div className="font-serif text-xl text-ink-100 mb-2">
-            Nothing yet.
-          </div>
-          <p className="text-sm text-ink-300 mb-4">
-            Write your first entry — Stream, Framework, or Conversation.
+        <div className="sheet sheet-bare border-dashed text-center py-10">
+          <div className="t-h2 mb-2">Nothing yet.</div>
+          <p className="text-[14.5px] text-ink-300 mb-5 max-w-[40ch] mx-auto">
+            Write your first entry: a stream, a framework, or a conversation.
           </p>
-          <Link
-            href="/journal"
-            className="inline-block px-4 py-2 rounded-lg bg-accent-violet/15 text-accent-violet border border-accent-violet/30 text-sm hover:bg-accent-violet/25 transition"
-          >
-            Open today&apos;s page →
+          <Link href="/journal" className="btn">
+            Open today&apos;s page
           </Link>
         </div>
       ) : (
         <div className="space-y-8">
           {Array.from(grouped.entries()).map(([date, dayEntries]) => (
             <section key={date}>
-              <div className="lbl mb-3">
-                {format(new Date(date), "EEEE · MMMM d, yyyy")}
+              <div className="tab-row">
+                <span className="tab">
+                  {format(new Date(date), "EEEE, d MMMM yyyy")}
+                </span>
+                <span className="fill" />
+                <span className="text-[11.5px] text-ink-400 tabular-nums">
+                  {dayEntries.length}{" "}
+                  {dayEntries.length === 1 ? "entry" : "entries"}
+                </span>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {dayEntries.map((e) => {
                   const lens = e.frameworkLens
                     ? getLens(e.frameworkLens)
                     : null;
+                  const meta = [
+                    MODE_LABEL[e.mode] ?? e.mode,
+                    lens?.title,
+                    e.isDecision ? "decision" : null,
+                  ].filter(Boolean);
                   return (
-                    <div key={e.id} className="card">
-                      <div className="card-glow" />
-                      <div className="flex items-start justify-between gap-3 mb-2">
-                        <div className="flex items-center gap-2">
-                          <span
-                            className={`text-[10px] lbl ${
-                              MODE_ACCENT[e.mode] ?? "text-ink-400"
-                            }`}
-                          >
-                            {e.mode}
-                          </span>
-                          {lens && (
-                            <span className="text-[10px] text-ink-400">
-                              · {lens.title}
-                            </span>
-                          )}
-                          {e.isDecision && (
-                            <span className="text-[10px] text-accent-gold lbl">
-                              · decision
-                            </span>
-                          )}
-                        </div>
-                        <span className="text-[11px] text-ink-400 shrink-0">
+                    <article key={e.id} className="sheet">
+                      <div className="flex items-baseline justify-between gap-3 mb-3">
+                        <div className="lbl">{meta.join(", ")}</div>
+                        <span className="text-[11.5px] text-ink-400 tabular-nums shrink-0">
                           {format(new Date(e.createdAt), "h:mm a")}
                         </span>
                       </div>
-                      {lens && (
-                        <div className="font-serif text-base text-ink-100 mb-2 italic">
-                          {lens.prompt}
-                        </div>
-                      )}
-                      <div
-                        className={`text-sm text-ink-200 leading-relaxed whitespace-pre-wrap ${
-                          e.mode === "stream" || e.mode === "conversation"
-                            ? "font-serif text-base"
-                            : ""
-                        }`}
-                      >
+                      {lens && <div className="t-h2 mb-2">{lens.prompt}</div>}
+                      <div className="t-read whitespace-pre-wrap">
                         {e.body.length > 600
-                          ? e.body.slice(0, 600) + "…"
+                          ? e.body.slice(0, 600) + "\u2026"
                           : e.body}
                       </div>
                       {e.isDecision && e.decisionSummary && (
-                        <div className="mt-3 pt-3 border-t border-ink-600 text-xs text-ink-300">
-                          <span className="text-accent-gold lbl">
-                            Decision:
-                          </span>{" "}
-                          {e.decisionSummary}
-                          {e.decisionDoor && (
-                            <span className="text-ink-400 ml-2">
-                              · {e.decisionDoor.replace("_", "-")} door
-                            </span>
-                          )}
+                        <div className="mt-4 pt-3 border-t-[1.5px] border-ink-500 flex gap-3.5">
+                          <span
+                            className="shrink-0 w-[84px] text-[11.5px] text-ink-400 pt-[3px]"
+                            style={{
+                              fontVariationSettings: "'wdth' 100, 'wght' 680",
+                            }}
+                          >
+                            Decided
+                          </span>
+                          <span className="flex-1 font-serif text-base leading-[1.5]">
+                            {e.decisionSummary}
+                            {e.decisionDoor && (
+                              <span className="text-ink-400 text-[13px] font-sans ml-2">
+                                {e.decisionDoor.replace("_", "-")} door
+                              </span>
+                            )}
+                          </span>
                         </div>
                       )}
-                    </div>
+                    </article>
                   );
                 })}
               </div>

@@ -15,34 +15,20 @@ const MODE_OPTIONS: {
   key: JournalMode;
   label: string;
   blurb: string;
-  accent: string;
 }[] = [
-  {
-    key: "stream",
-    label: "Stream",
-    blurb: "Free-form. Write to feel.",
-    accent: "text-accent-violet",
-  },
+  { key: "stream", label: "Stream", blurb: "Free-form. Write to feel." },
   {
     key: "framework",
     label: "Framework",
     blurb: "Pick a lens. Write to decide.",
-    accent: "text-accent-sky",
   },
-  {
-    key: "conversation",
-    label: "Conversation",
-    blurb: "Talk to future-you.",
-    accent: "text-accent-gold",
-  },
+  { key: "conversation", label: "Conversation", blurb: "Talk to future you." },
 ];
 
-const STREAM_PLACEHOLDER = "Dear universe…";
-const CONVERSATION_PLACEHOLDER = `ME · today
-…
+const STREAM_PLACEHOLDER = "Dear universe,";
+const CONVERSATION_PLACEHOLDER = `Me, today:
 
-FUTURE ME · age 80
-…
+Me, at eighty:
 `;
 
 export function JournalEditor() {
@@ -66,7 +52,7 @@ export function JournalEditor() {
     if (mode === "stream") return STREAM_PLACEHOLDER;
     if (mode === "conversation") return CONVERSATION_PLACEHOLDER;
     if (mode === "framework" && lens) return `Write under: ${lens.prompt}`;
-    return "Pick a lens above…";
+    return "Pick a lens above.";
   }
 
   const canSave =
@@ -115,98 +101,106 @@ export function JournalEditor() {
     }
   }
 
-  return (
-    <div className="space-y-4">
-      {/* Mode toggle */}
-      <div className="flex gap-2">
-        {MODE_OPTIONS.map((opt) => (
-          <button
-            key={opt.key}
-            type="button"
-            onClick={() => setMode(opt.key)}
-            className={`flex-1 px-4 py-3 rounded-xl border text-left transition ${
-              mode === opt.key
-                ? "border-ink-500 bg-ink-800"
-                : "border-ink-600 hover:border-ink-500"
-            }`}
-          >
-            <div
-              className={`text-xs lbl mb-1 ${
-                mode === opt.key ? opt.accent : "text-ink-400"
-              }`}
-            >
-              {opt.label}
-            </div>
-            <div
-              className={`text-sm ${
-                mode === opt.key ? "text-ink-100" : "text-ink-300"
-              }`}
-            >
-              {opt.blurb}
-            </div>
-          </button>
-        ))}
-      </div>
+  const words = body.trim().split(/\s+/).filter(Boolean).length;
 
-      {/* Lens picker — framework mode only */}
-      {mode === "framework" && (
-        <div className="card">
-          <div className="card-glow" />
-          <div className="lbl mb-3">
-            Lens
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {LENSES.map((l) => (
-              <button
-                key={l.key}
-                type="button"
-                onClick={() => setLensKey(l.key)}
-                className={`px-3 py-1.5 rounded-full text-xs border transition ${
-                  lensKey === l.key
-                    ? "border-accent-sky bg-accent-sky/10 text-accent-sky"
-                    : "border-ink-600 text-ink-300 hover:border-ink-50"
+  return (
+    <div className="space-y-5">
+      {/* Mode: three hard keys, the pressed one filled. */}
+      <div className="grid grid-cols-3 gap-2" role="group" aria-label="Mode">
+        {MODE_OPTIONS.map((opt) => {
+          const on = mode === opt.key;
+          return (
+            <button
+              key={opt.key}
+              type="button"
+              onClick={() => setMode(opt.key)}
+              aria-pressed={on}
+              className={`text-left px-3.5 py-3 border-[1.5px] border-ink-50 ${
+                on
+                  ? "bg-ink-50 text-ink-900"
+                  : "bg-transparent hover:bg-ink-700"
+              }`}
+            >
+              <span
+                className="block text-[14px] leading-tight"
+                style={{ fontVariationSettings: "'wdth' 96, 'wght' 720" }}
+              >
+                {opt.label}
+              </span>
+              <span
+                className={`block text-[12px] mt-1 leading-snug ${
+                  on ? "opacity-70" : "text-ink-300"
                 }`}
               >
-                {l.title}
-              </button>
-            ))}
+                {opt.blurb}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Lens picker, framework mode only */}
+      {mode === "framework" && (
+        <section>
+          <div className="tab-row">
+            <span className="tab">Lens</span>
+            <span className="fill" />
           </div>
-          {lens && (
-            <div className="mt-4 pt-4 border-t border-ink-600">
-              <div className="font-serif text-lg text-ink-50 mb-1">
-                {lens.prompt}
-              </div>
-              <div className="text-xs text-ink-300">{lens.description}</div>
+          <div className="sheet">
+            <div className="flex flex-wrap gap-1.5">
+              {LENSES.map((l) => (
+                <button
+                  key={l.key}
+                  type="button"
+                  onClick={() => setLensKey(l.key)}
+                  aria-pressed={lensKey === l.key}
+                  className="chip"
+                >
+                  {l.title}
+                </button>
+              ))}
             </div>
-          )}
-        </div>
+            {lens && (
+              <div className="mt-4 pt-4 border-t-[1.5px] border-ink-500">
+                <div className="t-h2">{lens.prompt}</div>
+                <div className="text-[13px] text-ink-300 mt-1.5">
+                  {lens.description}
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
       )}
 
-      {/* The page */}
-      <div className="card">
-        <div className="card-glow" />
+      {/* The page. The user's writing, so the serif, with the sheet as the
+          frame and the misregistration as the focus state. */}
+      <div className="sheet sheet-hi focus-within:shadow-mis">
         <textarea
           value={body}
           onChange={(e) => setBody(e.target.value)}
           placeholder={placeholder()}
           rows={mode === "stream" ? 16 : 12}
           maxLength={20000}
-          className={`w-full bg-transparent border-none focus:outline-none resize-none leading-relaxed ${
-            mode === "stream"
-              ? "font-serif text-lg text-ink-100"
-              : mode === "conversation"
-                ? "font-serif text-base text-ink-100"
-                : "text-base text-ink-100"
+          aria-label="Entry"
+          className={`w-full bg-transparent border-0 p-0 outline-none resize-none font-serif text-ink-100 placeholder:text-ink-400 placeholder:italic ${
+            mode === "framework"
+              ? "text-[17px] leading-[1.6]"
+              : "text-[19px] leading-[1.6]"
           }`}
         />
-        <div className="flex items-center justify-between text-[11px] text-ink-400 mt-3 pt-3 border-t border-ink-600 gap-3">
-          <span>
-            {body.length} / 20000 ·{" "}
-            {body.trim().split(/\s+/).filter(Boolean).length} words
+        <div className="flex items-center justify-between gap-3 mt-3 pt-3 border-t-[1.5px] border-ink-500">
+          <span className="wiz-count">
+            {body.length}/20000, {words} {words === 1 ? "word" : "words"}
           </span>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {savedFlash && (
-              <span className="text-accent-green">✓ saved</span>
+              <span
+                className="text-[12.5px] text-accent-spot"
+                style={{ fontVariationSettings: "'wght' 700" }}
+                role="status"
+              >
+                Saved
+              </span>
             )}
             <VoiceButton
               size="sm"
@@ -219,52 +213,41 @@ export function JournalEditor() {
       </div>
 
       {/* Decision tagging */}
-      <div className="card">
-        <div className="card-glow" />
-        <button
-          type="button"
-          onClick={() => setIsDecision(!isDecision)}
-          className="w-full flex items-center justify-between text-left"
-        >
-          <div>
-            <div className="lbl mb-1">
-              Decision tag
-            </div>
-            <div className="text-sm text-ink-200">
-              {isDecision
-                ? "Tagged as a decision — fills the Decisions Log."
-                : "Tap if this entry is documenting a decision."}
-            </div>
-          </div>
-          <span
-            className={`w-10 h-6 rounded-full relative transition shrink-0 ${
-              isDecision ? "bg-accent-gold/30" : "bg-ink-700"
-            }`}
-          >
+      <div className="sheet">
+        <label className="flex items-center gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            className="ck"
+            checked={isDecision}
+            onChange={() => setIsDecision(!isDecision)}
+          />
+          <span className="flex-1 min-w-0">
             <span
-              className={`absolute top-0.5 w-5 h-5 rounded-full transition ${
-                isDecision
-                  ? "left-[1.125rem] bg-accent-gold"
-                  : "left-0.5 bg-ink-300"
-              }`}
-            />
+              className="block text-[15px]"
+              style={{ fontVariationSettings: "'wght' 680" }}
+            >
+              This entry records a decision
+            </span>
+            <span className="block text-[12.5px] text-ink-300 mt-0.5">
+              {isDecision
+                ? "Tagged. It will appear in the decisions log."
+                : "Strike it and the entry files into the decisions log."}
+            </span>
           </span>
-        </button>
+        </label>
 
         {isDecision && (
-          <div className="mt-4 pt-4 border-t border-ink-600 space-y-3">
+          <div className="mt-4 pt-4 border-t-[1.5px] border-ink-500 space-y-4">
             <input
               type="text"
               value={decisionSummary}
               onChange={(e) => setDecisionSummary(e.target.value)}
-              placeholder="One-line summary of the decision"
+              placeholder="One line: what was decided"
               maxLength={280}
-              className="w-full bg-ink-900 border border-ink-600 rounded-lg px-3 py-2 text-sm focus:border-accent-gold focus:outline-none"
+              className="inp"
             />
             <div>
-              <div className="lbl mb-2">
-                Category
-              </div>
+              <div className="lbl mb-2">Category</div>
               <div className="flex flex-wrap gap-1.5">
                 {(
                   Object.entries(DECISION_CATEGORY_LABELS) as [
@@ -276,11 +259,8 @@ export function JournalEditor() {
                     key={key}
                     type="button"
                     onClick={() => setDecisionCategory(key)}
-                    className={`px-2.5 py-1 rounded-full text-[11px] border transition ${
-                      decisionCategory === key
-                        ? "border-accent-gold bg-accent-gold/10 text-accent-gold"
-                        : "border-ink-600 text-ink-300 hover:border-ink-50"
-                    }`}
+                    aria-pressed={decisionCategory === key}
+                    className="chip"
                   >
                     {label}
                   </button>
@@ -288,38 +268,49 @@ export function JournalEditor() {
               </div>
             </div>
             <div>
-              <div className="lbl mb-2">
-                Door type
-              </div>
-              <div className="flex gap-2">
-                {(
-                  [
-                    {
-                      key: "two_way" as DecisionDoor,
-                      label: "Two-way",
-                      sub: "reversible",
-                    },
-                    {
-                      key: "one_way" as DecisionDoor,
-                      label: "One-way",
-                      sub: "permanent",
-                    },
-                  ]
-                ).map((d) => (
-                  <button
-                    key={d.key}
-                    type="button"
-                    onClick={() => setDecisionDoor(d.key)}
-                    className={`flex-1 px-3 py-2 rounded-lg border text-left transition ${
-                      decisionDoor === d.key
-                        ? "border-accent-gold/50 bg-accent-gold/5"
-                        : "border-ink-600 hover:border-ink-50"
-                    }`}
-                  >
-                    <div className="text-sm text-ink-100">{d.label}</div>
-                    <div className="text-[10px] text-ink-400">{d.sub}</div>
-                  </button>
-                ))}
+              <div className="lbl mb-2">Door</div>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  {
+                    key: "two_way" as DecisionDoor,
+                    label: "Two-way",
+                    sub: "reversible",
+                  },
+                  {
+                    key: "one_way" as DecisionDoor,
+                    label: "One-way",
+                    sub: "permanent",
+                  },
+                ].map((d) => {
+                  const on = decisionDoor === d.key;
+                  return (
+                    <button
+                      key={d.key}
+                      type="button"
+                      onClick={() => setDecisionDoor(d.key)}
+                      aria-pressed={on}
+                      className={`text-left px-3.5 py-2.5 border-[1.5px] border-ink-50 ${
+                        on
+                          ? "bg-ink-50 text-ink-900"
+                          : "bg-transparent hover:bg-ink-700"
+                      }`}
+                    >
+                      <span
+                        className="block text-[14px]"
+                        style={{ fontVariationSettings: "'wght' 700" }}
+                      >
+                        {d.label}
+                      </span>
+                      <span
+                        className={`block text-[11.5px] ${
+                          on ? "opacity-70" : "text-ink-400"
+                        }`}
+                      >
+                        {d.sub}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -327,7 +318,7 @@ export function JournalEditor() {
       </div>
 
       {error && (
-        <div className="text-sm text-accent-rose bg-accent-rose/10 border border-accent-rose/30 rounded-lg px-3 py-2">
+        <div className="alert" role="alert">
           {error}
         </div>
       )}
@@ -337,9 +328,9 @@ export function JournalEditor() {
           type="button"
           onClick={save}
           disabled={!canSave || submitting}
-          className="px-6 py-2.5 rounded-lg bg-accent-violet/15 text-accent-violet border border-accent-violet/30 text-sm hover:bg-accent-violet/25 disabled:opacity-30 transition"
+          className="btn btn-spot"
         >
-          {submitting ? "Saving…" : "Save entry"}
+          {submitting ? "Saving" : "Save entry"}
         </button>
       </div>
     </div>

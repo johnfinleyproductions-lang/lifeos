@@ -357,8 +357,14 @@
     color: rgb(var(--text-3));
     font-style: italic;
   }
+  /* The misregistration is the focus state. `outline: none` on .inp alone
+     loses to the base `input:focus-visible` ring on specificity, so both
+     were drawing at once. */
   .inp:focus,
-  .ta:focus {
+  .ta:focus,
+  .inp:focus-visible,
+  .ta:focus-visible {
+    outline: none;
     box-shadow: 3px 3px 0 rgb(var(--spot));
   }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type Dispatch, type SetStateAction } from "react";
 import { useRouter } from "next/navigation";
 import type { EveningShutdown } from "@/lib/manifesto/evening-schema";
 import { VoiceButton } from "@/components/voice/VoiceButton";
@@ -44,8 +44,7 @@ export function EveningWizard({
   const [dayRating, setDayRating] = useState<number>(initial?.dayRating ?? 3);
   const [dayMood, setDayMood] = useState<string>(initial?.dayMood ?? "");
   const [prioritiesDone, setPrioritiesDone] = useState<boolean[]>(
-    initial?.prioritiesDone ??
-      Array(morningPriorities.length).fill(false),
+    initial?.prioritiesDone ?? Array(morningPriorities.length).fill(false),
   );
   const [win, setWin] = useState<string>(initial?.win ?? "");
   const [lesson, setLesson] = useState<string>(initial?.lesson ?? "");
@@ -127,64 +126,63 @@ export function EveningWizard({
     setStep(Math.max(1, step - 1));
   }
 
-  return (
-    <div className="card max-w-2xl mx-auto">
-      <div className="card-glow" />
+  // The bar shows one segment per step the user will actually see.
+  const barSteps = hasPriorities ? totalSteps : totalSteps - 1;
+  const barIndex = hasPriorities ? step : step === 1 ? 1 : step - 1;
 
-      <div className="flex items-center justify-between mb-6">
-        <div className="lbl">
-          Evening shutdown · {step} / {totalSteps}
-        </div>
-        <div className="flex gap-1">
-          {Array.from({ length: totalSteps }).map((_, i) => (
-            <span
-              key={i}
-              className={`h-1 w-8 rounded-full transition ${
-                i < step ? "bg-accent-rose" : "bg-ink-700"
-              }`}
-            />
-          ))}
-        </div>
+  return (
+    <div className="wiz">
+      <div className="wiz-bar" aria-hidden="true">
+        {Array.from({ length: barSteps }).map((_, i) => (
+          <i
+            key={i}
+            className={
+              i + 1 < barIndex ? "on" : i + 1 === barIndex ? "cur" : undefined
+            }
+          />
+        ))}
       </div>
 
-      <div className="min-h-[280px]">
+      <div className="wiz-card">
+        <div className="wiz-step">
+          Step {barIndex} of {barSteps}
+        </div>
+
         {step === 1 && (
           <Step
             heading="How was the day, really?"
-            subhead="No editing — just rate it from where you sit right now."
+            subhead="No editing. Rate it from where you sit right now."
           >
-            <div className="grid grid-cols-5 gap-2 mb-6">
+            <div className="pick" role="group" aria-label="Day rating">
               {[1, 2, 3, 4, 5].map((n) => (
                 <button
                   key={n}
                   type="button"
                   onClick={() => setDayRating(n)}
-                  className={`py-3 rounded-lg border text-sm transition ${
-                    dayRating === n
-                      ? "border-accent-rose bg-accent-rose/10 text-accent-rose"
-                      : "border-ink-600 text-ink-300 hover:border-ink-50"
-                  }`}
+                  aria-pressed={dayRating === n}
                 >
-                  <div className="font-serif text-xl">{n}</div>
-                  <div className="text-[10px] lbl mt-0.5">
+                  <span
+                    className="block text-lg"
+                    style={{ fontVariationSettings: "'wdth' 100, 'wght' 700" }}
+                  >
+                    {n}
+                  </span>
+                  <span className="block text-[10.5px] mt-0.5 opacity-70">
                     {RATING_LABELS[n - 1]}
-                  </div>
+                  </span>
                 </button>
               ))}
             </div>
 
-            <Label>And what does the body say?</Label>
-            <div className="flex flex-wrap gap-2 mb-3">
+            <p className="wiz-h mt-6 mb-3">And what does the body say?</p>
+            <div className="flex flex-wrap gap-1.5 mb-3">
               {MOOD_OPTIONS.map((m) => (
                 <button
                   key={m}
                   type="button"
                   onClick={() => setDayMood(m)}
-                  className={`px-3 py-1.5 rounded-full text-xs border transition ${
-                    dayMood === m
-                      ? "border-accent-violet bg-accent-violet/10 text-accent-violet"
-                      : "border-ink-600 text-ink-300 hover:border-ink-50"
-                  }`}
+                  aria-pressed={dayMood === m}
+                  className="chip"
                 >
                   {m}
                 </button>
@@ -195,13 +193,10 @@ export function EveningWizard({
                 type="text"
                 value={MOOD_OPTIONS.includes(dayMood) ? "" : dayMood}
                 onChange={(e) => setDayMood(e.target.value)}
-                placeholder="…or type your own"
-                className="flex-1 bg-ink-900 border border-ink-600 rounded-lg px-3 py-2 text-sm focus:border-accent-violet focus:outline-none"
+                placeholder="or type your own"
+                className="inp"
               />
-              <VoiceButton
-                size="sm"
-                onTranscript={(t) => setDayMood(t)}
-              />
+              <VoiceButton size="sm" onTranscript={(t) => setDayMood(t)} />
             </div>
           </Step>
         )}
@@ -209,41 +204,48 @@ export function EveningWizard({
         {stepIsPriorityCheck && (
           <Step
             heading="The three you set this morning."
-            subhead="Tap the ones that actually got done. No judgment if it's zero."
+            subhead="Strike the ones that actually got done. No judgment if it is none."
           >
-            <div className="space-y-2.5">
+            <div className="border-t-[1.5px] border-ink-50">
               {morningPriorities.map((p, i) => {
                 const done = prioritiesDone[i] ?? false;
                 return (
                   <button
                     key={i}
                     type="button"
+                    aria-pressed={done}
                     onClick={() => {
                       const next = [...prioritiesDone];
                       next[i] = !done;
                       setPrioritiesDone(next);
                     }}
-                    className={`w-full flex items-center gap-3 p-3 rounded-lg border text-left transition ${
-                      done
-                        ? "border-accent-green/40 bg-accent-green/5"
-                        : "border-ink-600 hover:border-ink-50"
-                    }`}
+                    className="w-full flex items-center gap-3 py-3 px-0.5 text-left border-b border-ink-600 last:border-b-[1.5px] last:border-b-ink-50 hover:bg-ink-700"
                   >
                     <span
-                      className={`w-5 h-5 rounded border grid place-items-center text-xs shrink-0 ${
-                        done
-                          ? "bg-accent-green border-accent-green text-ink-950"
-                          : "border-ink-500"
-                      }`}
+                      className="w-[26px] shrink-0 tabular-nums text-[15px] text-ink-400"
+                      style={{ fontVariationSettings: "'wdth' 80, 'wght' 800" }}
                     >
-                      {done ? "✓" : ""}
+                      {i + 1}
                     </span>
                     <span
-                      className={`text-sm ${
+                      aria-hidden="true"
+                      className={`w-[22px] h-[22px] shrink-0 border-[1.5px] relative ${
                         done
-                          ? "text-ink-100"
-                          : "text-ink-300"
+                          ? "bg-accent-spot border-accent-spot"
+                          : "border-ink-50 bg-ink-700"
                       }`}
+                    >
+                      {done && (
+                        <span className="absolute left-[5px] top-[9px] w-[9px] h-[4px] border-white border-b-[2.5px] border-l-[2.5px] rotate-[-45deg]" />
+                      )}
+                    </span>
+                    <span
+                      className={`flex-1 min-w-0 text-[15.5px] leading-[1.35] ${
+                        done
+                          ? "text-ink-400 line-through decoration-accent-spot decoration-2"
+                          : ""
+                      }`}
+                      style={{ fontVariationSettings: "'wght' 540" }}
                     >
                       {p}
                     </span>
@@ -259,24 +261,13 @@ export function EveningWizard({
             heading="One thing that went well."
             subhead="Specific. Tiny is fine. The smallest noticed wins compound."
           >
-            <textarea
+            <Writing
               value={win}
-              onChange={(e) => setWin(e.target.value)}
-              autoFocus
+              onChange={setWin}
               rows={3}
-              maxLength={280}
-              placeholder="… I shipped Phase 1 of LifeOS."
-              className="w-full bg-ink-900 border border-ink-600 rounded-lg px-4 py-3 font-serif text-lg leading-snug focus:border-accent-green focus:outline-none resize-none"
+              max={280}
+              placeholder="I shipped the thing I had been circling for a week."
             />
-            <div className="flex items-center justify-between text-[11px] text-ink-400 mt-2">
-              <VoiceButton
-                size="sm"
-                onTranscript={(t) =>
-                  setWin((prev) => appendVoice(prev, t))
-                }
-              />
-              <span className="tabular-nums">{win.length} / 280</span>
-            </div>
           </Step>
         )}
 
@@ -289,24 +280,13 @@ export function EveningWizard({
                 : "One lesson, one reframe, or one note for next time."
             }
           >
-            <textarea
+            <Writing
               value={lesson}
-              onChange={(e) => setLesson(e.target.value)}
-              autoFocus
+              onChange={setLesson}
               rows={3}
-              maxLength={280}
-              placeholder="… that I get distracted at the planning step, not the execution step."
-              className="w-full bg-ink-900 border border-ink-600 rounded-lg px-4 py-3 text-base leading-snug focus:border-accent-sky focus:outline-none resize-none"
+              max={280}
+              placeholder="that I get distracted at the planning step, not the execution step"
             />
-            <div className="flex items-center justify-between text-[11px] text-ink-400 mt-2">
-              <VoiceButton
-                size="sm"
-                onTranscript={(t) =>
-                  setLesson((prev) => appendVoice(prev, t))
-                }
-              />
-              <span className="tabular-nums">{lesson.length} / 280</span>
-            </div>
           </Step>
         )}
 
@@ -315,52 +295,28 @@ export function EveningWizard({
             heading="Tomorrow's seed."
             subhead="One thing to plant tonight that tomorrow-you will be glad you started."
           >
-            <textarea
+            <Writing
               value={tomorrowSeed}
-              onChange={(e) => setTomorrowSeed(e.target.value)}
-              autoFocus
+              onChange={setTomorrowSeed}
               rows={2}
-              maxLength={200}
-              placeholder="… open the file before coffee."
-              className="w-full bg-ink-900 border border-ink-600 rounded-lg px-4 py-3 text-base focus:border-accent-gold focus:outline-none resize-none"
+              max={200}
+              placeholder="open the file before coffee"
             />
-            <div className="flex items-center justify-between text-[11px] text-ink-400 mt-2">
-              <VoiceButton
-                size="sm"
-                onTranscript={(t) =>
-                  setTomorrowSeed((prev) => appendVoice(prev, t))
-                }
-              />
-              <span className="tabular-nums">
-                {tomorrowSeed.length} / 200
-              </span>
-            </div>
           </Step>
         )}
 
         {stepIsReframe && (
           <Step
-            heading="A moment that hooked you today — what's the reframe?"
-            subhead="The story I told myself vs the story that's actually true."
+            heading="A moment that hooked you today. What is the reframe?"
+            subhead="The story you told yourself, then the story that is actually true."
           >
-            <textarea
+            <Writing
               value={reframe}
-              onChange={(e) => setReframe(e.target.value)}
-              autoFocus
+              onChange={setReframe}
               rows={4}
-              maxLength={280}
-              placeholder="Story I told myself: … / Truer story: …"
-              className="w-full bg-ink-900 border border-ink-600 rounded-lg px-4 py-3 text-base leading-snug focus:border-accent-violet focus:outline-none resize-none"
+              max={280}
+              placeholder="Story I told myself: ... Truer story: ..."
             />
-            <div className="flex items-center justify-between text-[11px] text-ink-400 mt-2">
-              <VoiceButton
-                size="sm"
-                onTranscript={(t) =>
-                  setReframe((prev) => appendVoice(prev, t))
-                }
-              />
-              <span className="tabular-nums">{reframe.length} / 280</span>
-            </div>
           </Step>
         )}
 
@@ -369,55 +325,48 @@ export function EveningWizard({
             heading="What can you release before sleep?"
             subhead="A worry, a grudge, an open thread. Name it so it stops circling."
           >
-            <textarea
+            <Writing
               value={release}
-              onChange={(e) => setRelease(e.target.value)}
-              autoFocus
+              onChange={setRelease}
               rows={3}
-              maxLength={280}
-              placeholder="… the email I'm anxious about. It can wait until morning."
-              className="w-full bg-ink-900 border border-ink-600 rounded-lg px-4 py-3 text-base leading-snug focus:border-accent-rose focus:outline-none resize-none"
+              max={280}
+              placeholder="the email I am anxious about. It can wait until morning."
             />
-            <div className="flex items-center justify-between text-[11px] text-ink-400 mt-2">
-              <VoiceButton
-                size="sm"
-                onTranscript={(t) =>
-                  setRelease((prev) => appendVoice(prev, t))
-                }
-              />
-              <span className="tabular-nums">{release.length} / 280</span>
-            </div>
           </Step>
         )}
-      </div>
 
-      {error && (
-        <div className="mt-4 text-sm text-accent-rose bg-accent-rose/10 border border-accent-rose/30 rounded-lg px-3 py-2">
-          {error}
+        {error && (
+          <div className="alert mt-4" role="alert">
+            {error} Nothing was lost; press it again.
+          </div>
+        )}
+
+        <div className="wiz-foot">
+          {step > 1 ? (
+            <button
+              type="button"
+              onClick={back}
+              disabled={submitting}
+              className="btn btn-ghost"
+            >
+              Back
+            </button>
+          ) : (
+            <span />
+          )}
+          <button
+            type="button"
+            onClick={next}
+            disabled={!canContinue || submitting}
+            className={`btn btn-next ${step === totalSteps ? "btn-spot" : ""}`}
+          >
+            {submitting
+              ? "Saving"
+              : step === totalSteps
+                ? "Close the day"
+                : "Next"}
+          </button>
         </div>
-      )}
-
-      <div className="flex items-center justify-between mt-8">
-        <button
-          type="button"
-          onClick={back}
-          disabled={step === 1 || submitting}
-          className="text-sm text-ink-300 hover:text-ink-100 disabled:opacity-30 disabled:cursor-not-allowed transition"
-        >
-          ← Back
-        </button>
-        <button
-          type="button"
-          onClick={next}
-          disabled={!canContinue || submitting}
-          className="px-5 py-2 rounded-lg bg-accent-rose/15 text-accent-rose border border-accent-rose/30 text-sm hover:bg-accent-rose/25 disabled:opacity-30 disabled:cursor-not-allowed transition"
-        >
-          {submitting
-            ? "Saving…"
-            : step === totalSteps
-              ? "Close the day →"
-              : "Continue →"}
-        </button>
       </div>
     </div>
   );
@@ -434,19 +383,48 @@ function Step({
 }) {
   return (
     <div>
-      <h2 className="t-h2 text-ink-50 mb-1.5 leading-snug">
-        {heading}
-      </h2>
-      <p className="text-sm text-ink-300 mb-6">{subhead}</p>
+      <h2 className="wiz-q">{heading}</h2>
+      <p className="wiz-h">{subhead}</p>
       {children}
     </div>
   );
 }
 
-function Label({ children }: { children: React.ReactNode }) {
+/** A writing field with the mic beside it and the count under it. */
+function Writing({
+  value,
+  onChange,
+  rows,
+  max,
+  placeholder,
+}: {
+  value: string;
+  onChange: Dispatch<SetStateAction<string>>;
+  rows: number;
+  max: number;
+  placeholder: string;
+}) {
+  const near = max - Math.round(max * 0.08);
   return (
-    <div className="lbl mb-2">
-      {children}
-    </div>
+    <>
+      <textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        autoFocus
+        rows={rows}
+        maxLength={max}
+        placeholder={placeholder}
+        className="ta"
+      />
+      <div className="flex items-center justify-between mt-2">
+        <VoiceButton
+          size="sm"
+          onTranscript={(t) => onChange((prev) => appendVoice(prev, t))}
+        />
+        <span className={`wiz-count ${value.length > near ? "over" : ""}`}>
+          {value.length}/{max}
+        </span>
+      </div>
+    </>
   );
 }

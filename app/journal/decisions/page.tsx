@@ -27,8 +27,7 @@ export default async function JournalDecisionsPage() {
   const twoWayCount = decisions.filter(
     (d) => d.decisionDoor === "two_way",
   ).length;
-  const twoWayPct =
-    total > 0 ? Math.round((twoWayCount / total) * 100) : 0;
+  const twoWayPct = total > 0 ? Math.round((twoWayCount / total) * 100) : 0;
   const lensCounts = new Map<string, number>();
   for (const d of decisions) {
     if (d.frameworkLens) {
@@ -38,9 +37,7 @@ export default async function JournalDecisionsPage() {
       );
     }
   }
-  const topLens = [...lensCounts.entries()].sort(
-    (a, b) => b[1] - a[1],
-  )[0];
+  const topLens = [...lensCounts.entries()].sort((a, b) => b[1] - a[1])[0];
   const topLensTitle = topLens ? getLens(topLens[0])?.title : null;
 
   return (
@@ -58,86 +55,71 @@ export default async function JournalDecisionsPage() {
       />
 
       {total === 0 ? (
-        <div className="card text-center py-12">
-          <div className="font-serif text-xl text-ink-100 mb-2">
-            No decisions logged yet.
-          </div>
-          <p className="text-sm text-ink-300 mb-4">
-            Tap the Decision tag on any journal entry to add it here.
+        <div className="sheet sheet-bare border-dashed text-center py-10">
+          <div className="t-h2 mb-2">No decisions logged yet.</div>
+          <p className="text-[14.5px] text-ink-300 mb-5 max-w-[40ch] mx-auto">
+            Tag any journal entry as a decision and it files here.
           </p>
-          <Link
-            href="/journal"
-            className="inline-block px-4 py-2 rounded-lg bg-accent-gold/15 text-accent-gold border border-accent-gold/30 text-sm hover:bg-accent-gold/25 transition"
-          >
-            Open today&apos;s page →
+          <Link href="/journal" className="btn">
+            Open today&apos;s page
           </Link>
         </div>
       ) : (
         <>
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-3 mb-8">
-            <Stat label="Decisions" value={String(total)} />
-            <Stat label="Two-way doors" value={`${twoWayPct}%`} />
+          <div className="sheet grid grid-cols-3 gap-4 mb-8">
+            <Stat label="Decisions" value={String(total)} foot="logged" />
+            <Stat
+              label="Two-way doors"
+              value={`${twoWayPct}`}
+              unit="%"
+              foot={`${twoWayCount} reversible`}
+            />
             <Stat
               label="Top lens"
-              value={topLensTitle ?? "—"}
+              value={topLensTitle ?? "none"}
               small
+              foot={
+                topLens
+                  ? `used ${topLens[1]} ${topLens[1] === 1 ? "time" : "times"}`
+                  : "no lens yet"
+              }
             />
           </div>
 
-          {/* List */}
-          <div className="space-y-2">
+          <div className="space-y-3">
             {decisions.map((d) => {
-              const lens = d.frameworkLens
-                ? getLens(d.frameworkLens)
-                : null;
+              const lens = d.frameworkLens ? getLens(d.frameworkLens) : null;
               const categoryLabel = d.decisionCategory
                 ? DECISION_CATEGORY_LABELS[
                     d.decisionCategory as keyof typeof DECISION_CATEGORY_LABELS
                   ]
                 : null;
+              const meta = [
+                categoryLabel,
+                d.decisionDoor
+                  ? `${d.decisionDoor.replace("_", "-")} door`
+                  : null,
+                lens ? `via ${lens.title}` : null,
+              ].filter(Boolean);
               return (
-                <div key={d.id} className="card">
-                  <div className="card-glow" />
-                  <div className="flex items-start justify-between gap-3 mb-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                      {categoryLabel && (
-                        <span className="text-[10px] lbl text-accent-gold bg-accent-gold/10 px-2 py-0.5 rounded">
-                          {categoryLabel}
-                        </span>
-                      )}
-                      {d.decisionDoor && (
-                        <span
-                          className={`text-[10px] lbl px-2 py-0.5 rounded ${
-                            d.decisionDoor === "two_way"
-                              ? "text-accent-green bg-accent-green/10"
-                              : "text-accent-rose bg-accent-rose/10"
-                          }`}
-                        >
-                          {d.decisionDoor.replace("_", "-")} door
-                        </span>
-                      )}
-                      {lens && (
-                        <span className="text-[10px] text-ink-400">
-                          via {lens.title}
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-[11px] text-ink-400 shrink-0">
-                      {format(new Date(d.createdAt), "MMM d, yyyy")}
+                <article key={d.id} className="sheet">
+                  <div className="flex items-baseline justify-between gap-3 mb-3">
+                    <div className="lbl">{meta.join(", ")}</div>
+                    <span className="text-[11.5px] text-ink-400 tabular-nums shrink-0">
+                      {format(new Date(d.createdAt), "d MMM yyyy")}
                     </span>
                   </div>
                   {d.decisionSummary && (
-                    <div className="font-serif text-lg text-ink-100 leading-snug">
+                    <div className="font-serif text-[21px] leading-[1.3] tracking-[-0.01em]">
                       {d.decisionSummary}
                     </div>
                   )}
-                  <div className="text-sm text-ink-300 leading-relaxed mt-2 whitespace-pre-wrap">
+                  <div className="t-read text-ink-300 mt-2 whitespace-pre-wrap">
                     {d.body.length > 400
-                      ? d.body.slice(0, 400) + "…"
+                      ? d.body.slice(0, 400) + "\u2026"
                       : d.body}
                   </div>
-                </div>
+                </article>
               );
             })}
           </div>
@@ -150,23 +132,24 @@ export default async function JournalDecisionsPage() {
 function Stat({
   label,
   value,
+  unit,
+  foot,
   small = false,
 }: {
   label: string;
   value: string;
+  unit?: string;
+  foot: string;
   small?: boolean;
 }) {
   return (
-    <div className="card">
-      <div className="card-glow" />
-      <div className="lbl mb-1">
-        {label}
-      </div>
-      <div
-        className={`font-serif text-ink-50 ${small ? "text-base" : "text-2xl"}`}
-      >
+    <div className="min-w-0">
+      <div className="stat-l">{label}</div>
+      <div className={`stat-v ${small ? "text-[19px] truncate" : ""}`}>
         {value}
+        {unit && <small>{unit}</small>}
       </div>
+      <div className="stat-f">{foot}</div>
     </div>
   );
 }

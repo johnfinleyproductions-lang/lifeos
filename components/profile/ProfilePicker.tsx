@@ -38,11 +38,11 @@ export function ProfilePicker({
 
   return (
     <div className="w-full max-w-xl">
-      <div className="text-center mb-10">
-        <div className="font-serif text-4xl text-ink-50 mb-3 leading-none">
-          LifeOS
-        </div>
-        <p className="text-sm text-ink-300">Who&apos;s using it?</p>
+      <div className="mb-8">
+        <h1 className="t-h1">Who is using it?</h1>
+        <p className="text-[14.5px] text-ink-300 mt-2">
+          Each profile keeps its own log. Pick yours.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -55,33 +55,34 @@ export function ProfilePicker({
               type="button"
               onClick={() => pick(p.slug)}
               disabled={picking !== null}
-              className={`card text-left transition py-8 ${
-                active ? "border-ink-500" : ""
-              } ${inFlight ? "opacity-60" : "hover:bg-ink-800"}`}
+              aria-current={active ? "true" : undefined}
+              className={`sheet text-left py-6 ${
+                active ? "sheet-hi shadow-mis" : "hover:bg-ink-700"
+              } ${inFlight ? "opacity-60" : ""} disabled:cursor-wait`}
             >
-              <div className="card-glow" />
               <div className="flex items-center gap-4">
-                <div
-                  className={`w-14 h-14 rounded-full grid place-items-center text-2xl font-serif border ${p.accentClass}`}
+                <span
+                  className={`w-14 h-14 shrink-0 grid place-items-center text-[26px] border-[1.5px] ${p.accentClass}`}
+                  style={{ fontVariationSettings: "'wdth' 90, 'wght' 800" }}
                 >
                   {p.initial}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-serif text-xl text-ink-50">
-                    {p.name}
-                  </div>
-                  <div className="text-xs text-ink-400 truncate">
+                </span>
+                <span className="flex-1 min-w-0">
+                  <span className="block t-h2">{p.name}</span>
+                  <span className="block text-[12.5px] text-ink-400 truncate mt-0.5">
                     {p.email}
-                  </div>
-                  {active && (
-                    <div className="text-[10px] lbl text-accent-green mt-1">
-                      Currently active
-                    </div>
-                  )}
-                </div>
-                {inFlight && (
-                  <div className="text-xs text-ink-400">…</div>
-                )}
+                  </span>
+                </span>
+              </div>
+              <div className="mt-4 pt-3 border-t-[1.5px] border-ink-500 flex items-center justify-between gap-3">
+                <span className="lbl">
+                  {inFlight
+                    ? "Switching"
+                    : active
+                      ? "Signed in now"
+                      : "Tap to switch"}
+                </span>
+                {active && <span className="tab tab-spot">Active</span>}
               </div>
             </button>
           );
@@ -89,15 +90,14 @@ export function ProfilePicker({
       </div>
 
       {error && (
-        <div className="mt-6 text-sm text-accent-rose bg-accent-rose/10 border border-accent-rose/30 rounded-lg px-3 py-2 text-center">
+        <div className="alert mt-6" role="alert">
           {error}
         </div>
       )}
 
-      <p className="text-[11px] text-ink-400 text-center mt-8 leading-relaxed">
-        First-time pick auto-creates your account and workspace.
-        <br />
-        Switch profiles any time from the sidebar.
+      <p className="text-[12.5px] text-ink-400 mt-8 leading-relaxed max-w-[48ch]">
+        The first pick creates your account and workspace. Switch profiles any
+        time from the rail.
       </p>
     </div>
   );
