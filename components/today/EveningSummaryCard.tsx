@@ -21,85 +21,56 @@ export async function EveningSummaryCard() {
   if (!evening) return null;
 
   return (
-    <div className="card">
-      <div className="card-glow" />
-      <div className="flex items-start justify-between gap-6 mb-5">
-        <div className="flex-1">
-          <div className="lbl mb-2">
-            Day closed
-          </div>
-          <p className="t-h2 text-ink-50 leading-snug">
-            {evening.dayRating}/5 · {evening.dayMood}
-            <span className="text-ink-400 text-base ml-2">
-              ({RATING_LABELS[evening.dayRating]})
-            </span>
-          </p>
-        </div>
-        <Link
-          href="/evening"
-          className="shrink-0 text-xs text-ink-400 hover:text-ink-100 transition"
-        >
+    <section>
+      <div className="tab-row">
+        <span className="tab">Day closed</span>
+        <span className="fill" />
+        <Link href="/evening" className="btn btn-sm btn-ghost">
           Edit
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-        <SummaryField
-          color="text-accent-green"
-          label="Win"
-          body={evening.win}
-        />
-        <SummaryField
-          color="text-accent-sky"
-          label="Carrying forward"
-          body={evening.lesson}
-        />
-        <SummaryField
-          color="text-accent-gold"
-          label="Tomorrow's seed"
-          body={evening.tomorrowSeed}
-        />
-      </div>
-
-      {(evening.reframe || evening.release) && (
-        <div className="mt-5 pt-5 border-t border-ink-600 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          {evening.reframe && (
-            <SummaryField
-              color="text-accent-violet"
-              label="Reframe"
-              body={evening.reframe}
-            />
-          )}
-          {evening.release && (
-            <SummaryField
-              color="text-accent-rose"
-              label="Released"
-              body={evening.release}
-            />
-          )}
+      <div className="sheet">
+        <div className="flex items-baseline gap-3 flex-wrap mb-5">
+          <span className="stat-v mt-0">
+            {evening.dayRating}
+            <small>/5</small>
+          </span>
+          <span
+            className="text-[15px]"
+            style={{ fontVariationSettings: "'wght' 620" }}
+          >
+            {RATING_LABELS[evening.dayRating]}, {evening.dayMood}
+          </span>
         </div>
-      )}
-    </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <SummaryField label="Win" body={evening.win} />
+          <SummaryField label="Carrying forward" body={evening.lesson} />
+          <SummaryField label="Tomorrow's seed" body={evening.tomorrowSeed} />
+        </div>
+
+        {(evening.reframe || evening.release) && (
+          <div className="mt-5 pt-5 border-t-[1.5px] border-ink-500 grid grid-cols-1 md:grid-cols-2 gap-4">
+            {evening.reframe && (
+              <SummaryField label="Reframe" body={evening.reframe} />
+            )}
+            {evening.release && (
+              <SummaryField label="Released" body={evening.release} />
+            )}
+          </div>
+        )}
+      </div>
+    </section>
   );
 }
 
-function SummaryField({
-  color,
-  label,
-  body,
-}: {
-  color: string;
-  label: string;
-  body: string;
-}) {
+/** The user's own words, so these sit in the serif. */
+function SummaryField({ label, body }: { label: string; body: string }) {
   return (
     <div>
-      <div
-        className={`text-[10px] lbl mb-1 ${color}`}
-      >
-        {label}
-      </div>
-      <div className="text-ink-100 leading-snug">{body}</div>
+      <div className="lbl mb-1">{label}</div>
+      <div className="font-serif text-base leading-[1.5]">{body}</div>
     </div>
   );
 }

@@ -5,10 +5,15 @@ import { lifeosQuests } from "@/lib/db/schema/lifeos";
 import { getAuthContext } from "@/lib/auth/server-helpers";
 import { quarterProgress } from "@/lib/quests/quarter";
 
-/** One riso ink per domain, so a quest's colour means the same thing everywhere. */
+/**
+ * One riso ink per domain, so a quest's colour means the same thing
+ * everywhere. The tokens are channel triplets, so they have to be wrapped
+ * in rgb() here; a bare var(--violet) is "110 85 168", which is not a
+ * colour, and the bar silently renders empty.
+ */
 const DOMAIN_INK = {
-  work: "var(--violet)",
-  life: "var(--rose)",
+  work: "rgb(var(--violet))",
+  life: "rgb(var(--rose))",
 } as const;
 
 export async function QuestsCard() {
@@ -82,7 +87,8 @@ export async function QuestsCard() {
                   style={{
                     width: `${q.progress}%`,
                     background:
-                      DOMAIN_INK[q.domain as "work" | "life"] ?? "var(--spot)",
+                      DOMAIN_INK[q.domain as "work" | "life"] ??
+                      "rgb(var(--spot))",
                   }}
                 />
               </div>

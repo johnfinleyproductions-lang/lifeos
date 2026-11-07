@@ -63,86 +63,116 @@ function dayOfYear(d: Date) {
   );
 }
 
+/**
+ * On a desk the rail runs down the left edge. On a phone it folds into a
+ * strip across the top with a Menu key; the sections drop down from it
+ * and close again as soon as a route is chosen. Without this the rail
+ * took 232 of a phone's 390 pixels and the pages rendered in the rest.
+ */
 export function Sidebar({ user }: { user: AppUser | null }) {
   const pathname = usePathname();
   const [day, setDay] = useState<number | null>(null);
+  const [open, setOpen] = useState(false);
 
   // Rendered after mount so the server and client never disagree about
   // the date, which would otherwise hydrate-mismatch across midnight.
   useEffect(() => setDay(dayOfYear(new Date())), []);
 
+  // A chosen route closes the menu.
+  useEffect(() => setOpen(false), [pathname]);
+
   return (
-    <aside className="w-[232px] shrink-0 bg-ink-950 border-r-[1.5px] border-ink-50 flex flex-col sticky top-0 h-screen overflow-y-auto">
-      <div className="px-[18px] pt-[22px] pb-[18px] border-b-[1.5px] border-ink-50">
-        <div
-          className="text-[27px] leading-[0.92] tracking-[-0.035em]"
-          style={{ fontVariationSettings: "'wdth' 88, 'wght' 800" }}
+    <aside className="relative z-40 shrink-0 bg-ink-950 border-b-[1.5px] border-ink-50 md:border-b-0 md:border-r-[1.5px] md:w-[232px] md:flex md:flex-col md:sticky md:top-0 md:h-screen md:overflow-y-auto">
+      <div className="flex items-center justify-between gap-3 px-[18px] py-3 md:block md:pt-[22px] md:pb-[18px] md:border-b-[1.5px] md:border-ink-50">
+        <div>
+          <div
+            className="text-[22px] md:text-[27px] leading-[0.92] tracking-[-0.035em]"
+            style={{ fontVariationSettings: "'wdth' 88, 'wght' 800" }}
+          >
+            LifeOS
+          </div>
+          <div className="text-[11px] text-ink-300 mt-1 tabular-nums">
+            {day === null ? " " : `Day ${day} of ${new Date().getFullYear()}`}
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          aria-expanded={open}
+          aria-controls="rail-sections"
+          className={`btn btn-sm md:hidden ${open ? "" : "btn-ghost"}`}
         >
-          LifeOS
-        </div>
-        <div className="text-[11px] text-ink-300 mt-1 tabular-nums">
-          {day === null ? " " : `Day ${day} of ${new Date().getFullYear()}`}
-        </div>
+          {open ? "Close" : "Menu"}
+        </button>
       </div>
 
-      <nav className="flex-1 py-3.5" aria-label="Sections">
-        {NAV.map((group) => (
-          <div key={group.label} className="mb-4">
-            <div
-              className="text-[11px] text-ink-400 px-[18px] pb-1.5"
-              style={{ fontVariationSettings: "'wdth' 100, 'wght' 640" }}
-            >
-              {group.label}
-            </div>
-            {group.items.map((item) => (
-              <NavLink key={item.href} item={item} pathname={pathname} />
-            ))}
-          </div>
-        ))}
-      </nav>
-
-      <div className="px-[18px] pt-3.5 pb-4 border-t-[1.5px] border-ink-50 flex flex-col gap-3">
-        <ThemeToggle />
-        {user ? (
-          <Link
-            href={SIGN_IN_URL}
-            className="flex items-center gap-2.5 group"
-            title="Switch profile"
-          >
-            <span
-              className="w-[30px] h-[30px] shrink-0 grid place-items-center bg-accent-spot text-white text-sm"
-              style={{ fontVariationSettings: "'wdth' 100, 'wght' 800" }}
-            >
-              {user.name?.[0]?.toUpperCase() ?? "?"}
-            </span>
-            <span className="flex-1 min-w-0">
-              <span
-                className="block text-[13.5px] truncate"
-                style={{ fontVariationSettings: "'wght' 650" }}
+      <div
+        id="rail-sections"
+        className={`${
+          open ? "flex" : "hidden"
+        } md:flex flex-col absolute md:static left-0 right-0 top-full max-h-[calc(100vh-64px)] md:max-h-none overflow-y-auto md:overflow-visible bg-ink-950 border-b-[1.5px] border-ink-50 md:border-b-0 md:flex-1`}
+      >
+        <nav className="flex-1 py-3.5" aria-label="Sections">
+          {NAV.map((group) => (
+            <div key={group.label} className="mb-4">
+              <div
+                className="text-[11px] text-ink-400 px-[18px] pb-1.5"
+                style={{ fontVariationSettings: "'wdth' 100, 'wght' 640" }}
               >
-                {user.name}
+                {group.label}
+              </div>
+              {group.items.map((item) => (
+                <NavLink key={item.href} item={item} pathname={pathname} />
+              ))}
+            </div>
+          ))}
+        </nav>
+
+        <div className="px-[18px] pt-3.5 pb-4 border-t-[1.5px] border-ink-50 flex flex-col gap-3">
+          <ThemeToggle />
+          {user ? (
+            <Link
+              href={SIGN_IN_URL}
+              className="flex items-center gap-2.5 group"
+              title="Switch profile"
+            >
+              <span
+                className="w-[30px] h-[30px] shrink-0 grid place-items-center bg-accent-spot text-white text-sm"
+                style={{ fontVariationSettings: "'wdth' 100, 'wght' 800" }}
+              >
+                {user.name?.[0]?.toUpperCase() ?? "?"}
               </span>
-              <span className="block text-[11px] text-ink-400 group-hover:text-accent-spot">
-                Switch profile
+              <span className="flex-1 min-w-0">
+                <span
+                  className="block text-[13.5px] truncate"
+                  style={{ fontVariationSettings: "'wght' 650" }}
+                >
+                  {user.name}
+                </span>
+                <span className="block text-[11px] text-ink-400 group-hover:text-accent-spot">
+                  Switch profile
+                </span>
               </span>
-            </span>
-          </Link>
-        ) : (
-          <Link href={SIGN_IN_URL} className="btn btn-sm w-full text-center">
-            Pick a profile
-          </Link>
-        )}
+            </Link>
+          ) : (
+            <Link href={SIGN_IN_URL} className="btn btn-sm w-full text-center">
+              Pick a profile
+            </Link>
+          )}
+        </div>
       </div>
     </aside>
   );
 }
 
 function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
-  // Exact match for Today, prefix match elsewhere so /journal/past keeps
-  // Journal lit. The old component had this pinned to false, so nothing
-  // in the rail has ever shown where you are.
+  // Exact match, or a match on a path segment, so /journal/past keeps
+  // Journal lit but /weekly-review does not light Ideal week (/week). The
+  // old component had this pinned to false, so nothing in the rail has
+  // ever shown where you are.
   const active =
-    item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+    pathname === item.href ||
+    (item.href !== "/" && pathname.startsWith(item.href + "/"));
 
   return (
     <Link

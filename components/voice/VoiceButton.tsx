@@ -29,9 +29,7 @@ export function VoiceButton({
   const [supported, setSupported] = useState(false);
   const [listening, setListening] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const recognizerRef = useRef<{ stop(): void; start(): void } | null>(
-    null,
-  );
+  const recognizerRef = useRef<{ stop(): void; start(): void } | null>(null);
 
   useEffect(() => {
     setSupported(isSpeechRecognitionSupported());
@@ -96,14 +94,14 @@ export function VoiceButton({
       setListening(true);
     } catch (e) {
       console.error("recognizer start failed:", e);
-      setError(
-        e instanceof Error ? e.message : "Failed to start microphone",
-      );
+      setError(e instanceof Error ? e.message : "Failed to start microphone");
       setListening(false);
     }
   }
 
-  const sizeClass = size === "sm" ? "w-8 h-8 text-sm" : "w-10 h-10 text-base";
+  // Sized to sit beside .inp (sm) or .ta (md). A hard square in ink that
+  // takes the spot ink while the mic is open.
+  const sizeClass = size === "sm" ? "w-[38px] h-[38px]" : "w-[46px] h-[46px]";
 
   return (
     <div className="relative inline-block">
@@ -113,10 +111,10 @@ export function VoiceButton({
         disabled={disabled}
         title={listening ? "Stop listening" : "Talk"}
         aria-label={listening ? "Stop listening" : "Talk"}
-        className={`${sizeClass} shrink-0 rounded-lg grid place-items-center transition border ${
+        className={`${sizeClass} shrink-0 grid place-items-center border-[1.5px] ${
           listening
-            ? "bg-accent-rose/15 text-accent-rose border-accent-rose/40 animate-pulse"
-            : "bg-ink-700 text-ink-300 border-ink-600 hover:bg-ink-600 hover:text-ink-100"
+            ? "bg-accent-spot text-white border-accent-spot animate-pulse"
+            : "bg-ink-700 text-ink-100 border-ink-50 hover:bg-ink-50 hover:text-ink-900"
         } disabled:opacity-30 disabled:cursor-not-allowed`}
       >
         {listening ? (
@@ -145,12 +143,13 @@ export function VoiceButton({
             <line x1="8" y1="22" x2="16" y2="22" />
           </svg>
         )}
-        <span className="sr-only">
-          {listening ? "Stop listening" : "Talk"}
-        </span>
+        <span className="sr-only">{listening ? "Stop listening" : "Talk"}</span>
       </button>
       {error && (
-        <div className="absolute right-0 top-full mt-1 z-10 whitespace-nowrap text-[10px] text-accent-rose bg-ink-900 border border-accent-rose/30 rounded px-2 py-1 shadow-lg">
+        <div
+          role="alert"
+          className="alert absolute right-0 top-full mt-1.5 z-10 whitespace-nowrap bg-ink-800 text-[11.5px] px-2.5 py-1.5"
+        >
           {error}
         </div>
       )}

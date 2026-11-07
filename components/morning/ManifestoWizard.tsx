@@ -141,12 +141,7 @@ export function ManifestoWizard({ initial }: Props) {
                   type="button"
                   onClick={() => setMood(m)}
                   aria-pressed={mood === m}
-                  className={`border-[1.5px] border-ink-50 text-xs px-2.5 py-1.5 ${
-                    mood === m
-                      ? "bg-ink-50 text-ink-900"
-                      : "bg-transparent hover:bg-ink-700"
-                  }`}
-                  style={{ fontVariationSettings: "'wght' 620" }}
+                  className="chip"
                 >
                   {m}
                 </button>
@@ -285,11 +280,7 @@ export function ManifestoWizard({ initial }: Props) {
         )}
 
         {error && (
-          <div
-            className="mt-4 px-3 py-2.5 text-sm border-[1.5px]"
-            style={{ borderColor: "var(--spot)", color: "var(--spot)" }}
-            role="alert"
-          >
+          <div className="alert mt-4" role="alert">
             {error} Nothing was lost; press it again.
           </div>
         )}

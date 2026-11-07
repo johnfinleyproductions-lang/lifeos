@@ -242,6 +242,15 @@
     background: rgb(var(--spot));
     color: #fff;
   }
+  /* the domain inks, for quests */
+  .tab-violet {
+    background: rgb(var(--violet));
+    color: #fff;
+  }
+  .tab-rose {
+    background: rgb(var(--rose));
+    color: #fff;
+  }
   /* label, then a rule that runs out to the edge */
   .tab-row {
     display: flex;
@@ -270,6 +279,12 @@
 
   /* ---------- controls ---------- */
   .btn {
+    /* inline-flex, not inline: half the buttons in the app are <Link>s,
+       and an inline anchor ignores w-full and vertical margins. */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
     font-variation-settings: "wdth" 96, "wght" 700;
     font-size: 14px;
     line-height: 1;
@@ -345,6 +360,102 @@
   .inp:focus,
   .ta:focus {
     box-shadow: 3px 3px 0 rgb(var(--spot));
+  }
+
+  /* A selectable chip: ink outline, filled solid when pressed. Used for
+     moods, cadences, lenses, categories. */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1.5px solid rgb(var(--text-1));
+    background: transparent;
+    color: rgb(var(--text-1));
+    font-size: 12.5px;
+    line-height: 1;
+    padding: 7px 10px 8px;
+    cursor: pointer;
+    font-variation-settings: "wdth" 96, "wght" 620;
+  }
+  .chip:hover {
+    background: rgb(var(--surface-3));
+  }
+  .chip[aria-pressed="true"] {
+    background: rgb(var(--text-1));
+    color: rgb(var(--knock));
+  }
+  .chip:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  /* An inline notice in the spot ink: save failures, mic errors. */
+  .alert {
+    border: 1.5px solid rgb(var(--spot));
+    color: rgb(var(--spot));
+    padding: 10px 12px;
+    font-size: 13.5px;
+    line-height: 1.4;
+    font-variation-settings: "wght" 600;
+  }
+
+  /* A range input drawn as a plotted bar with a hard square thumb. */
+  .range {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 100%;
+    height: 22px;
+    margin: 0;
+    background: transparent;
+    cursor: pointer;
+  }
+  .range:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+  .range::-webkit-slider-runnable-track {
+    height: 7px;
+    background: rgb(var(--line-soft));
+  }
+  .range::-moz-range-track {
+    height: 7px;
+    background: rgb(var(--line-soft));
+  }
+  .range::-webkit-slider-thumb {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 14px;
+    height: 22px;
+    margin-top: -7.5px;
+    background: rgb(var(--text-1));
+    border: 0;
+  }
+  .range::-moz-range-thumb {
+    width: 14px;
+    height: 22px;
+    background: rgb(var(--text-1));
+    border: 0;
+    border-radius: 0;
+  }
+  /* the filled part of the track sits underneath, drawn by the component */
+  .range-wrap {
+    position: relative;
+  }
+  .range-wrap > .plot {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 7.5px;
+    pointer-events: none;
+  }
+  .range-wrap > .range {
+    position: relative;
+  }
+  .range-wrap > .range::-webkit-slider-runnable-track {
+    background: transparent;
+  }
+  .range-wrap > .range::-moz-range-track {
+    background: transparent;
   }
 
   /* A checkbox is a hard square that takes the spot ink when struck. */
