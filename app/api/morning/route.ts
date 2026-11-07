@@ -4,7 +4,8 @@ import { todayKey } from "@/lib/time/day";
 import { db } from "@/lib/db";
 import { lifeosDailyCheckins } from "@/lib/db/schema/lifeos";
 import { requireApiUser } from "@/lib/auth/server-helpers";
-import { morningManifestoSchema } from "@/lib/manifesto/schema";
+import { compactMorning, morningRequestSchema } from "@/lib/manifesto/schema";
+import { storedFromDepthChoice } from "@/lib/settings/ritual-depth";
 
 /**
  * POST /api/morning — upsert today's morning manifesto.
@@ -12,6 +13,10 @@ import { morningManifestoSchema } from "@/lib/manifesto/schema";
  * Insert-or-update by (user_id, entry_date). The unique constraint on the
  * table makes ON CONFLICT the natural behavior — last write wins, so the
  * user can re-do the wizard if they change their mind in the morning.
+ *
+ * The body carries `depth` ("quick" | "full") beside the manifesto fields.
+ * It lands in `ritual_depth` on the row, which is how the wizard remembers
+ * the last pick; the jsonb holds only what was actually asked.
  */
 export async function POST(request: Request) {
   const { user, unauthorizedResponse } = await requireApiUser();
@@ -24,7 +29,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const parsed = morningManifestoSchema.safeParse(body);
+  const parsed = morningRequestSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Validation failed", details: parsed.error.format() },
@@ -32,6 +37,9 @@ export async function POST(request: Request) {
     );
   }
 
+  const { depth, ...manifesto } = parsed.data;
+  const morning = compactMorning(manifesto);
+  const ritualDepth = storedFromDepthChoice(depth);
   const today = todayKey();
 
   const existing = await db
@@ -49,7 +57,8 @@ export async function POST(request: Request) {
     await db
       .update(lifeosDailyCheckins)
       .set({
-        morning: parsed.data,
+        morning,
+        ritualDepth,
         updatedAt: new Date(),
       })
       .where(eq(lifeosDailyCheckins.id, existing[0].id));
@@ -59,7 +68,8 @@ export async function POST(request: Request) {
   await db.insert(lifeosDailyCheckins).values({
     userId: user.id,
     entryDate: today,
-    morning: parsed.data,
+    morning,
+    ritualDepth,
   });
 
   return NextResponse.json({ ok: true, created: true });

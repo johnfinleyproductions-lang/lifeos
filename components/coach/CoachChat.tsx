@@ -154,7 +154,7 @@ export function CoachChat() {
                   key={s}
                   type="button"
                   onClick={() => send(s)}
-                  className="chip"
+                  className="chip min-h-9 text-left"
                 >
                   {s}
                 </button>
@@ -186,7 +186,7 @@ export function CoachChat() {
               setSpeakResponses(!speakResponses);
             }}
             aria-pressed={speakResponses}
-            className="chip"
+            className="chip min-h-9"
           >
             {speakResponses ? "Speaking replies aloud" : "Read replies aloud"}
           </button>
@@ -263,7 +263,7 @@ function Message({
   if (role === "user") {
     return (
       <div className="flex justify-end">
-        <div className="max-w-[80%] sheet sheet-hi px-4 py-3 font-serif text-[16px] leading-[1.5] whitespace-pre-wrap">
+        <div className="max-w-[80%] min-w-0 sheet sheet-hi px-4 py-3 font-serif text-[16px] leading-[1.5] whitespace-pre-wrap [overflow-wrap:anywhere]">
           {content}
         </div>
       </div>
@@ -273,11 +273,13 @@ function Message({
   const isThinking = !visible && /<think>/i.test(content);
   return (
     <div className="flex justify-start">
-      <div className="max-w-[85%]">
+      <div className="max-w-[85%] min-w-0">
         <div className="tab-row mb-2">
           <span className="tab">Coach</span>
         </div>
-        <div className="text-[15.5px] whitespace-pre-wrap leading-[1.55]">
+        {/* pre-wrap keeps the model's line breaks; overflow-wrap lets a URL
+            or a long token break rather than push the bubble off the phone */}
+        <div className="text-[15.5px] whitespace-pre-wrap leading-[1.55] [overflow-wrap:anywhere]">
           {visible || (
             <span className="text-ink-400 italic">
               {isThinking ? "Reasoning through it" : "Thinking"}

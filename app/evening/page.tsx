@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { todayKey } from "@/lib/time/day";
 import { db } from "@/lib/db";
 import { lifeosDailyCheckins } from "@/lib/db/schema/lifeos";
@@ -10,42 +10,41 @@ import {
   eveningShutdownSchema,
   type EveningShutdown,
 } from "@/lib/manifesto/evening-schema";
+import { depthChoiceFromStored } from "@/lib/settings/ritual-depth";
 
 export default async function EveningPage() {
   const { user } = await requireUserContext();
   const today = todayKey();
 
-  const rows = await db
+  // The most recent row carries the last depth pick. If today's row exists
+  // it is the most recent one, and it carries the morning and any evening.
+  const [latest] = await db
     .select({
+      entryDate: lifeosDailyCheckins.entryDate,
       morning: lifeosDailyCheckins.morning,
       evening: lifeosDailyCheckins.evening,
       ritualDepth: lifeosDailyCheckins.ritualDepth,
     })
     .from(lifeosDailyCheckins)
-    .where(
-      and(
-        eq(lifeosDailyCheckins.userId, user.id),
-        eq(lifeosDailyCheckins.entryDate, today),
-      ),
-    )
+    .where(eq(lifeosDailyCheckins.userId, user.id))
+    .orderBy(desc(lifeosDailyCheckins.entryDate))
     .limit(1);
 
+  const todayRow = latest?.entryDate === today ? latest : null;
+
   const morningParsed =
-    rows[0]?.morning != null
-      ? morningManifestoSchema.safeParse(rows[0].morning)
+    todayRow?.morning != null
+      ? morningManifestoSchema.safeParse(todayRow.morning)
       : null;
   const morningPriorities =
     morningParsed && morningParsed.success ? morningParsed.data.priorities : [];
 
   const eveningParsed =
-    rows[0]?.evening != null
-      ? eveningShutdownSchema.safeParse(rows[0].evening)
+    todayRow?.evening != null
+      ? eveningShutdownSchema.safeParse(todayRow.evening)
       : null;
   const initial: EveningShutdown | null =
     eveningParsed && eveningParsed.success ? eveningParsed.data : null;
-
-  const ritualDepth =
-    rows[0]?.ritualDepth === "deep" ? "deep" : "standard";
 
   return (
     <div className="max-w-[1080px] mx-auto">
@@ -53,7 +52,7 @@ export default async function EveningPage() {
       <EveningWizard
         initial={initial}
         morningPriorities={morningPriorities}
-        ritualDepth={ritualDepth}
+        initialDepth={depthChoiceFromStored(latest?.ritualDepth)}
       />
     </div>
   );

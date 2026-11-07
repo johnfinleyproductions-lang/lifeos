@@ -1,6 +1,6 @@
 import { Watermark } from "@/components/field/Watermark";
 import Link from "next/link";
-import { formatInstant } from "@/lib/time/day";
+import { formatDay } from "@/lib/time/day";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { lifeosJournalEntries } from "@/lib/db/schema/lifeos";
@@ -21,7 +21,12 @@ export default async function JournalDecisionsPage() {
         eq(lifeosJournalEntries.isDecision, true),
       ),
     )
-    .orderBy(desc(lifeosJournalEntries.createdAt));
+    // By the day the decision belongs to, then by when it was written; see
+    // the same note in journal/past.
+    .orderBy(
+      desc(lifeosJournalEntries.entryDate),
+      desc(lifeosJournalEntries.createdAt),
+    );
 
   // Stats
   const total = decisions.length;
@@ -49,7 +54,7 @@ export default async function JournalDecisionsPage() {
         backHref="/journal"
         backLabel="Today's page"
         right={
-          <Link href="/journal/past" className="btn btn-sm btn-ghost">
+          <Link href="/journal/past" className="btn btn-sm btn-ghost min-h-9">
             Past entries
           </Link>
         }
@@ -108,7 +113,7 @@ export default async function JournalDecisionsPage() {
                   <div className="flex items-baseline justify-between gap-3 mb-3">
                     <div className="lbl">{meta.join(", ")}</div>
                     <span className="text-[11.5px] text-ink-400 tabular-nums shrink-0">
-                      {formatInstant(new Date(d.createdAt), "d MMM yyyy")}
+                      {formatDay(d.entryDate, "d MMM yyyy")}
                     </span>
                   </div>
                   {d.decisionSummary && (

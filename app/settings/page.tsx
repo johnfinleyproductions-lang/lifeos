@@ -1,13 +1,16 @@
 import Link from "next/link";
 import { requireUserContext } from "@/lib/auth/server-helpers";
-import { RitualDepthToggle } from "@/components/settings/RitualDepthToggle";
 import { FieldMarksToggle } from "@/components/settings/FieldMarksToggle";
 import { PageStamp } from "@/components/PageStamp";
+import { ThemeChoice } from "./ThemeChoice";
 
-const EC_URL =
-  process.env.NEXT_PUBLIC_EC_URL?.trim() ||
-  "https://app.evergreenwellnessmktg.com";
-
+/**
+ * What a person, not a developer, might want to tune. The account block
+ * that pointed at Evergreen Core, the curl example for the v3 import and
+ * the build row are gone: the app is standalone now and none of it was a
+ * setting. Ritual depth is gone too; it is chosen on the wizard's first
+ * card and remembered there.
+ */
 export default async function SettingsPage() {
   const { user } = await requireUserContext();
 
@@ -38,22 +41,31 @@ export default async function SettingsPage() {
                 {user.email}
               </div>
             </div>
-            <Link href={EC_URL} className="btn btn-sm btn-ghost shrink-0">
-              Manage in EC
+            <Link
+              href="/pick-profile"
+              className="btn btn-sm btn-ghost shrink-0 min-h-9"
+            >
+              Switch profile
             </Link>
           </div>
-          <p className="text-[12.5px] text-ink-400 mt-4 mb-0 leading-relaxed">
-            Your account lives in Evergreen Core. LifeOS reads the same session:
-            sign in or out over there and this app follows.
+        </div>
+      </Section>
+
+      <Section title="The day">
+        <div className="sheet">
+          <p className="t-read m-0">
+            The day starts at 4 am. Anything written before then, an evening
+            shutdown at half past midnight for instance, files under the day
+            that is ending, not the one about to begin.
           </p>
         </div>
       </Section>
 
       <Section
-        title="Ritual depth"
-        subtitle="Default depth for the morning and evening wizards."
+        title="Theme"
+        subtitle="Day or night stock. Follows the device until you choose; the switch at the foot of the rail does the same thing."
       >
-        <RitualDepthToggle />
+        <ThemeChoice />
       </Section>
 
       <Section
@@ -62,54 +74,6 @@ export default async function SettingsPage() {
       >
         <FieldMarksToggle />
       </Section>
-
-      <Section title="Data" subtitle="Migrate from a previous LifeOS install.">
-        <div className="sheet">
-          <div className="t-h2 mb-1.5">Import from v3</div>
-          <p className="text-[13.5px] text-ink-300 leading-relaxed mb-3">
-            Have a JSON export from the standalone v3 build? POST it to{" "}
-            <code className="font-mono text-[12px] bg-ink-700 border border-ink-500 px-1.5 py-0.5">
-              /api/import-v3
-            </code>{" "}
-            with your session cookie. The endpoint upserts entries by date; the
-            morning and evening jsonb fields pass through as they are.
-          </p>
-          <details className="text-[12px] text-ink-400">
-            <summary className="cursor-pointer hover:text-ink-100">
-              Example curl
-            </summary>
-            <pre className="mt-2 p-3 bg-ink-700 border border-ink-500 font-mono text-[11px] overflow-x-auto leading-relaxed">{`curl -X POST http://localhost:3001/api/import-v3 \\
-  -H "Content-Type: application/json" \\
-  --cookie "$(cat ~/lifeos.cookie)" \\
-  -d @v3-export.json`}</pre>
-          </details>
-        </div>
-      </Section>
-
-      <Section title="About">
-        <div className="sheet py-1">
-          <Row label="Build" value="Phase 2, v0.2" />
-          <Row
-            label="Database"
-            value="Shared with Evergreen Core (M90t Postgres)"
-          />
-          <Row label="Auth" value="Better Auth, shared session" />
-        </div>
-      </Section>
-    </div>
-  );
-}
-
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex gap-3.5 py-2.5 border-b border-ink-600 last:border-b-0">
-      <span
-        className="shrink-0 w-[84px] text-[11.5px] text-ink-400 pt-[2px]"
-        style={{ fontVariationSettings: "'wdth' 100, 'wght' 680" }}
-      >
-        {label}
-      </span>
-      <span className="flex-1 text-[14px]">{value}</span>
     </div>
   );
 }

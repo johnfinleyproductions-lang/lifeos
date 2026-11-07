@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { todayKey } from "@/lib/time/day";
 import { db } from "@/lib/db";
 import { lifeosDailyCheckins } from "@/lib/db/schema/lifeos";
@@ -9,26 +9,35 @@ import {
   morningManifestoSchema,
   type MorningManifesto,
 } from "@/lib/manifesto/schema";
+import { getCarriedLines } from "@/lib/manifesto/carry";
+import { depthChoiceFromStored } from "@/lib/settings/ritual-depth";
 
 export default async function MorningPage() {
   const { user } = await requireUserContext();
   const today = todayKey();
 
-  const rows = await db
-    .select({ morning: lifeosDailyCheckins.morning })
-    .from(lifeosDailyCheckins)
-    .where(
-      and(
-        eq(lifeosDailyCheckins.userId, user.id),
-        eq(lifeosDailyCheckins.entryDate, today),
-      ),
-    )
-    .limit(1);
+  // The most recent row carries the last depth pick. If today's row exists
+  // it is the most recent one, and it also carries today's manifesto.
+  const [[latest], carried] = await Promise.all([
+    db
+      .select({
+        entryDate: lifeosDailyCheckins.entryDate,
+        morning: lifeosDailyCheckins.morning,
+        ritualDepth: lifeosDailyCheckins.ritualDepth,
+      })
+      .from(lifeosDailyCheckins)
+      .where(eq(lifeosDailyCheckins.userId, user.id))
+      .orderBy(desc(lifeosDailyCheckins.entryDate))
+      .limit(1),
+    getCarriedLines(user.id),
+  ]);
+
+  const todayRow = latest?.entryDate === today ? latest : null;
 
   // The morning column is jsonb — safeParse to get a typed value.
   const parsed =
-    rows[0]?.morning != null
-      ? morningManifestoSchema.safeParse(rows[0].morning)
+    todayRow?.morning != null
+      ? morningManifestoSchema.safeParse(todayRow.morning)
       : null;
   const initial: MorningManifesto | null =
     parsed && parsed.success ? parsed.data : null;
@@ -36,7 +45,11 @@ export default async function MorningPage() {
   return (
     <div className="max-w-[1080px] mx-auto">
       <PageStamp title="Morning manifesto" backLabel="Leave" />
-      <ManifestoWizard initial={initial} />
+      <ManifestoWizard
+        initial={initial}
+        initialDepth={depthChoiceFromStored(latest?.ritualDepth)}
+        carried={initial ? [] : carried}
+      />
     </div>
   );
 }

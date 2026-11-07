@@ -1,13 +1,39 @@
 "use client";
 
-import { useState, type Dispatch, type SetStateAction } from "react";
+import {
+  useState,
+  type Dispatch,
+  type KeyboardEvent,
+  type SetStateAction,
+} from "react";
 import { useRouter } from "next/navigation";
-import type { EveningShutdown } from "@/lib/manifesto/evening-schema";
+import type {
+  EveningRequest,
+  EveningShutdown,
+} from "@/lib/manifesto/evening-schema";
+import {
+  DEPTH_CHOICES,
+  type DepthChoice,
+} from "@/lib/settings/ritual-depth";
 import { VoiceButton } from "@/components/voice/VoiceButton";
 
 function appendVoice(prev: string, text: string): string {
   return prev.trim().length > 0 ? `${prev} ${text}` : text;
 }
+
+/**
+ * The cards, by depth. Quick: rate the day, strike the three, one line
+ * for the win (with the seed offered as an optional second line, so the
+ * morning still has something to inherit). Full adds the lesson and gives
+ * the seed its own card. The strike card only deals when the morning set
+ * priorities to strike.
+ */
+type StepId = "rate" | "strike" | "win" | "lesson" | "seed";
+
+const STEPS: Record<DepthChoice, StepId[]> = {
+  quick: ["rate", "strike", "win"],
+  full: ["rate", "strike", "win", "lesson", "seed"],
+};
 
 const RATING_LABELS = ["off", "rough", "okay", "good", "alive"] as const;
 
@@ -25,19 +51,24 @@ const MOOD_OPTIONS = [
 type Props = {
   initial?: EveningShutdown | null;
   morningPriorities?: string[];
-  ritualDepth?: "standard" | "deep";
+  initialDepth?: DepthChoice;
 };
 
 export function EveningWizard({
   initial,
   morningPriorities = [],
-  ritualDepth = "standard",
+  initialDepth = "full",
 }: Props) {
   const router = useRouter();
-  const isDeep = ritualDepth === "deep";
-  const totalSteps = isDeep ? 7 : 5;
+  const hasPriorities = morningPriorities.length > 0;
 
-  const [step, setStep] = useState(1);
+  const [depth, setDepth] = useState<DepthChoice>(initialDepth);
+  const steps = STEPS[depth].filter((s) => s !== "strike" || hasPriorities);
+  const [index, setIndex] = useState(0);
+  const stepId = steps[Math.min(index, steps.length - 1)];
+  const total = steps.length;
+  const isLast = index === total - 1;
+
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -51,42 +82,30 @@ export function EveningWizard({
   const [tomorrowSeed, setTomorrowSeed] = useState<string>(
     initial?.tomorrowSeed ?? "",
   );
-  const [reframe, setReframe] = useState<string>(initial?.reframe ?? "");
-  const [release, setRelease] = useState<string>(initial?.release ?? "");
-
-  const hasPriorities = morningPriorities.length > 0;
-
-  // Step 2 is "priorities check-in" if there are priorities, otherwise it's
-  // the win step. We collapse the unused step rather than skipping numbers.
-  const stepIsPriorityCheck = step === 2 && hasPriorities;
-  const stepIsWin = (step === 2 && !hasPriorities) || step === 3;
-  const stepIsLesson = (step === 3 && !hasPriorities) || step === 4;
-  const stepIsTomorrow = (step === 4 && !hasPriorities) || step === 5;
-  const stepIsReframe = isDeep && step === 6;
-  const stepIsRelease = isDeep && step === 7;
 
   const canContinue =
-    (step === 1 && Boolean(dayMood.trim())) ||
-    stepIsPriorityCheck ||
-    (stepIsWin && win.trim().length >= 2) ||
-    (stepIsLesson && lesson.trim().length >= 2) ||
-    (stepIsTomorrow && tomorrowSeed.trim().length >= 2) ||
-    (stepIsReframe && reframe.trim().length >= 2) ||
-    (stepIsRelease && release.trim().length >= 2);
+    (stepId === "rate" && Boolean(dayMood.trim())) ||
+    stepId === "strike" ||
+    (stepId === "win" && win.trim().length >= 2) ||
+    (stepId === "lesson" && lesson.trim().length >= 2) ||
+    (stepId === "seed" && tomorrowSeed.trim().length >= 2);
 
   async function submit() {
     setSubmitting(true);
     setError(null);
     try {
-      const payload: EveningShutdown = {
+      // Fields a Quick evening does not ask keep whatever an earlier Full
+      // pass wrote, so revising at Quick never erases the lesson.
+      const payload: EveningRequest = {
         dayRating,
         dayMood: dayMood.trim(),
         ...(hasPriorities ? { prioritiesDone } : {}),
         win: win.trim(),
         lesson: lesson.trim(),
         tomorrowSeed: tomorrowSeed.trim(),
-        ...(isDeep && reframe.trim() ? { reframe: reframe.trim() } : {}),
-        ...(isDeep && release.trim() ? { release: release.trim() } : {}),
+        ...(initial?.reframe ? { reframe: initial.reframe } : {}),
+        ...(initial?.release ? { release: initial.release } : {}),
+        depth,
       };
       const res = await fetch("/api/evening", {
         method: "POST",
@@ -106,52 +125,66 @@ export function EveningWizard({
   }
 
   function next() {
-    // Skip step 2 if no morning priorities, jump to step 3 logic.
-    if (step === 1 && !hasPriorities) {
-      setStep(3);
-      return;
-    }
-    if (step === totalSteps) {
-      submit();
-    } else {
-      setStep(step + 1);
-    }
+    if (!canContinue || submitting) return;
+    if (isLast) submit();
+    else setIndex(index + 1);
   }
-
   function back() {
-    if (step === 3 && !hasPriorities) {
-      setStep(1);
-      return;
-    }
-    setStep(Math.max(1, step - 1));
+    setIndex(Math.max(0, index - 1));
   }
-
-  // The bar shows one segment per step the user will actually see.
-  const barSteps = hasPriorities ? totalSteps : totalSteps - 1;
-  const barIndex = hasPriorities ? step : step === 1 ? 1 : step - 1;
 
   return (
     <div className="wiz">
       <div className="wiz-bar" aria-hidden="true">
-        {Array.from({ length: barSteps }).map((_, i) => (
+        {steps.map((id, i) => (
           <i
-            key={i}
-            className={
-              i + 1 < barIndex ? "on" : i + 1 === barIndex ? "cur" : undefined
-            }
+            key={id}
+            className={i < index ? "on" : i === index ? "cur" : undefined}
           />
         ))}
       </div>
 
-      <div className="wiz-card">
-        <div className="wiz-step">
-          Step {barIndex} of {barSteps}
+      <form
+        key={`${depth}-${stepId}`}
+        className="wiz-card"
+        onSubmit={(e) => {
+          e.preventDefault();
+          next();
+        }}
+      >
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className="wiz-step mb-0">
+            Step {index + 1} of {total}
+          </div>
+          {stepId === "rate" && (
+            <div
+              className="flex items-center gap-1.5"
+              role="group"
+              aria-label="Depth"
+            >
+              {DEPTH_CHOICES.map((c) => (
+                <button
+                  key={c.key}
+                  type="button"
+                  onClick={() => setDepth(c.key)}
+                  aria-pressed={depth === c.key}
+                  className="chip min-h-9"
+                >
+                  <span>
+                    {c.label}
+                    <span className="opacity-60 font-normal">, {c.hint}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
+        <div className="h-[9px]" />
 
-        {step === 1 && (
+        {stepId === "rate" && (
           <Step
             heading="How was the day, really?"
-            subhead="No editing. Rate it from where you sit right now."
+            subhead="From where you sit right now. It can be revised later; tonight it only has to be honest."
           >
             <div className="pick" role="group" aria-label="Day rating">
               {[1, 2, 3, 4, 5].map((n) => (
@@ -182,7 +215,7 @@ export function EveningWizard({
                   type="button"
                   onClick={() => setDayMood(m)}
                   aria-pressed={dayMood === m}
-                  className="chip"
+                  className="chip min-h-9"
                 >
                   {m}
                 </button>
@@ -194,14 +227,24 @@ export function EveningWizard({
                 value={MOOD_OPTIONS.includes(dayMood) ? "" : dayMood}
                 onChange={(e) => setDayMood(e.target.value)}
                 placeholder="or type your own"
+                aria-label="Mood, in your own word"
                 className="inp"
               />
               <VoiceButton size="sm" onTranscript={(t) => setDayMood(t)} />
             </div>
+            <p className="text-[11.5px] text-ink-400 mt-5 mb-0">
+              {depth === "quick"
+                ? hasPriorities
+                  ? "Quick: the rating, strike the three, one line for the win. Remembered for tomorrow."
+                  : "Quick: the rating, one line for the win. Remembered for tomorrow."
+                : hasPriorities
+                  ? "Full: the rating, strike the three, the win, the lesson, tomorrow's seed. Remembered for tomorrow."
+                  : "Full: the rating, the win, the lesson, tomorrow's seed. Remembered for tomorrow."}
+            </p>
           </Step>
         )}
 
-        {stepIsPriorityCheck && (
+        {stepId === "strike" && (
           <Step
             heading="The three you set this morning."
             subhead="Strike the ones that actually got done. No judgment if it is none."
@@ -219,7 +262,7 @@ export function EveningWizard({
                       next[i] = !done;
                       setPrioritiesDone(next);
                     }}
-                    className="w-full flex items-center gap-3 py-3 px-0.5 text-left border-b border-ink-600 last:border-b-[1.5px] last:border-b-ink-50 hover:bg-ink-700"
+                    className="w-full flex items-center gap-3 py-3 px-0.5 text-left border-b border-ink-600 last:border-b-[1.5px] last:border-b-ink-50 hover:bg-ink-700 min-h-12"
                   >
                     <span
                       className="w-[26px] shrink-0 tabular-nums text-[15px] text-ink-400"
@@ -229,14 +272,14 @@ export function EveningWizard({
                     </span>
                     <span
                       aria-hidden="true"
-                      className={`w-[22px] h-[22px] shrink-0 border-[1.5px] relative ${
+                      className={`w-[26px] h-[26px] shrink-0 border-[1.5px] relative ${
                         done
                           ? "bg-accent-spot border-accent-spot"
                           : "border-ink-50 bg-ink-700"
                       }`}
                     >
                       {done && (
-                        <span className="absolute left-[5px] top-[9px] w-[9px] h-[4px] border-white border-b-[2.5px] border-l-[2.5px] rotate-[-45deg]" />
+                        <span className="absolute left-[6px] top-[10px] w-[11px] h-[5px] border-white border-b-[2.5px] border-l-[2.5px] rotate-[-45deg]" />
                       )}
                     </span>
                     <span
@@ -256,7 +299,7 @@ export function EveningWizard({
           </Step>
         )}
 
-        {stepIsWin && (
+        {stepId === "win" && (
           <Step
             heading="One thing that went well."
             subhead="Specific. Tiny is fine. The smallest noticed wins compound."
@@ -267,18 +310,35 @@ export function EveningWizard({
               rows={3}
               max={280}
               placeholder="I shipped the thing I had been circling for a week."
+              label="The win"
             />
+            {depth === "quick" && (
+              <div className="mt-5 pt-4 border-t-[1.5px] border-ink-500">
+                <label
+                  htmlFor="quick-seed"
+                  className="block text-[13px] text-ink-300 mb-2"
+                  style={{ fontVariationSettings: "'wght' 620" }}
+                >
+                  And a seed for tomorrow, if one is there. Optional.
+                </label>
+                <input
+                  id="quick-seed"
+                  type="text"
+                  value={tomorrowSeed}
+                  onChange={(e) => setTomorrowSeed(e.target.value)}
+                  maxLength={200}
+                  placeholder="open the file before coffee"
+                  className="inp"
+                />
+              </div>
+            )}
           </Step>
         )}
 
-        {stepIsLesson && (
+        {stepId === "lesson" && (
           <Step
             heading="What am I carrying forward?"
-            subhead={
-              isDeep
-                ? "A pattern you noticed in yourself. A reframe. A line drawn in the sand."
-                : "One lesson, one reframe, or one note for next time."
-            }
+            subhead="One lesson, one reframe, or one note for next time."
           >
             <Writing
               value={lesson}
@@ -286,14 +346,15 @@ export function EveningWizard({
               rows={3}
               max={280}
               placeholder="that I get distracted at the planning step, not the execution step"
+              label="The lesson"
             />
           </Step>
         )}
 
-        {stepIsTomorrow && (
+        {stepId === "seed" && (
           <Step
             heading="Tomorrow's seed."
-            subhead="One thing to plant tonight that tomorrow-you will be glad you started."
+            subhead="One thing to plant tonight. It will be waiting on tomorrow's sheet, first in line."
           >
             <Writing
               value={tomorrowSeed}
@@ -301,36 +362,7 @@ export function EveningWizard({
               rows={2}
               max={200}
               placeholder="open the file before coffee"
-            />
-          </Step>
-        )}
-
-        {stepIsReframe && (
-          <Step
-            heading="A moment that hooked you today. What is the reframe?"
-            subhead="The story you told yourself, then the story that is actually true."
-          >
-            <Writing
-              value={reframe}
-              onChange={setReframe}
-              rows={4}
-              max={280}
-              placeholder="Story I told myself: ... Truer story: ..."
-            />
-          </Step>
-        )}
-
-        {stepIsRelease && (
-          <Step
-            heading="What can you release before sleep?"
-            subhead="A worry, a grudge, an open thread. Name it so it stops circling."
-          >
-            <Writing
-              value={release}
-              onChange={setRelease}
-              rows={3}
-              max={280}
-              placeholder="the email I am anxious about. It can wait until morning."
+              label="Tomorrow's seed"
             />
           </Step>
         )}
@@ -342,7 +374,7 @@ export function EveningWizard({
         )}
 
         <div className="wiz-foot">
-          {step > 1 ? (
+          {index > 0 ? (
             <button
               type="button"
               onClick={back}
@@ -355,19 +387,14 @@ export function EveningWizard({
             <span />
           )}
           <button
-            type="button"
-            onClick={next}
+            type="submit"
             disabled={!canContinue || submitting}
-            className={`btn btn-next ${step === totalSteps ? "btn-spot" : ""}`}
+            className={`btn btn-next ${isLast ? "btn-spot" : ""}`}
           >
-            {submitting
-              ? "Saving"
-              : step === totalSteps
-                ? "Close the day"
-                : "Next"}
+            {submitting ? "Saving" : isLast ? "Close the day" : "Next"}
           </button>
         </div>
-      </div>
+      </form>
     </div>
   );
 }
@@ -397,23 +424,33 @@ function Writing({
   rows,
   max,
   placeholder,
+  label,
 }: {
   value: string;
   onChange: Dispatch<SetStateAction<string>>;
   rows: number;
   max: number;
   placeholder: string;
+  label: string;
 }) {
   const near = max - Math.round(max * 0.08);
+  function onKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      e.currentTarget.form?.requestSubmit();
+    }
+  }
   return (
     <>
       <textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        onKeyDown={onKeyDown}
         autoFocus
         rows={rows}
         maxLength={max}
         placeholder={placeholder}
+        aria-label={label}
         className="ta"
       />
       <div className="flex items-center justify-between mt-2">

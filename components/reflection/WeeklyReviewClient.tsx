@@ -1,11 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
-import {
-  BALANCE_DIMENSIONS,
-  type BalanceScore,
-} from "@/lib/reflection/balance";
+import { BALANCE_DIMENSIONS } from "@/lib/reflection/balance";
+import type { BalanceReadings } from "@/lib/reflection/weekly-review-schema";
 import type { Scorecard } from "@/lib/reflection/auto-detect";
 
 type Quest = {
@@ -24,6 +22,9 @@ type Props = {
 
 const TOTAL_PHASES = 6;
 
+/** Where an untouched thumb rests. Not a reading until the control moves. */
+const REST = 5;
+
 export function WeeklyReviewClient({
   scorecard,
   suggestedWins,
@@ -36,14 +37,7 @@ export function WeeklyReviewClient({
     suggestedWins.length > 0 ? suggestedWins.join("\n") : "",
   );
   const [questNotes, setQuestNotes] = useState<Record<string, string>>({});
-  const [balance, setBalance] = useState<BalanceScore>({
-    mind: 5,
-    body: 5,
-    work: 5,
-    relationships: 5,
-    play: 5,
-    spirit: 5,
-  });
+  const [balance, setBalance] = useState<BalanceReadings>({});
   const [lesson, setLesson] = useState("");
   const [reframe, setReframe] = useState("");
   const [nextWeekFeel, setNextWeekFeel] = useState("");
@@ -58,6 +52,10 @@ export function WeeklyReviewClient({
     phase === 4 ||
     (phase === 5 && lesson.trim().length >= 4) ||
     (phase === 6 && nextWeekFeel.trim().length >= 4);
+
+  const readingsTaken = BALANCE_DIMENSIONS.filter(
+    (d) => typeof balance[d.key] === "number",
+  ).length;
 
   async function submit() {
     setSubmitting(true);
@@ -83,7 +81,7 @@ export function WeeklyReviewClient({
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error ?? "Failed to save");
       }
-      router.push("/discipline");
+      router.push("/weekly-review/past");
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to save");
@@ -92,11 +90,33 @@ export function WeeklyReviewClient({
   }
 
   function next() {
+    if (!canContinue || submitting) return;
     if (phase === TOTAL_PHASES) submit();
     else setPhase(phase + 1);
   }
   function back() {
     setPhase(Math.max(1, phase - 1));
+  }
+
+  /** Cmd/Ctrl+Enter in a textarea submits the phase, like Enter in an input. */
+  function submitOnModEnter(e: KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      e.currentTarget.form?.requestSubmit();
+    }
+  }
+
+  /** Enter walks down a list of inputs; on the last one it submits. */
+  function walkOnEnter(e: KeyboardEvent<HTMLInputElement>, selector: string) {
+    if (e.key !== "Enter") return;
+    const inputs = Array.from(
+      e.currentTarget.form?.querySelectorAll<HTMLInputElement>(selector) ?? [],
+    );
+    const i = inputs.indexOf(e.currentTarget);
+    if (i !== -1 && i < inputs.length - 1) {
+      e.preventDefault();
+      inputs[i + 1].focus();
+    }
   }
 
   return (
@@ -112,7 +132,14 @@ export function WeeklyReviewClient({
         ))}
       </div>
 
-      <div className="wiz-card">
+      <form
+        key={phase}
+        className="wiz-card"
+        onSubmit={(e) => {
+          e.preventDefault();
+          next();
+        }}
+      >
         <div className="wiz-step">
           Phase {phase} of {TOTAL_PHASES}
         </div>
@@ -142,10 +169,12 @@ export function WeeklyReviewClient({
             <textarea
               value={reflect}
               onChange={(e) => setReflect(e.target.value)}
+              onKeyDown={submitOnModEnter}
               autoFocus
               rows={6}
               maxLength={2000}
               placeholder="The week, in your own words."
+              aria-label="The week, in your own words"
               className="ta"
             />
           </Step>
@@ -159,10 +188,12 @@ export function WeeklyReviewClient({
             <textarea
               value={wins}
               onChange={(e) => setWins(e.target.value)}
+              onKeyDown={submitOnModEnter}
               autoFocus
               rows={8}
               maxLength={2000}
               placeholder="One per line."
+              aria-label="The wins, one per line"
               className="ta"
             />
           </Step>
@@ -179,7 +210,7 @@ export function WeeklyReviewClient({
               </p>
             ) : (
               <div className="space-y-4">
-                {activeQuests.map((q) => (
+                {activeQuests.map((q, i) => (
                   <div key={q.id}>
                     <div className="flex items-baseline justify-between gap-3 mb-1.5">
                       <div
@@ -201,8 +232,12 @@ export function WeeklyReviewClient({
                           [q.id]: e.target.value,
                         }))
                       }
+                      onKeyDown={(e) => walkOnEnter(e, "input[data-quest]")}
+                      data-quest={q.id}
+                      autoFocus={i === 0}
                       maxLength={500}
                       placeholder="What moved?"
+                      aria-label={`Note on ${q.title}`}
                       className="inp"
                     />
                   </div>
@@ -215,52 +250,96 @@ export function WeeklyReviewClient({
         {phase === 4 && (
           <Step
             heading="Balance check."
-            sub="Rate each dimension out of ten for this week."
+            sub="Move a slider to take a reading. Leave any you did not weigh this week; an untaken reading stays blank rather than guessing."
           >
             <div className="space-y-4">
-              {BALANCE_DIMENSIONS.map((d) => (
-                <div key={d.key}>
-                  <div className="flex items-center justify-between gap-3 mb-1">
-                    <div>
-                      <div
-                        className="text-[14.5px]"
-                        style={{ fontVariationSettings: "'wght' 680" }}
-                      >
-                        {d.label}
+              {BALANCE_DIMENSIONS.map((d) => {
+                const value = balance[d.key];
+                const isSet = typeof value === "number";
+                const shown = isSet ? value : REST;
+                const take = (v: number) =>
+                  setBalance((prev) => ({ ...prev, [d.key]: v }));
+                const clear = () =>
+                  setBalance((prev) => {
+                    const next = { ...prev };
+                    delete next[d.key];
+                    return next;
+                  });
+                return (
+                  <div key={d.key}>
+                    <div className="flex items-center justify-between gap-3 mb-1">
+                      <div>
+                        <div
+                          className="text-[14.5px]"
+                          style={{ fontVariationSettings: "'wght' 680" }}
+                        >
+                          {d.label}
+                        </div>
+                        <div className="text-[11.5px] text-ink-400">
+                          {d.blurb}
+                        </div>
                       </div>
-                      <div className="text-[11.5px] text-ink-400">
-                        {d.blurb}
+                      <div className="flex items-center gap-2.5 shrink-0">
+                        {isSet && (
+                          <button
+                            type="button"
+                            onClick={clear}
+                            className="text-[11.5px] text-ink-400 underline underline-offset-2 hover:text-ink-100 min-h-9 px-1"
+                          >
+                            clear
+                          </button>
+                        )}
+                        <span
+                          className={
+                            isSet
+                              ? "t-num text-[22px] tabular-nums"
+                              : "text-[12.5px] text-ink-400 italic"
+                          }
+                          aria-live="polite"
+                        >
+                          {isSet ? value : "not set"}
+                        </span>
                       </div>
                     </div>
-                    <span className="t-num text-[22px] tabular-nums">
-                      {balance[d.key]}
-                    </span>
-                  </div>
-                  <div className="range-wrap">
-                    <span className="plot">
-                      <span
-                        className={d.accentClass}
-                        style={{ width: `${(balance[d.key] / 10) * 100}%` }}
+                    <div className="range-wrap [&>.plot]:top-[12.5px]">
+                      <span className="plot">
+                        <span
+                          className={isSet ? d.accentClass : ""}
+                          style={{ width: isSet ? `${(value / 10) * 100}%` : 0 }}
+                        />
+                      </span>
+                      <input
+                        type="range"
+                        min={0}
+                        max={10}
+                        value={shown}
+                        onChange={(e) => take(Number(e.target.value))}
+                        onPointerDown={() => {
+                          if (!isSet) take(REST);
+                        }}
+                        onKeyDown={(e) => {
+                          if (
+                            !isSet &&
+                            (e.key === " " || e.key === "Enter")
+                          ) {
+                            e.preventDefault();
+                            take(REST);
+                          }
+                        }}
+                        aria-label={d.label}
+                        aria-valuetext={isSet ? String(value) : "not set"}
+                        className={`range h-8 ${isSet ? "" : "opacity-40"}`}
                       />
-                    </span>
-                    <input
-                      type="range"
-                      min={0}
-                      max={10}
-                      value={balance[d.key]}
-                      onChange={(e) =>
-                        setBalance((prev) => ({
-                          ...prev,
-                          [d.key]: Number(e.target.value),
-                        }))
-                      }
-                      aria-label={d.label}
-                      className="range"
-                    />
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
+            <p className="text-[11.5px] text-ink-400 mt-4 mb-0">
+              {readingsTaken === 0
+                ? "No readings taken yet. That is allowed."
+                : `${readingsTaken} of 6 readings taken.`}
+            </p>
           </Step>
         )}
 
@@ -272,18 +351,22 @@ export function WeeklyReviewClient({
             <textarea
               value={lesson}
               onChange={(e) => setLesson(e.target.value)}
+              onKeyDown={submitOnModEnter}
               autoFocus
               rows={3}
               maxLength={1000}
               placeholder="The lesson."
+              aria-label="The lesson"
               className="ta mb-4"
             />
             <textarea
               value={reframe}
               onChange={(e) => setReframe(e.target.value)}
+              onKeyDown={submitOnModEnter}
               rows={3}
               maxLength={1000}
               placeholder="A reframe, optional."
+              aria-label="A reframe, optional"
               className="ta"
             />
           </Step>
@@ -292,15 +375,18 @@ export function WeeklyReviewClient({
         {phase === 6 && (
           <Step
             heading="Plant next week."
-            sub="How should it feel? Then the three that matter most."
+            sub="How should it feel? Then the three that matter most. They will be waiting on the first morning sheet of the week."
           >
             <input
               type="text"
               value={nextWeekFeel}
               onChange={(e) => setNextWeekFeel(e.target.value)}
+              onKeyDown={(e) => walkOnEnter(e, "input[data-plant]")}
+              data-plant="feel"
               autoFocus
               maxLength={280}
               placeholder="Next week, I want it to feel"
+              aria-label="How next week should feel"
               className="inp mb-5"
             />
             <div className="lbl mb-2">The three</div>
@@ -321,8 +407,11 @@ export function WeeklyReviewClient({
                       next[i] = e.target.value;
                       setNextPriorities(next);
                     }}
+                    onKeyDown={(e) => walkOnEnter(e, "input[data-plant]")}
+                    data-plant={String(i)}
                     maxLength={140}
                     placeholder={i === 0 ? "The one that matters most" : ""}
+                    aria-label={`Next week priority ${i + 1}`}
                     className="inp"
                   />
                 </div>
@@ -351,8 +440,7 @@ export function WeeklyReviewClient({
             <span />
           )}
           <button
-            type="button"
-            onClick={next}
+            type="submit"
             disabled={!canContinue || submitting}
             className={`btn btn-next ${phase === TOTAL_PHASES ? "btn-spot" : ""}`}
           >
@@ -363,7 +451,7 @@ export function WeeklyReviewClient({
                 : "Next"}
           </button>
         </div>
-      </div>
+      </form>
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { lifeosQuests } from "@/lib/db/schema/lifeos";
@@ -37,9 +38,17 @@ export default async function WeeklyReviewPage() {
     <div className="max-w-4xl mx-auto">
       <PageStamp
         title="Weekly review"
-        subtitle="Twenty minutes. Six phases. Sets the rhythm for next week."
+        subtitle="Twenty minutes. Six phases. What you plant here is waiting on Monday's morning sheet."
         backHref="/discipline"
         backLabel="Discipline"
+        right={
+          <Link
+            href="/weekly-review/past"
+            className="btn btn-sm btn-ghost min-h-9"
+          >
+            Past reviews
+          </Link>
+        }
       />
 
       <WeeklyReviewClient
