@@ -1,3 +1,4 @@
+import { Watermark } from "@/components/field/Watermark";
 import Link from "next/link";
 import { formatDay, formatInstant } from "@/lib/time/day";
 import { desc, eq } from "drizzle-orm";
@@ -46,7 +47,8 @@ export default async function JournalPastPage() {
       />
 
       {entries.length === 0 ? (
-        <div className="sheet sheet-bare border-dashed text-center py-10">
+        <div className="sheet sheet-bare sheet-cut text-center py-10 relative">
+          <Watermark name="nib" />
           <div className="t-h2 mb-2">Nothing yet.</div>
           <p className="text-[14.5px] text-ink-300 mb-5 max-w-[40ch] mx-auto">
             Write your first entry: a stream, a framework, or a conversation.

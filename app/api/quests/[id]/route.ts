@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { lifeosQuests } from "@/lib/db/schema/lifeos";
 import { requireApiUser } from "@/lib/auth/server-helpers";
@@ -35,10 +35,18 @@ export async function PATCH(
     );
   }
 
+  // A quest marked done takes today as its end date, unless one was
+  // already set. That is the date its cairn carries.
+  const closing =
+    parsed.data.status === "completed"
+      ? { endDate: sql`coalesce(${lifeosQuests.endDate}, current_date)` }
+      : {};
+
   const [updated] = await db
     .update(lifeosQuests)
     .set({
       ...parsed.data,
+      ...closing,
       updatedAt: new Date(),
     })
     .where(

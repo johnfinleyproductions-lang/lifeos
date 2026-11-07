@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Bricolage_Grotesque, Newsreader } from "next/font/google";
 import { Sidebar } from "@/components/Sidebar";
 import { PressMargin } from "@/components/field/PressMargin";
+import { PressDefs } from "@/components/field/PressDefs";
 import { getAuthContext } from "@/lib/auth/server-helpers";
 import { dayOfYear, parseDayKey, todayKey } from "@/lib/time/day";
 import "./globals.css";
@@ -77,6 +78,7 @@ export default async function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOT }} />
       </head>
       <body className="bg-ink-900 text-ink-100 antialiased">
+        <PressDefs />
         <div className="flex flex-col md:flex-row min-h-screen">
           <Sidebar
             user={user}

@@ -6,9 +6,11 @@ import { weekdayOf } from "@/lib/time/day";
  * day-of-week (Sun top, Sat bottom).
  *
  * Each cell is inked by check-in state:
- *   - both morning + evening   solid ink
  *   - morning only             the gold ink
  *   - evening only             the violet ink
+ *   - both morning + evening   the two overprinted, which on a riso
+ *                              makes a third colour nobody mixed, with
+ *                              the second pass landing a hair off
  *   - neither                  an empty cell
  */
 export function YearHeatmap({ cells }: { cells: HeatmapCell[] }) {
@@ -39,7 +41,7 @@ export function YearHeatmap({ cells }: { cells: HeatmapCell[] }) {
 
   function inkFor(cell: HeatmapCell | null): string {
     if (!cell) return "bg-transparent";
-    if (cell.morning && cell.evening) return "bg-ink-50";
+    if (cell.morning && cell.evening) return "overprint";
     if (cell.morning) return "bg-accent-gold";
     if (cell.evening) return "bg-accent-violet";
     return "bg-ink-600";
@@ -62,9 +64,9 @@ export function YearHeatmap({ cells }: { cells: HeatmapCell[] }) {
         )}
       </div>
       <div className="flex items-center gap-4 text-[11px] text-ink-400 mt-4">
-        <Legend swatch="bg-ink-50" label="Both" />
         <Legend swatch="bg-accent-gold" label="Morning" />
         <Legend swatch="bg-accent-violet" label="Evening" />
+        <Legend swatch="overprint" label="Both" />
         <Legend swatch="bg-ink-600" label="Neither" />
       </div>
     </div>

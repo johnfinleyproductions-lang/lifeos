@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Plate } from "@/components/field/plates";
 
 type Quest = {
   id: string;
@@ -12,6 +13,8 @@ type Quest = {
   quarter: string;
   progress: number;
   status: "active" | "paused" | "completed" | "abandoned";
+  /** "3 Nov 2026" once the quest is done; null otherwise, or when field marks are hidden */
+  reachedOn: string | null;
 };
 
 /**
@@ -165,7 +168,19 @@ function QuestCard({
         <div className="flex-1 min-w-0">
           <div className="lbl mb-1.5 flex items-center gap-2 flex-wrap">
             <span>{quest.type === "main" ? "Main quest" : "Side quest"}</span>
-            {isComplete && <span className="text-accent-green">done</span>}
+            {isComplete && !quest.reachedOn && (
+              <span className="text-accent-green">done</span>
+            )}
+            {isComplete && quest.reachedOn && (
+              <span className="inline-flex items-center gap-1.5">
+                <span className="text-ink-50 -mt-1">
+                  <Plate name="cairn" size={22} />
+                </span>
+                <span className="text-accent-green">
+                  summit, {quest.reachedOn}
+                </span>
+              </span>
+            )}
             {isAbandoned && <span className="line-through">abandoned</span>}
             {isPaused && <span className="text-accent-gold">paused</span>}
           </div>

@@ -1,3 +1,4 @@
+import { Watermark } from "@/components/field/Watermark";
 import Link from "next/link";
 import { requireUserContext } from "@/lib/auth/server-helpers";
 import {
@@ -65,7 +66,8 @@ export default async function DisciplinePage() {
             {balance ? "most recent review" : "no review yet"}
           </span>
         </div>
-        <div className="sheet">
+        <div className={balance ? "sheet" : "sheet relative"}>
+          {!balance && <Watermark name="shell" size={120} />}
           {balance ? (
             <div className="flex flex-col gap-2">
               {BALANCE_DIMENSIONS.map((d) => (

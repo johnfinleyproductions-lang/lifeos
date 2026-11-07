@@ -1,16 +1,8 @@
 import Link from "next/link";
 import { getAuthContext } from "@/lib/auth/server-helpers";
 import { getTodayCheckin } from "@/lib/checkin/today";
-
-function Gauge({ value, max = 5 }: { value: number; max?: number }) {
-  return (
-    <span className="gauge" role="img" aria-label={`${value} of ${max}`}>
-      {Array.from({ length: max }, (_, i) => (
-        <i key={i} className={i < value ? "on" : undefined} />
-      ))}
-    </span>
-  );
-}
+import { Gauge } from "@/components/field/Gauge";
+import { Watermark } from "@/components/field/Watermark";
 
 /**
  * The hero of the day. Reads today's morning row if signed in, otherwise
@@ -26,7 +18,8 @@ export async function ManifestoCard() {
   const morning = user ? (await getTodayCheckin(user.id)).morning : null;
 
   return (
-    <div className="sheet sheet-hi shadow-mis px-[30px] pt-[30px] pb-6">
+    <div className="sheet sheet-hi sheet-cut shadow-mis px-[30px] pt-[30px] pb-6">
+      {!morning && <Watermark name="sun" size={200} className="-right-10 -bottom-14" />}
       {morning ? (
         <>
           <p className="font-serif font-normal text-[clamp(24px,3.4vw,41px)] leading-[1.16] tracking-[-0.012em] m-0 max-w-[30ch] text-balance fx-print">

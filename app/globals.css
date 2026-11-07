@@ -49,6 +49,15 @@
     --violet: 110 85 168;
     --rose: 255 72 160;
     --gold: 215 157 0;
+
+    /* Hatch tiles, as masks. Alpha is what counts, so the strokes are
+       plain black and the ink is applied by whatever element wears them. */
+    --tile-hatch: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='9' viewBox='0 0 7 9'%3E%3Cpath d='M0 9L7 0' stroke='%23000' stroke-width='1.55' stroke-linecap='square' fill='none'/%3E%3Cpath d='M-3.5 4.5L3.5-4.5M3.5 13.5L10.5 4.5' stroke='%23000' stroke-width='1.15' fill='none'/%3E%3C/svg%3E");
+    --tile-cross: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='9' viewBox='0 0 7 9'%3E%3Cpath d='M0 9L7 0' stroke='%23000' stroke-width='1.55' stroke-linecap='square' fill='none'/%3E%3Cpath d='M-3.5 4.5L3.5-4.5M3.5 13.5L10.5 4.5' stroke='%23000' stroke-width='1.15' fill='none'/%3E%3Cpath d='M0 0L7 9' stroke='%23000' stroke-width='1.1' stroke-linecap='square' fill='none'/%3E%3Cpath d='M3.5-4.5L10.5 4.5M-3.5 4.5L3.5 13.5' stroke='%23000' stroke-width='1.35' fill='none'/%3E%3C/svg%3E");
+    --tile-dot: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 11 11'%3E%3Cg fill='%23000'%3E%3Ccircle cx='1.6' cy='2.1' r='.95'/%3E%3Ccircle cx='6.3' cy='1.2' r='.8'/%3E%3Ccircle cx='9.4' cy='4.6' r='1.05'/%3E%3Ccircle cx='3.9' cy='5.8' r='.85'/%3E%3Ccircle cx='7.2' cy='8.3' r='.95'/%3E%3Ccircle cx='1.3' cy='8.9' r='.75'/%3E%3C/g%3E%3C/svg%3E");
+    /* A rule with a hand's wobble in it. Starts and ends on the same
+       line so it repeats without a step. */
+    --tile-rule: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='5' viewBox='0 0 180 5'%3E%3Cpath d='M0 2.5C18 2.1 30 3.3 48 2.9S76 1.6 96 2.2s34 1.4 52 1.1S168 2.6 180 2.5' stroke='%23000' stroke-width='1.9' fill='none'/%3E%3C/svg%3E");
   }
 
   [data-theme="night"] {
@@ -210,14 +219,128 @@
     margin-top: 5px;
   }
 
-  /* A plotted bar: flat fill, square ends, no gradient. */
+  /* ---------- engraved fills ----------
+     A data mark is a drawn outline with a hatched pass inside it, not a
+     flat block. The hatch is an SVG tile used as a mask, so the ink still
+     comes from the element's colour and the night palette needs nothing
+     extra. The fill sits a hair off its outline, down and to the right,
+     the way a second pass lands when the paper has shifted.
+
+     .hx      single hatch, the ordinary reading
+     .hx-x    cross-hatch, the heavier reading
+     .hx-dot  stipple, the lightest
+
+     The ink is the element's `color`, so `hx text-accent-green` prints
+     a green mark. Tiles are 7 by 9 so the lines run at about 52 degrees
+     rather than a dead 45, and the two lines in each tile carry
+     different weights, which is what a hand does. */
+  .hx,
+  .hx-x,
+  .hx-dot {
+    position: relative;
+    border: 1.5px solid currentColor;
+    background: transparent;
+  }
+  .hx::before,
+  .hx-x::before,
+  .hx-dot::before {
+    content: "";
+    position: absolute;
+    inset: 1.5px -1px -1px 1.5px;
+    background: currentColor;
+    pointer-events: none;
+    -webkit-mask-repeat: repeat;
+    mask-repeat: repeat;
+    -webkit-mask-size: 7px 9px;
+    mask-size: 7px 9px;
+  }
+  .hx::before {
+    -webkit-mask-image: var(--tile-hatch);
+    mask-image: var(--tile-hatch);
+  }
+  .hx-x::before {
+    -webkit-mask-image: var(--tile-cross);
+    mask-image: var(--tile-cross);
+  }
+  .hx-dot::before {
+    -webkit-mask-image: var(--tile-dot);
+    mask-image: var(--tile-dot);
+    -webkit-mask-size: 11px 11px;
+    mask-size: 11px 11px;
+  }
+  /* A finer cut for small marks: the grid cells and the plotted bars. */
+  .hx-fine::before {
+    -webkit-mask-size: 4.5px 5.8px;
+    mask-size: 4.5px 5.8px;
+    inset: 1px -0.5px -0.5px 1px;
+  }
+  /* On a phone a thirty-day bar is eight pixels wide, so the outline
+     thins and the hatch tightens to keep the mark denser than its gap. */
+  @media (max-width: 760px) {
+    .hx,
+    .hx-x,
+    .hx-dot {
+      border-width: 1px;
+    }
+    .hx::before,
+    .hx-x::before,
+    .hx-dot::before {
+      inset: 1px -0.5px -0.5px 1px;
+      -webkit-mask-size: 4.5px 5.8px;
+      mask-size: 4.5px 5.8px;
+    }
+    .hx-dot::before {
+      -webkit-mask-size: 8px 8px;
+      mask-size: 8px 8px;
+    }
+  }
+  /* The bare mark, no outline: for cells too small to carry one. */
+  .hx-bare {
+    border: 0;
+  }
+  .hx-bare::before {
+    inset: 0;
+  }
+
+  /* A plotted bar: a ruled track, a hatched fill, and a solid pour line
+     where the fill stops. The ink is still the span's background colour
+     (the balance dimensions and the quest domains set it that way), so
+     the hatch is cut by laying the track colour back over it through an
+     inverted tile. */
   .plot {
-    height: 7px;
+    display: block;
+    height: 9px;
     background: rgb(var(--line-soft));
+    border: 1px solid rgb(var(--line));
+    position: relative;
   }
   .plot > span {
     display: block;
     height: 100%;
+    position: relative;
+  }
+  .plot > span::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgb(var(--line-soft));
+    -webkit-mask-image: linear-gradient(#000 0 0), var(--tile-hatch);
+    mask-image: linear-gradient(#000 0 0), var(--tile-hatch);
+    -webkit-mask-size: auto, 5.5px 7px;
+    mask-size: auto, 5.5px 7px;
+    -webkit-mask-repeat: repeat;
+    mask-repeat: repeat;
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+  }
+  .plot > span::after {
+    content: "";
+    position: absolute;
+    top: -1px;
+    bottom: -1px;
+    right: -1px;
+    width: 2px;
+    background: inherit;
   }
   .tabular-nums {
     font-variant-numeric: tabular-nums;
@@ -258,10 +381,18 @@
     gap: 10px;
     margin-bottom: 14px;
   }
+  /* The rule that runs out from a tab is drawn, not ruled: a hand's
+     wobble, repeated every 180px. */
   .tab-row .fill {
     flex: 1;
-    height: 2px;
+    height: 5px;
     background: rgb(var(--text-1));
+    -webkit-mask-image: var(--tile-rule);
+    mask-image: var(--tile-rule);
+    -webkit-mask-size: 180px 5px;
+    mask-size: 180px 5px;
+    -webkit-mask-repeat: repeat-x;
+    mask-repeat: repeat-x;
   }
 
   .sheet {
@@ -275,6 +406,66 @@
   .sheet-bare {
     background: transparent;
     border: 1.5px solid rgb(var(--line));
+  }
+  /* A sheet with a cut edge rather than a ruled one. The border and the
+     misregistered under-pass move to a pseudo-element and go through
+     the rough filter in the layout, so the edge takes the wobble and
+     the type inside it does not. Only for sheets that do not scroll:
+     an overflow container would clip the edge off. */
+  .sheet-cut {
+    position: relative;
+    border-color: transparent;
+    box-shadow: none !important;
+  }
+  .sheet-cut::before {
+    content: "";
+    position: absolute;
+    inset: -1.5px;
+    border: 1.5px solid rgb(var(--text-1));
+    pointer-events: none;
+    filter: url(#rough);
+  }
+  .sheet-cut.shadow-mis::before {
+    box-shadow: 5px 5px 0 rgb(var(--spot));
+  }
+  .sheet-cut.shadow-mis-ink::before {
+    box-shadow: 4px 4px 0 rgb(var(--text-1));
+  }
+  .sheet-cut.sheet-bare::before {
+    border-color: rgb(var(--line));
+  }
+  .sheet-cut.border-dashed::before {
+    border-style: dashed;
+  }
+
+  /* Two inks printed on the same cell: gold under, violet over, the top
+     pass a pixel off register. Multiply by day makes the overlap the
+     dark third colour a riso gives you for free; screen does the same
+     job on the night stock. */
+  .overprint {
+    position: relative;
+    background: rgb(var(--gold));
+  }
+  .overprint::after {
+    content: "";
+    position: absolute;
+    inset: 1px -1px -1px 1px;
+    background: rgb(var(--violet));
+    mix-blend-mode: multiply;
+  }
+  [data-theme="night"] .overprint::after {
+    mix-blend-mode: screen;
+  }
+
+  /* A plate printed large and faint behind an empty state. */
+  .wm {
+    opacity: 0.14;
+  }
+  .wm g {
+    stroke-width: 0.85;
+  }
+  [data-theme="night"] .wm {
+    opacity: 0.2;
   }
 
   /* ---------- controls ---------- */
@@ -451,7 +642,7 @@
     position: absolute;
     left: 0;
     right: 0;
-    top: 7.5px;
+    top: 5.5px;
     pointer-events: none;
   }
   .range-wrap > .range {
@@ -494,24 +685,6 @@
     transform: rotate(-45deg);
   }
 
-  /* A 1–5 reading, drawn as filled bars rather than a slider. */
-  .gauge {
-    display: inline-flex;
-    gap: 3px;
-    align-items: flex-end;
-  }
-  .gauge i {
-    width: 9px;
-    display: block;
-    background: rgb(var(--line));
-  }
-  .gauge i:nth-child(1) { height: 8px; }
-  .gauge i:nth-child(2) { height: 11px; }
-  .gauge i:nth-child(3) { height: 14px; }
-  .gauge i:nth-child(4) { height: 17px; }
-  .gauge i:nth-child(5) { height: 20px; }
-  .gauge i.on { background: rgb(var(--spot)); }
-
   /* ---------- wizard ---------- */
   .wiz {
     max-width: 660px;
@@ -519,9 +692,19 @@
   }
   .wiz-card {
     background: rgb(var(--surface-3));
+    border: 1.5px solid transparent;
+    padding: 32px 34px 28px;
+    position: relative;
+  }
+  /* the card's edge is cut, not ruled, and its under-pass goes with it */
+  .wiz-card::before {
+    content: "";
+    position: absolute;
+    inset: -1.5px;
     border: 1.5px solid rgb(var(--text-1));
     box-shadow: 6px 6px 0 rgb(var(--spot));
-    padding: 32px 34px 28px;
+    pointer-events: none;
+    filter: url(#rough);
   }
   .wiz-bar {
     display: flex;
@@ -597,6 +780,8 @@
   @media (max-width: 760px) {
     .wiz-card {
       padding: 22px 20px 20px;
+    }
+    .wiz-card::before {
       box-shadow: 4px 4px 0 rgb(var(--spot));
     }
     .wiz-foot {
@@ -614,6 +799,103 @@
     .wiz { padding-bottom: 76px; }
   }
 
+  /* ---------- the stamp ---------- */
+  /* A rubber date stamp, pressed on when the day closes. The one place
+     in the app set in caps: a stamp is a thing rather than a label, its
+     type is cut into rubber, so it tracks wide, sits a few degrees off
+     square, and loses a little ink wherever the paper grain was high.
+     The dropouts are the stipple tile cut out of the mark. */
+  .stamp {
+    display: inline-block;
+    position: relative;
+    color: rgb(var(--spot));
+    border: 2px solid currentColor;
+    padding: 5px 10px 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    font-size: 11px;
+    line-height: 1.3;
+    font-variation-settings: "wdth" 80, "wght" 800;
+    text-align: center;
+    white-space: nowrap;
+    transform: rotate(-3.5deg);
+    -webkit-mask-image: linear-gradient(#000 0 0), var(--tile-dot), var(--tile-dot);
+    mask-image: linear-gradient(#000 0 0), var(--tile-dot), var(--tile-dot);
+    -webkit-mask-size: auto, 9px 9px, 12px 11px;
+    mask-size: auto, 9px 9px, 12px 11px;
+    -webkit-mask-position: 0 0, 0 0, 4px 6px;
+    mask-position: 0 0, 0 0, 4px 6px;
+    -webkit-mask-repeat: repeat;
+    mask-repeat: repeat;
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+  }
+  /* the inner rule of a double-ringed stamp */
+  .stamp::before {
+    content: "";
+    position: absolute;
+    inset: 2px;
+    border: 1px solid currentColor;
+    pointer-events: none;
+  }
+  .stamp b {
+    display: block;
+    font-size: 13px;
+    letter-spacing: 0.12em;
+    font-variation-settings: "wdth" 80, "wght" 800;
+  }
+  .stamp-ink {
+    color: rgb(var(--text-1));
+  }
+
+  /* ---------- the collection ---------- */
+  /* A specimen not yet recorded prints in one faint pass, outline only.
+     A recorded one prints in ink with the spot under-pass like every
+     other plate. New today takes the spot ink on its date line. */
+  .specimen {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 0 12px;
+    align-items: start;
+    padding: 13px 0;
+    border-bottom: 1px solid rgb(var(--line-soft));
+  }
+  .specimen:last-child {
+    border-bottom: 0;
+  }
+  .specimen-plate {
+    grid-row: span 3;
+    margin-top: -3px;
+  }
+  .specimen[data-unseen] .specimen-plate {
+    color: rgb(var(--text-3));
+    opacity: 0.55;
+  }
+  .specimen[data-unseen] .specimen-name {
+    color: rgb(var(--text-2));
+  }
+  .specimen-name {
+    font-size: 15px;
+    line-height: 1.2;
+    font-variation-settings: "wdth" 100, "wght" 680;
+  }
+  .specimen-mark {
+    font-size: 12.5px;
+    line-height: 1.4;
+    color: rgb(var(--text-2));
+    margin-top: 2px;
+  }
+  .specimen-obs {
+    font-size: 11.5px;
+    color: rgb(var(--text-3));
+    font-variation-settings: "wdth" 100, "wght" 660;
+    font-variant-numeric: tabular-nums;
+    margin-top: 5px;
+  }
+  .specimen[data-today] .specimen-obs {
+    color: rgb(var(--spot));
+  }
+
   /* ---------- motion: ink, paper, mechanism. All stepped. ---------- */
   @keyframes print {
     from { clip-path: inset(0 0 100% 0); }
@@ -621,5 +903,13 @@
   }
   .fx-print {
     animation: print 0.26s steps(6) backwards;
+  }
+  /* the stamp comes down: three frames, larger to true size */
+  @keyframes stamp {
+    from { transform: rotate(-3.5deg) scale(1.22); opacity: 0; }
+    to { transform: rotate(-3.5deg) scale(1); opacity: 1; }
+  }
+  .fx-stamp {
+    animation: stamp 0.22s steps(3) backwards;
   }
 }
