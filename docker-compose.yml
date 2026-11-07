@@ -32,8 +32,8 @@ services:
       # shell first, and a bare TZ would silently inherit whatever the
       # machine running `docker compose` happens to be set to, so the same
       # file would behave differently on a laptop and on the server.
-      TZ: ${LIFEOS_TIMEZONE:-UTC}
-      PGTZ: ${LIFEOS_TIMEZONE:-UTC}
+      TZ: ${LIFEOS_TIMEZONE:-America/Chicago}
+      PGTZ: ${LIFEOS_TIMEZONE:-America/Chicago}
     volumes:
       - lifeos-db:/var/lib/postgresql/data
     healthcheck:
@@ -63,7 +63,7 @@ services:
       # this, which is how you point the app at an existing database.
       DATABASE_URL: ${DATABASE_URL:-postgres://lifeos:${POSTGRES_PASSWORD}@db:5432/lifeos}
       NODE_ENV: production
-      TZ: ${LIFEOS_TIMEZONE:-UTC}
+      TZ: ${LIFEOS_TIMEZONE:-America/Chicago}
     ports:
       - "${LIFEOS_PORT:-3001}:3001"
     healthcheck:

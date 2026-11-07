@@ -68,6 +68,7 @@ constraints. The ones you cannot skip:
 | `BETTER_AUTH_URL` | The app's own public URL. |
 | `LIFEOS_HOUSEHOLD_CODE` | Gates profile switching. Unset means nobody can pick a profile. |
 | `LIFEOS_PROFILES` | JSON array of the people this install knows about. |
+| `LIFEOS_TIMEZONE` | Which calendar a day is filed under. Defaults to `America/Chicago`. |
 
 Two of those fail closed by design. With no household code, `/pick-profile` and
 the switch endpoint stay shut. With no profile list, the picker shows nobody and
@@ -76,6 +77,26 @@ profile list is refused whole rather than quietly dropping one person.
 
 The coach is optional. Without `LIFEOS_LLM_BASE_URL` the rest of the app works
 and the coach is simply unavailable.
+
+## Which day is today
+
+Almost everything LifeOS stores is filed under a calendar day, so the app has
+to agree with you about which day that is. `LIFEOS_TIMEZONE` decides, and
+`lib/time/day.ts` is the only thing in the codebase allowed to answer the
+question. It takes an IANA zone name and refuses a fixed offset, because a
+fixed offset is wrong twice a year.
+
+This matters more than it sounds. A container's clock is UTC, so before this
+existed an evening shutdown written at 7pm in Chicago was filed under tomorrow,
+and the morning and evening of one night landed on two different rows. Day
+arithmetic runs on `YYYY-MM-DD` keys rather than timestamps, which makes the
+23-hour and 25-hour days of a daylight-saving change invisible to it.
+`docs/timezone.md` has the full audit and the reasoning.
+
+If you add anything that touches a date, route it through that module rather
+than calling `new Date()` or date-fns directly. `scripts/check-time.mjs` is the
+unit check and `scripts/check-day-boundary.sh` drives a real server across the
+boundary.
 
 ## Schema changes
 

@@ -160,6 +160,13 @@ Add these in the Coolify env panel. Copy values from `~/evergreen-core/.env.loca
 | `NODE_ENV` | `production` |
 | `LIFEOS_HOUSEHOLD_CODE` | a shared code for the house, 4+ characters |
 | `LIFEOS_PROFILES` | JSON array of the household, on one line |
+| `LIFEOS_TIMEZONE` | `America/Chicago` |
+
+`LIFEOS_TIMEZONE` is what stops an evening entry written at 7pm being filed
+under tomorrow. The image needs no `tzdata` package and the container's own
+`TZ` does not need setting; this is the only knob. A zone name the runtime does
+not recognise stops the server at boot with the reason in the log, so if a
+deploy dies instantly look for `[time]` before anything else.
 
 The last two fail closed. Without `LIFEOS_HOUSEHOLD_CODE` nobody can pick a
 profile at all, and without `LIFEOS_PROFILES` the picker shows nobody and
