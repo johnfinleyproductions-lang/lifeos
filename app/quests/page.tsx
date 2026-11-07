@@ -1,7 +1,9 @@
-import { and, eq } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
+import { format } from "date-fns";
 import { db } from "@/lib/db";
 import { lifeosQuests } from "@/lib/db/schema/lifeos";
 import { requireUserContext } from "@/lib/auth/server-helpers";
+import { fieldMarksShown } from "@/lib/collection/field-marks";
 import { QuestsClient } from "@/components/quests/QuestsClient";
 import { quarterProgress } from "@/lib/quests/quarter";
 import { PageStamp } from "@/components/PageStamp";
@@ -10,16 +12,35 @@ export default async function QuestsPage() {
   const { user } = await requireUserContext();
   const progress = quarterProgress();
 
-  const quests = await db
-    .select()
-    .from(lifeosQuests)
-    .where(
-      and(
-        eq(lifeosQuests.userId, user.id),
-        eq(lifeosQuests.archived, false),
-      ),
-    )
-    .orderBy(lifeosQuests.createdAt);
+  const [quests, marks] = await Promise.all([
+    db
+      .select()
+      .from(lifeosQuests)
+      .where(
+        and(
+          eq(lifeosQuests.userId, user.id),
+          eq(lifeosQuests.archived, false),
+        ),
+      )
+      .orderBy(lifeosQuests.createdAt),
+    fieldMarksShown(),
+  ]);
+
+  // Summits are counted across every quarter, archived or not: a quest
+  // finished and then tidied away was still finished.
+  let summits = 0;
+  if (marks) {
+    const [row] = await db
+      .select({ value: count() })
+      .from(lifeosQuests)
+      .where(
+        and(
+          eq(lifeosQuests.userId, user.id),
+          eq(lifeosQuests.status, "completed"),
+        ),
+      );
+    summits = Number(row?.value ?? 0);
+  }
 
   const serialised = quests.map((q) => ({
     id: q.id,
@@ -30,6 +51,11 @@ export default async function QuestsPage() {
     quarter: q.quarter,
     progress: q.progress,
     status: q.status as "active" | "paused" | "completed" | "abandoned",
+    // the date the summit was reached, as the cairn's label
+    reachedOn:
+      marks && q.status === "completed"
+        ? format(q.endDate ? new Date(q.endDate + "T00:00:00") : q.updatedAt, "d MMM yyyy")
+        : null,
   }));
 
   return (
@@ -44,6 +70,11 @@ export default async function QuestsPage() {
         <span className="fill" />
         <span className="text-[11.5px] text-ink-400 tabular-nums">
           Day {progress.day} of {progress.totalDays}, {progress.phase}
+          {marks && summits > 0 && (
+            <>
+              , {summits} {summits === 1 ? "summit" : "summits"} so far
+            </>
+          )}
         </span>
       </div>
 
