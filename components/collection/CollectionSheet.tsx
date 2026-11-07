@@ -45,7 +45,7 @@ function Families({ collection }: { collection: Collection }) {
             <div className="tab-row">
               <span className="tab">{f.label}</span>
               <span className="fill" />
-              <span className="text-[11.5px] text-ink-400">{f.note}</span>
+              <span className="text-[11.5px] text-ink-400 hidden sm:inline">{f.note}</span>
             </div>
             <div className="sheet py-1 md:grid md:grid-cols-2 md:gap-x-8">
               {members.map((s) => (
