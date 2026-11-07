@@ -50,11 +50,6 @@ export function WeekEditor({ initial }: { initial: IdealWeek }) {
 
   return (
     <div className="space-y-6">
-      <p className="text-[14.5px] text-ink-300 max-w-[62ch]">
-        Sketch the rhythm you want, not the schedule you have. Anchors, blocks,
-        rituals. Update freely.
-      </p>
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {DAYS.map((day) => (
           <div key={day} className="sheet focus-within:shadow-mis-sm">
