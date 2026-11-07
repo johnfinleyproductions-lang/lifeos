@@ -6,7 +6,6 @@
     "dev": "next dev -p 3001",
     "build": "next build",
     "start": "next start -p 3001",
-    "lint": "next lint",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
@@ -38,5 +37,8 @@
     "onlyBuiltDependencies": [
       "sharp"
     ]
+  },
+  "engines": {
+    "node": ">=22.0.0"
   }
 }

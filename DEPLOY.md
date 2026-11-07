@@ -142,6 +142,8 @@ Open Coolify in the browser. Steps:
 - Domain: `lifeos.evergreenwellnessmktg.com`
 - Port (inside container): `3001` — this matches our Dockerfile `EXPOSE 3001` and `PORT=3001`
 - HTTPS: enabled (Coolify uses Traefik with the wildcard cert)
+- Health check path: `/api/health` — it runs `SELECT 1`, so a pass means the
+  app is serving *and* the database answers
 
 ### 5d — Environment variables
 
@@ -156,6 +158,14 @@ Add these in the Coolify env panel. Copy values from `~/evergreen-core/.env.loca
 | `NEXT_PUBLIC_EC_URL` | `https://app.evergreenwellnessmktg.com` |
 | `BETTER_AUTH_TRUSTED_ORIGINS` | `https://lifeos.evergreenwellnessmktg.com` |
 | `NODE_ENV` | `production` |
+| `LIFEOS_HOUSEHOLD_CODE` | a shared code for the house, 4+ characters |
+| `LIFEOS_PROFILES` | JSON array of the household, on one line |
+
+The last two fail closed. Without `LIFEOS_HOUSEHOLD_CODE` nobody can pick a
+profile at all, and without `LIFEOS_PROFILES` the picker shows nobody and
+explains why in the log. See `.env.example` for the profile format and its
+constraints. Profiles resolve to users by email address, so reuse the same
+addresses to carry people's existing logs across a redeploy.
 
 Optional — only if you want the AI Coach in production:
 
@@ -187,8 +197,15 @@ Hit Deploy on the LifeOS app. Watch the build logs. First build takes a couple o
 Look for:
 - `pnpm install` succeeds
 - `pnpm build` succeeds (`Compiled successfully`)
+- `[migrate] schema up to date` — the container applies migrations itself
+  before serving, on every boot
 - Final image starts the standalone server on port 3001
 - Coolify health check passes
+
+Nothing applies the schema by hand any more. The image's entrypoint runs the
+migrations first and exits non-zero if they fail, so a container that is up is
+a container whose schema matches its code. If a deploy dies at boot, read the
+log for `[migrate] FAILED` before looking anywhere else.
 
 ---
 

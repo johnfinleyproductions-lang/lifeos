@@ -1,3 +1,7 @@
+> Historical. This was the Phase 1 bootstrap, when LifeOS ran on Evergreen
+> Core's database and schema. It is kept for the record. For how to run
+> LifeOS now, see README.md.
+
 # LifeOS Phase 1 — Bootstrap Playbook
 
 This folder contains the complete drop-in scaffold for `~/lifeos/` Phase 1. Follow the steps below in order. Stop at every checkpoint and paste output back into the chat before continuing.
