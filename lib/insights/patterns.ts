@@ -9,12 +9,13 @@ export type Pattern = {
 
 /**
  * Detect simple patterns from the aggregated data. Generates 1-line
- * callouts the user can read at a glance — "best day this period",
+ * callouts the user can read at a glance: "best day this period",
  * "most consistent habit", "average rating", "focus consistency",
  * "reflection cadence".
  *
- * Conservative — only emits a pattern when there's enough data to back
- * the claim. Empty period → empty list.
+ * Conservative: only emits a pattern when there is enough data to back
+ * the claim. Empty period, empty list. The sentences are set in the
+ * house style, which has no em dashes.
  */
 export function detectPatterns(data: InsightsData): Pattern[] {
   const patterns: Pattern[] = [];
@@ -28,26 +29,38 @@ export function detectPatterns(data: InsightsData): Pattern[] {
     patterns.push({
       emoji: "🌟",
       title: "Best day this period",
-      body: `${dateLabel} — you rated it ${bestDay.eveningRating}/5${
-        bestDay.eveningMood ? `, mood: ${bestDay.eveningMood}` : ""
+      body: `${dateLabel}, rated ${bestDay.eveningRating} of 5${
+        bestDay.eveningMood ? `, ${bestDay.eveningMood}` : ""
       }.`,
     });
   }
 
-  // Most consistent habit
+  // Most consistent habit, measured against what its cadence asked for
+  // and only from the day it existed. A weekly habit kept every week
+  // ranks level with a daily habit kept every day.
   if (data.habits.length > 0) {
-    const sorted = [...data.habits].sort(
-      (a, b) => b.completions.size - a.completions.size,
-    );
-    const top = sorted[0];
-    if (top.completions.size > 0) {
-      const pct = Math.round(
-        (top.completions.size / data.windowDays) * 100,
+    const ranked = [...data.habits]
+      .filter((h) => h.tally.possible > 0 && h.tally.kept > 0)
+      .sort(
+        (a, b) =>
+          b.tally.kept / b.tally.possible - a.tally.kept / a.tally.possible ||
+          b.tally.kept - a.tally.kept,
       );
+    const top = ranked[0];
+    if (top) {
+      const t = top.tally;
+      const body =
+        t.unit === "weeks"
+          ? data.windowDays <= 7
+            ? `"${top.name}", kept this week.`
+            : `"${top.name}", kept ${t.kept} of ${t.possible} weeks.`
+          : `"${top.name}", kept ${t.kept} of the ${t.possible} ${
+              t.possible === 1 ? "day" : "days"
+            } it was due.`;
       patterns.push({
         emoji: "🔁",
         title: "Most consistent habit",
-        body: `"${top.name}" — hit ${top.completions.size} of ${data.windowDays} days (${pct}%).`,
+        body,
       });
     }
   }
@@ -64,7 +77,7 @@ export function detectPatterns(data: InsightsData): Pattern[] {
         ? "Strong period."
         : avg >= 3
           ? "Steady period."
-          : "Tough period — what's draining?";
+          : "A rough stretch. Worth asking what is draining.";
     patterns.push({
       emoji: "📊",
       title: "Average day rating",
@@ -74,25 +87,26 @@ export function detectPatterns(data: InsightsData): Pattern[] {
 
   // Focus consistency
   const focusDays = data.dayPoints.filter((p) => p.focusMinutes >= 30).length;
+  const span = Math.max(data.activeDays, 1);
   if (focusDays >= 3) {
     patterns.push({
       emoji: "🎯",
       title: "Focus consistency",
-      body: `${focusDays} of ${data.windowDays} days had 30+ focus minutes. That's a real practice forming.`,
+      body: `${focusDays} of ${span} days had half an hour or more of focus. A practice is forming.`,
     });
   }
 
   // Reflection cadence
   if (data.morningCheckins >= 3 || data.eveningCheckins >= 3) {
-    const ratio = data.eveningCheckins / data.windowDays;
+    const ratio = data.eveningCheckins / Math.max(data.activeDays, 1);
     const tone =
       ratio >= 0.5
         ? "You're showing up."
-        : "Worth being gentle on the gaps.";
+        : "The gaps are fine. The record is what counts.";
     patterns.push({
       emoji: "📝",
       title: "Reflection cadence",
-      body: `${data.morningCheckins} morning + ${data.eveningCheckins} evening check-ins this period. ${tone}`,
+      body: `${data.morningCheckins} morning and ${data.eveningCheckins} evening check-ins this period. ${tone}`,
     });
   }
 
@@ -103,7 +117,7 @@ export function detectPatterns(data: InsightsData): Pattern[] {
       title: "Decisions logged",
       body: `${data.decisionCount} ${
         data.decisionCount === 1 ? "decision" : "decisions"
-      } captured in your journal this period. Pattern-spot at /journal/decisions.`,
+      } tagged in the journal this period.`,
     });
   }
 

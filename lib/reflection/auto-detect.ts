@@ -1,6 +1,12 @@
 import { cache } from "react";
-import { and, count, desc, eq, gte, isNotNull } from "drizzle-orm";
+import { and, count, desc, eq, gte, inArray, isNotNull } from "drizzle-orm";
 import { addDays, lastNDays, startOfDay, todayKey } from "@/lib/time/day";
+import {
+  phraseSum,
+  sumTallies,
+  tallyHabit,
+  type HabitTally,
+} from "@/lib/insights/habit-denominator";
 import { db } from "@/lib/db";
 import {
   lifeosDailyCheckins,
@@ -14,17 +20,31 @@ import { type BalanceScore, ZERO_BALANCE } from "./balance";
 import { weeklyReviewPayloadSchema } from "./weekly-review-schema";
 
 /**
- * Compute the discipline scorecard for the last 7 days.
+ * Compute the scorecard for the last 7 days.
  *
  * Pure read functions over LifeOS-owned tables. Wrapped in React.cache so
- * /discipline + /weekly-review can both call this without double-querying.
+ * /insights and /weekly-review can both call this without double-querying.
+ *
+ * The habit numbers are honest ones. `habitTotal` used to be active
+ * habits x 7, which counted a weekly habit as seven misses a week and a
+ * habit created this morning as six misses before it existed. It is
+ * now the sum of each habit's possible days (or weeks) by its cadence
+ * and its creation date, and `habitCompletions` is how many of those
+ * were kept. The field names are kept so the weekly review and the
+ * coach's context read the same shape; only the arithmetic changed.
  */
 export type Scorecard = {
   morningDays: number; // 0-7
   eveningDays: number; // 0-7
-  habitCompletions: number; // raw count over 7 days
-  habitTotal: number; // active habits × 7
-  habitPct: number; // 0-100
+  habitCompletions: number; // pressings on days the cadence asked for
+  habitTotal: number; // days (or weeks) the cadences asked for
+  habitPct: number; // 0-100, kept over possible; 0 when nothing was possible
+  /** per-habit tallies, oldest habit first */
+  habits: { id: string; name: string; tally: HabitTally }[];
+  /** the headline phrasing: value, unit, and the line under it */
+  habitPhrase: { value: string; unit?: string; foot: string };
+  /** true when the habits are counted in different units (days and weeks) */
+  habitMixedUnits: boolean;
   focusMinutes: number;
   focusSessions: number;
   questAvgProgress: number; // 0-100, mean of active quests
@@ -53,29 +73,63 @@ export const getScorecard = cache(
     const morningDays = checkins.filter((c) => c.morning != null).length;
     const eveningDays = checkins.filter((c) => c.evening != null).length;
 
-    const [habitCount] = await db
-      .select({ value: count() })
+    const days = lastNDays(7, todayKey());
+    const habitRows = await db
+      .select({
+        id: lifeosHabits.id,
+        name: lifeosHabits.name,
+        cadence: lifeosHabits.cadence,
+        createdAt: lifeosHabits.createdAt,
+      })
       .from(lifeosHabits)
       .where(
         and(
           eq(lifeosHabits.userId, userId),
           eq(lifeosHabits.archived, false),
         ),
-      );
-    const habitTotal = Number(habitCount?.value ?? 0) * 7;
+      )
+      .orderBy(lifeosHabits.createdAt);
 
-    const [completionCount] = await db
-      .select({ value: count() })
-      .from(lifeosHabitCompletions)
-      .where(
-        and(
-          eq(lifeosHabitCompletions.userId, userId),
-          gte(lifeosHabitCompletions.completionDate, sevenDaysAgo),
-        ),
-      );
-    const habitCompletions = Number(completionCount?.value ?? 0);
+    const completionRows =
+      habitRows.length > 0
+        ? await db
+            .select({
+              habitId: lifeosHabitCompletions.habitId,
+              date: lifeosHabitCompletions.completionDate,
+            })
+            .from(lifeosHabitCompletions)
+            .where(
+              and(
+                inArray(
+                  lifeosHabitCompletions.habitId,
+                  habitRows.map((h) => h.id),
+                ),
+                gte(lifeosHabitCompletions.completionDate, sevenDaysAgo),
+              ),
+            )
+        : [];
+    const byHabit = new Map<string, Set<string>>();
+    for (const c of completionRows) {
+      if (!byHabit.has(c.habitId)) byHabit.set(c.habitId, new Set());
+      byHabit.get(c.habitId)!.add(c.date);
+    }
+    const habits = habitRows.map((h) => ({
+      id: h.id,
+      name: h.name,
+      tally: tallyHabit(
+        days,
+        h.cadence,
+        h.createdAt,
+        byHabit.get(h.id) ?? new Set(),
+      ),
+    }));
+    const tallies = habits.map((h) => h.tally);
+    const sum = sumTallies(tallies);
+    const habitCompletions = sum.kept;
+    const habitTotal = sum.possible;
     const habitPct =
       habitTotal > 0 ? Math.round((habitCompletions / habitTotal) * 100) : 0;
+    const habitPhrase = phraseSum(tallies, 7);
 
     const focus = await db
       .select({
@@ -118,6 +172,9 @@ export const getScorecard = cache(
       habitCompletions,
       habitTotal,
       habitPct,
+      habits,
+      habitPhrase,
+      habitMixedUnits: sum.mixed,
       focusMinutes,
       focusSessions,
       questAvgProgress,
@@ -150,7 +207,7 @@ export const getLatestBalance = cache(
 );
 
 /**
- * Year heatmap data — last 365 days, marker per day if user did the
+ * Year heatmap data: last 365 days, marker per day if user did the
  * morning manifesto OR evening shutdown.
  */
 export type HeatmapCell = {
@@ -199,7 +256,7 @@ export const getYearHeatmap = cache(
 );
 
 /**
- * Suggested wins from the last 7 days — auto-detected to pre-fill the
+ * Suggested wins from the last 7 days, auto-detected to pre-fill the
  * weekly review's wins prompt. Returns short bullet strings.
  */
 export const getSuggestedWins = cache(
