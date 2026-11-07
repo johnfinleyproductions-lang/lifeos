@@ -1,18 +1,28 @@
+import Link from "next/link";
 import { getAuthContext } from "@/lib/auth/server-helpers";
 import { getTodayCheckin } from "@/lib/checkin/today";
+import { getTodayStrikes } from "./strikes";
+import { PriorityList } from "./PriorityList";
 
 /**
- * The three, as ledger rows rather than a card of bullets.
+ * The three.
  *
- * Check-offs still land at evening shutdown; this is a read-only view of
- * what was set and what came back done. Making the boxes strikeable here
- * needs a write route, which is a behaviour change rather than a restyle.
+ * While the day is open they lead the page at full size with working
+ * boxes: a strike here is written straight away (see actions.ts) and
+ * survives a reload, so the evening wizard is no longer the only place
+ * one can be struck. Once the shutdown is logged the same rows print
+ * compact and read-only under the closed-day card, since the record
+ * for the day is the evening's and there is nothing left to do.
  */
-export async function PlanCard() {
+export async function PlanCard({
+  variant = "lead",
+}: {
+  variant?: "lead" | "closed";
+}) {
   const { user } = await getAuthContext();
-  const { morning, evening } = user
-    ? await getTodayCheckin(user.id)
-    : { morning: null, evening: null };
+  const [{ morning, evening }, strikes] = user
+    ? await Promise.all([getTodayCheckin(user.id), getTodayStrikes(user.id)])
+    : [{ morning: null, evening: null }, { done: [] as boolean[] }];
 
   if (!morning) {
     return (
@@ -31,9 +41,10 @@ export async function PlanCard() {
     );
   }
 
-  const doneFlags = evening?.prioritiesDone ?? [];
-  const doneCount = doneFlags.filter(Boolean).length;
+  const done = strikes.done;
+  const doneCount = morning.priorities.filter((_, i) => done[i]).length;
   const total = morning.priorities.length;
+  const closed = variant === "closed";
 
   return (
     <section>
@@ -41,52 +52,21 @@ export async function PlanCard() {
         <span className="tab">The three</span>
         <span className="fill" />
         <span className="text-[11.5px] text-ink-400 tabular-nums">
-          {evening ? `${doneCount} of ${total}` : `${total} set`}
+          {doneCount === 0 && !closed
+            ? `${total} set`
+            : `${doneCount} of ${total} struck`}
         </span>
       </div>
 
-      <div className="border-t-[1.5px] border-ink-50">
-        {morning.priorities.map((p, i) => {
-          const done = doneFlags[i] ?? false;
-          return (
-            <div
-              key={i}
-              className="flex items-center gap-3 py-3 px-0.5 border-b border-ink-600 last:border-b-[1.5px] last:border-b-ink-50"
-            >
-              <span
-                className="w-[26px] shrink-0 tabular-nums text-[15px] text-ink-400"
-                style={{ fontVariationSettings: "'wdth' 80, 'wght' 800" }}
-              >
-                {i + 1}
-              </span>
-              <span
-                aria-hidden="true"
-                className={`w-[22px] h-[22px] shrink-0 border-[1.5px] relative ${
-                  done
-                    ? "bg-accent-spot border-accent-spot"
-                    : "border-ink-50 bg-ink-700"
-                }`}
-              >
-                {done && (
-                  <span className="absolute left-[5px] top-[9px] w-[9px] h-[4px] border-white border-b-[2.5px] border-l-[2.5px] rotate-[-45deg]" />
-                )}
-              </span>
-              <span
-                className={`flex-1 min-w-0 text-[15.5px] leading-[1.35] ${
-                  done
-                    ? "text-ink-400 line-through decoration-accent-spot decoration-2"
-                    : ""
-                }`}
-                style={{ fontVariationSettings: "'wght' 540" }}
-              >
-                {p}
-              </span>
-            </div>
-          );
-        })}
-      </div>
+      <PriorityList
+        key={`${closed}-${done.join("")}`}
+        priorities={morning.priorities}
+        done={done}
+        readOnly={closed}
+        size={closed ? "compact" : "full"}
+      />
 
-      {(morning.protect || morning.gratitude) && (
+      {!closed && (morning.protect || morning.gratitude) && (
         <div className="sheet sheet-bare mt-3.5 py-1 px-3.5">
           {morning.protect && (
             <div className="flex gap-3.5 py-2.5 border-b border-ink-600 last:border-b-0">
@@ -117,9 +97,12 @@ export async function PlanCard() {
         </div>
       )}
 
-      {!evening && (
-        <p className="text-[11px] text-ink-400 mt-3">
-          Check-offs land at evening shutdown.
+      {!closed && !evening && (
+        <p className="text-[11.5px] text-ink-400 mt-3 flex items-center gap-3 flex-wrap">
+          <span>A strike here is kept for the day.</span>
+          <Link href="/morning" className="underline decoration-ink-500 hover:decoration-accent-spot">
+            Revise the three
+          </Link>
         </p>
       )}
     </section>
