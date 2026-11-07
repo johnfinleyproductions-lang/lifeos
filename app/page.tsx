@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Plate } from "@/components/field/plates";
 import { getAuthContext } from "@/lib/auth/server-helpers";
 import { getTodayCheckin } from "@/lib/checkin/today";
 import { ManifestoCard } from "@/components/today/ManifestoCard";
@@ -57,19 +58,25 @@ export default async function TodayPage() {
   return (
     <div className="max-w-[1080px] mx-auto">
       <header className="flex items-start justify-between gap-5 mb-6">
-        <div>
-          <div
-            className="text-xs text-ink-300"
-            style={{ fontVariationSettings: "'wdth' 100, 'wght' 620" }}
-          >
-            {DAYS[now.getDay()]}, {now.getDate()} {MONTHS[now.getMonth()]}
-            <span className="inline-block w-5" />
-            <b className="text-ink-50 tabular-nums">No. {dayOfYear(now)}</b>
+        <div className="flex items-start gap-3.5 min-w-0">
+          {/* the pressed leaf: the day you are standing in */}
+          <span className="shrink-0 text-ink-50 mt-1 hidden sm:block">
+            <Plate name="leaf" />
+          </span>
+          <div className="min-w-0">
+            <div
+              className="text-xs text-ink-300"
+              style={{ fontVariationSettings: "'wdth' 100, 'wght' 620" }}
+            >
+              {DAYS[now.getDay()]}, {now.getDate()} {MONTHS[now.getMonth()]}
+              <span className="inline-block w-5" />
+              <b className="text-ink-50 tabular-nums">No. {dayOfYear(now)}</b>
+            </div>
+            <h1 className="t-h1 mt-[7px]">
+              {greetingFor(now)}
+              {user ? `, ${user.name?.split(" ")[0]}` : ""}.
+            </h1>
           </div>
-          <h1 className="t-h1 mt-[7px]">
-            {greetingFor(now)}
-            {user ? `, ${user.name?.split(" ")[0]}` : ""}.
-          </h1>
         </div>
         <div className="shrink-0">
           <span

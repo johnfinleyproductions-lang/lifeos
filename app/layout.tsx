@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Bricolage_Grotesque, Newsreader } from "next/font/google";
 import { Sidebar } from "@/components/Sidebar";
+import { PressMargin } from "@/components/field/PressMargin";
 import { getAuthContext } from "@/lib/auth/server-helpers";
 import "./globals.css";
 
@@ -48,6 +49,12 @@ export const viewport = {
  * Settles the theme before first paint so a night-mode user never sees a
  * frame of stock. Kept inline and tiny for that reason.
  */
+function dayOfYear(d: Date) {
+  return Math.floor(
+    (d.getTime() - new Date(d.getFullYear(), 0, 0).getTime()) / 864e5,
+  );
+}
+
 const THEME_BOOT = `(function(){try{
   var t=localStorage.getItem('lifeos-theme');
   if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'night':'day';
@@ -77,7 +84,10 @@ export default async function RootLayout({
         <div className="flex flex-col md:flex-row min-h-screen">
           <Sidebar user={user} />
           <main className="flex-1 min-w-0 px-4 py-5 md:px-7 md:py-7 overflow-y-auto">
-            {children}
+            <div className="max-w-[1080px] mx-auto">
+              {children}
+              <PressMargin sheet={dayOfYear(new Date())} />
+            </div>
           </main>
         </div>
       </body>
