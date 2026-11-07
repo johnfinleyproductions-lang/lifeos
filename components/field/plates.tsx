@@ -374,5 +374,6 @@ export const PLATE_FOR: Record<string, string> = {
   "/weekly-review": "shell",
   "/protocols": "keys",
   "/settings": "calipers",
+  "/collection": "press",
   "/pick-profile": "leaf",
 };

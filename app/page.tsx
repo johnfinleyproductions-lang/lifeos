@@ -8,6 +8,7 @@ import { BalanceCard } from "@/components/today/BalanceCard";
 import { PlanCard } from "@/components/today/PlanCard";
 import { FocusHabitsCard } from "@/components/today/FocusHabitsCard";
 import { EveningSummaryCard } from "@/components/today/EveningSummaryCard";
+import { CollectionNote } from "@/components/today/CollectionNote";
 
 const DAYS = [
   "Sunday",
@@ -134,6 +135,12 @@ export default async function TodayPage() {
           <BalanceCard />
         </div>
       </div>
+
+      {user && (
+        <div className="mt-5 empty:hidden">
+          <CollectionNote />
+        </div>
+      )}
 
       {!eveningDone && user && (
         <div className="sheet sheet-bare mt-5 flex items-center justify-between gap-4">

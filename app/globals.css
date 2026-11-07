@@ -799,6 +799,54 @@
     .wiz { padding-bottom: 76px; }
   }
 
+  /* ---------- the collection ---------- */
+  /* A specimen not yet recorded prints in one faint pass, outline only.
+     A recorded one prints in ink with the spot under-pass like every
+     other plate. New today takes the spot ink on its date line. */
+  .specimen {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 0 12px;
+    align-items: start;
+    padding: 13px 0;
+    border-bottom: 1px solid rgb(var(--line-soft));
+  }
+  .specimen:last-child {
+    border-bottom: 0;
+  }
+  .specimen-plate {
+    grid-row: span 3;
+    margin-top: -3px;
+  }
+  .specimen[data-unseen] .specimen-plate {
+    color: rgb(var(--text-3));
+    opacity: 0.55;
+  }
+  .specimen[data-unseen] .specimen-name {
+    color: rgb(var(--text-2));
+  }
+  .specimen-name {
+    font-size: 15px;
+    line-height: 1.2;
+    font-variation-settings: "wdth" 100, "wght" 680;
+  }
+  .specimen-mark {
+    font-size: 12.5px;
+    line-height: 1.4;
+    color: rgb(var(--text-2));
+    margin-top: 2px;
+  }
+  .specimen-obs {
+    font-size: 11.5px;
+    color: rgb(var(--text-3));
+    font-variation-settings: "wdth" 100, "wght" 660;
+    font-variant-numeric: tabular-nums;
+    margin-top: 5px;
+  }
+  .specimen[data-today] .specimen-obs {
+    color: rgb(var(--spot));
+  }
+
   /* ---------- motion: ink, paper, mechanism. All stepped. ---------- */
   @keyframes print {
     from { clip-path: inset(0 0 100% 0); }
