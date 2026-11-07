@@ -21,3 +21,6 @@ export * from "./lifeosConfidenceEntries";
 export * from "./lifeosReframesSeen";
 export * from "./lifeosJournalEntries";
 export * from "./lifeosOpenLoops";
+
+// Auth, owned here since Phase 1 so drizzle-kit migrates it.
+export * from "./auth";

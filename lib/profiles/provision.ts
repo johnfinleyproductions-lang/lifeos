@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { authUsers } from "@/lib/db/schema/external/auth";
+import { authUsers } from "@/lib/db/schema/auth";
 import { ensureWorkspaceForUser } from "@/lib/db/workspace/auto-create";
 import type { ProfileConfig } from "./config";
 

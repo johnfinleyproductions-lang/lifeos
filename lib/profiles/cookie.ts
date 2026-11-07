@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { cache } from "react";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { authUsers } from "@/lib/db/schema/external/auth";
+import { authUsers } from "@/lib/db/schema/auth";
 import { getProfile, PROFILES, type ProfileConfig } from "./config";
 import { sign, unsign } from "./signing";
 

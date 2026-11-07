@@ -30,6 +30,7 @@ export * from "./lifeosReframesSeen";
 export * from "./lifeosJournalEntries";
 export * from "./lifeosOpenLoops";
 
-// External — never migrated, only queried
-export * from "./external/auth";
+export * from "./auth";
+
+// External — still owned by Evergreen Core, never migrated from here.
 export * from "./external/workspaces";

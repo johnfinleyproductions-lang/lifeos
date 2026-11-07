@@ -1,12 +1,14 @@
 /**
- * EXTERNAL — owned by Evergreen Core. DO NOT migrate from LifeOS.
+ * Auth tables, owned by LifeOS.
  *
- * Exact mirror of ~/evergreen-core/lib/db/schema/auth.ts as of Phase 1.
- * If EC's auth schema changes, update this file by hand.
+ * These were a hand-kept mirror of Evergreen Core's schema, excluded
+ * from migrations, which meant a fresh database had nowhere to store a
+ * user or a session and the app could not stand itself up from empty.
  *
- * drizzle-kit's tablesFilter (in drizzle.config.ts) restricts migration
- * generation to tables matching `lifeos_*`, so this file's tables are
- * never proposed for migration.
+ * Table and column names are unchanged on purpose. better-auth expects
+ * exactly these, and keeping them means an existing `user` row copies
+ * between databases with no mapping at all. The camelCase column names
+ * are quoted identifiers in Postgres and have to stay quoted.
  */
 import {
   boolean,
