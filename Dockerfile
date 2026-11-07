@@ -29,6 +29,18 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN pnpm build
 
+# Stage the two packages scripts/migrate.mjs imports. `next build` bundles
+# server dependencies into .next/server, so .next/standalone/node_modules
+# carries only next/react/react-dom — drizzle-orm and postgres are NOT
+# importable at runtime there. Both are dependency-free, so a dereferenced
+# copy is enough (pnpm's node_modules entries are symlinks into .pnpm,
+# hence -L). Source maps are dropped: ~9MB instead of ~16MB, and nothing
+# in the runner reads them.
+RUN mkdir -p /migrate-deps \
+ && cp -RL node_modules/drizzle-orm /migrate-deps/ \
+ && cp -RL node_modules/postgres /migrate-deps/ \
+ && find /migrate-deps -name '*.map' -delete
+
 FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
@@ -43,8 +55,25 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/drizzle ./drizzle
 
+# The migration runner and the packages it needs. node resolves bare
+# imports from the importing file upward, so /app/scripts/node_modules is
+# found first and nothing shadows the server's own bundled copies.
+COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
+COPY --from=builder --chown=nextjs:nodejs /migrate-deps ./scripts/node_modules
+COPY --from=builder --chown=nextjs:nodejs /app/docker-entrypoint.sh ./docker-entrypoint.sh
+RUN chmod +x /app/docker-entrypoint.sh
+
 USER nextjs
 EXPOSE 3001
 ENV PORT=3001
 ENV HOSTNAME="0.0.0.0"
+
+# busybox wget, so no extra package. Gives the orchestrator a signal that
+# means "serving and the database answers", not just "process alive".
+HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
+  CMD wget -qO- http://127.0.0.1:3001/api/health >/dev/null || exit 1
+
+# ENTRYPOINT, not CMD: migrations then run even if the orchestrator
+# overrides the start command, which arrives as "$@".
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
 CMD ["node", "server.js"]

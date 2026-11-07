@@ -1,0 +1,24 @@
+# Without this file, `COPY . .` in the builder stage overlays the host's
+# node_modules on top of the one installed by the deps stage. Coolify
+# builds from a fresh clone so it never had one, but a local `docker build`
+# did, and pnpm's node_modules is a tree of symlinks into .pnpm with
+# absolute paths that do not resolve inside the image. The builder also
+# dereferences node_modules/drizzle-orm into /migrate-deps, so this is now
+# load-bearing rather than just a speed-up.
+node_modules
+.next
+.git
+.gitignore
+
+# Secrets must never reach the image. They are injected as environment
+# variables at run time.
+.env
+.env.*
+!.env.example
+
+# Local-only
+*.log
+.DS_Store
+coverage
+.vscode
+.idea
