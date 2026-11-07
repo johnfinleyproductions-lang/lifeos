@@ -20,15 +20,15 @@ export function PressDefs() {
         <filter id="rough" x="-2%" y="-2%" width="104%" height="104%">
           <feTurbulence
             type="fractalNoise"
-            baseFrequency="0.011"
-            numOctaves="2"
+            baseFrequency="0.008"
+            numOctaves="1"
             seed="7"
             result="noise"
           />
           <feDisplacementMap
             in="SourceGraphic"
             in2="noise"
-            scale="2.4"
+            scale="2.6"
             xChannelSelector="R"
             yChannelSelector="G"
           />
