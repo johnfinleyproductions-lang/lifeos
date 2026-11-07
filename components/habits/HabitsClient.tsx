@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { format, parseISO } from "date-fns";
 import { Watermark } from "@/components/field/Watermark";
 
 type DayState = {
@@ -10,13 +11,45 @@ type DayState = {
   done: boolean;
 };
 
+type Pressings = {
+  count: number;
+  first: string | null;
+  longestRun: number;
+  runUnit: "days" | "weeks";
+};
+
 type Habit = {
   id: string;
   name: string;
   cadence: string;
   description: string | null;
   last7Days: DayState[];
+  /** the specimen label; null when field marks are hidden in Settings */
+  pressings: Pressings | null;
 };
+
+/**
+ * The specimen label, worded the way a herbarium label is: a count, a
+ * first date, a record. Never the current run, which is the number that
+ * would make a missed day feel like a loss.
+ */
+function labelFor(p: Pressings): string {
+  if (p.count === 0) return "Not pressed yet";
+  const first = p.first
+    ? `first on ${format(parseISO(p.first), "d MMM yyyy")}`
+    : null;
+  const run =
+    p.longestRun > 1
+      ? `longest run ${p.longestRun} ${p.runUnit}`
+      : null;
+  return [
+    `Pressed ${p.count} ${p.count === 1 ? "time" : "times"}`,
+    first,
+    run,
+  ]
+    .filter(Boolean)
+    .join(", ");
+}
 
 /**
  * Renders habits from props directly — no useState mirror.
@@ -115,6 +148,11 @@ export function HabitsClient({ habits }: { habits: Habit[] }) {
                 <div className="lbl mt-1">
                   {h.cadence}, {streakCount} of the last 7
                 </div>
+                {h.pressings && (
+                  <div className="lbl mt-0.5 tabular-nums">
+                    {labelFor(h.pressings)}
+                  </div>
+                )}
               </div>
               <button
                 type="button"
