@@ -10,3 +10,6 @@ out/
 .turbo
 next-env.d.ts
 drizzle/.snapshots/
+
+# TypeScript incremental build cache
+*.tsbuildinfo
