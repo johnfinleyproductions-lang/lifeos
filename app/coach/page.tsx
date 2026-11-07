@@ -15,7 +15,7 @@ export default async function CoachPage() {
         title="Coach"
         subtitle="A voice that has been paying attention. It reads your data, never your journal."
         right={
-          <span className="text-right text-[11px] text-ink-400 leading-snug">
+          <span className="hidden sm:block text-right text-[11px] text-ink-400 leading-snug">
             <span className="block">Model: {model}</span>
             <span className="block text-ink-500">
               {llmHost.replace(/^https?:\/\//, "")}

@@ -38,6 +38,20 @@ export async function BalanceCard() {
         <div className="flex flex-col gap-2">
           {BALANCE_DIMENSIONS.map((d) => {
             const score = balance[d.key];
+            // A reading nobody took is not a zero.
+            if (score === undefined) {
+              return (
+                <div key={d.key} className="flex items-center gap-3">
+                  <span className="w-20 shrink-0 text-xs text-ink-300">
+                    {d.label}
+                  </span>
+                  <span className="plot flex-1 opacity-40" />
+                  <span className="w-12 text-right text-[11.5px] text-ink-400 italic">
+                    not set
+                  </span>
+                </div>
+              );
+            }
             return (
               <div key={d.key} className="flex items-center gap-3">
                 <span className="w-20 shrink-0 text-xs text-ink-300">
@@ -49,7 +63,7 @@ export async function BalanceCard() {
                     style={{ width: `${(score / 10) * 100}%` }}
                   />
                 </span>
-                <span className="w-6 text-right text-[11.5px] text-ink-400 tabular-nums">
+                <span className="w-12 text-right text-[11.5px] text-ink-400 tabular-nums">
                   {score}
                 </span>
               </div>

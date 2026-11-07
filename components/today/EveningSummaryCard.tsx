@@ -99,7 +99,11 @@ export async function EveningSummaryCard() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <SummaryField label="Win" body={evening.win} />
-          <SummaryField label="Carrying forward" body={evening.lesson} />
+          {/* A Quick evening does not ask for a lesson; a label over
+              nothing is worse than no label. */}
+          {evening.lesson ? (
+            <SummaryField label="Carrying forward" body={evening.lesson} />
+          ) : null}
         </div>
 
         {(evening.reframe || evening.release) && (
@@ -125,7 +129,9 @@ export async function TomorrowSeed() {
   const { user } = await getAuthContext();
   if (!user) return null;
   const { evening } = await getTodayCheckin(user.id);
-  if (!evening) return null;
+  // A Quick evening may not have planted one, and a label pointing at an
+  // empty line is not a quiet line forward.
+  if (!evening || !evening.tomorrowSeed) return null;
   return (
     <p className="flex items-baseline gap-3 m-0 pt-4 border-t-[1.5px] border-ink-50">
       <span className="lbl shrink-0">Tomorrow&apos;s seed</span>

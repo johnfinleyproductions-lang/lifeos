@@ -51,7 +51,8 @@ export type CoachContext = {
     progress: number;
   }[];
   scorecard: Scorecard;
-  balance: BalanceScore | null;
+  /** Partial: a reading nobody took has no value and is not a zero. */
+  balance: Partial<BalanceScore> | null;
   recentConfidence: { title: string; body: string | null; createdAt: string }[];
   quarterPhase: string;
   quarterDay: number;
@@ -136,7 +137,7 @@ export const getCoachContext = cache(
       todayEvening,
       activeQuests,
       scorecard,
-      balance,
+          balance,
       recentConfidence: recentConfidence.map((c) => ({
         title: c.title,
         body: c.body,

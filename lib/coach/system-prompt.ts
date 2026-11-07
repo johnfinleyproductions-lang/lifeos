@@ -12,6 +12,15 @@ import type { CoachContext } from "./context";
  * journal schemas), but stating it in the prompt also nudges the model
  * not to ask leading questions about journaling.
  */
+const BALANCE_ORDER = [
+  ["mind", "Mind"],
+  ["body", "Body"],
+  ["work", "Work"],
+  ["relationships", "Relationships"],
+  ["play", "Play"],
+  ["spirit", "Spirit"],
+] as const;
+
 export function buildSystemPrompt(
   user: { name: string },
   ctx: CoachContext,
@@ -53,8 +62,8 @@ export function buildSystemPrompt(
       `Morning manifesto (today): DONE.`,
       `  Energy: ${m.energy}/5, mood: ${m.mood}.`,
       `  Priorities: ${m.priorities.map((p) => `"${p}"`).join("; ")}.`,
-      `  Protect: "${m.protect}".`,
-      `  Gratitude: "${m.gratitude}".`,
+      `  Protect: ${m.protect ? `"${m.protect}".` : "not asked (quick morning)."}`,
+      `  Gratitude: ${m.gratitude ? `"${m.gratitude}".` : "not asked (quick morning)."}`,
       "",
     );
   } else {
@@ -67,7 +76,7 @@ export function buildSystemPrompt(
       `Evening shutdown (today): DONE.`,
       `  Day rating: ${e.dayRating}/5, mood: ${e.dayMood}.`,
       `  Win: "${e.win}".`,
-      `  Lesson: "${e.lesson}".`,
+      `  Lesson: ${e.lesson ? `"${e.lesson}".` : "not asked (quick evening)."}`,
       `  Tomorrow seed: "${e.tomorrowSeed}".`,
       "",
     );
@@ -98,7 +107,13 @@ export function buildSystemPrompt(
   if (ctx.balance) {
     lines.push(
       `Balance scores (most recent weekly review):`,
-      `  Mind ${ctx.balance.mind}/10, Body ${ctx.balance.body}/10, Work ${ctx.balance.work}/10, Relationships ${ctx.balance.relationships}/10, Play ${ctx.balance.play}/10, Spirit ${ctx.balance.spirit}/10`,
+      // A dimension nobody read says so. Telling the coach "Mind 0/10"
+      // about a slider that was never touched would have it console
+      // someone over a number they never gave.
+      `  ${BALANCE_ORDER.map(([key, label]) => {
+        const v = ctx.balance?.[key];
+        return `${label} ${v === undefined ? "not set" : `${v}/10`}`;
+      }).join(", ")}`,
       "",
     );
   } else {

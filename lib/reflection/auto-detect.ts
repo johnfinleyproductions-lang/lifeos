@@ -17,7 +17,10 @@ import {
   lifeosProtocolRuns,
 } from "@/lib/db/schema/lifeos";
 import { type BalanceScore, ZERO_BALANCE } from "./balance";
-import { weeklyReviewPayloadSchema } from "./weekly-review-schema";
+import {
+  weeklyReviewInputSchema,
+  weeklyReviewPayloadSchema,
+} from "./weekly-review-schema";
 
 /**
  * Compute the scorecard for the last 7 days.
@@ -184,10 +187,17 @@ export const getScorecard = cache(
 );
 
 /**
- * Get the balance score from the most recent weekly_review run.
+ * The readings from the most recent weekly review, and only the readings
+ * actually taken.
+ *
+ * The six sliders used to default to 5 and store whether or not anyone
+ * touched them, so an untouched review became the anchor on two pages.
+ * They are partial now, and this returns them partial: a dimension nobody
+ * read has no value, rather than a 0 that draws an empty bar and reads as
+ * "your mind scored zero". Callers must handle undefined.
  */
 export const getLatestBalance = cache(
-  async (userId: string): Promise<BalanceScore | null> => {
+  async (userId: string): Promise<Partial<BalanceScore> | null> => {
     const [latest] = await db
       .select()
       .from(lifeosProtocolRuns)
@@ -201,7 +211,7 @@ export const getLatestBalance = cache(
       .limit(1);
 
     if (!latest?.payload) return null;
-    const parsed = weeklyReviewPayloadSchema.safeParse(latest.payload);
+    const parsed = weeklyReviewInputSchema.safeParse(latest.payload);
     return parsed.success ? parsed.data.balance : null;
   },
 );

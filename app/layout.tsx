@@ -79,13 +79,20 @@ export default async function RootLayout({
       </head>
       <body className="bg-ink-900 text-ink-100 antialiased">
         <PressDefs />
+        <a href="#sheet" className="skip">
+          Skip to the sheet
+        </a>
         <div className="flex flex-col md:flex-row min-h-screen">
           <Sidebar
             user={user}
             day={dayOfYear(today)}
             year={parseDayKey(today).year}
           />
-          <main className="flex-1 min-w-0 px-4 py-5 md:px-7 md:py-7 overflow-y-auto">
+          <main
+            id="sheet"
+            tabIndex={-1}
+            className="flex-1 min-w-0 px-4 py-5 md:px-7 md:py-7 overflow-y-auto"
+          >
             <div className="max-w-[1080px] mx-auto">
               {children}
               <PressMargin sheet={dayOfYear(today)} />

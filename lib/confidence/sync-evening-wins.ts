@@ -17,11 +17,11 @@ import { startOfDay } from "@/lib/time/day";
  * its source, so each evening files once and an edited win is not
  * filed twice.
  *
- * It runs when the Identity page is read rather than when the evening
- * is written, because the evening route belongs to the wizard stream.
- * That is the right home for it and it moves there at merge; until
- * then the file is brought up to date the moment anyone looks at it.
- * Idempotent, and never more than one insert per closed day.
+ * Called from POST /api/evening, on the write. It briefly ran when the
+ * Identity page was read, which meant rendering a page inserted rows: a
+ * GET that mutates is surprising on its own, and it also made the file
+ * depend on someone visiting the right page. Idempotent either way, and
+ * never more than one insert per closed day.
  */
 export async function syncEveningWins(userId: string): Promise<number> {
   const [checkins, filed] = await Promise.all([

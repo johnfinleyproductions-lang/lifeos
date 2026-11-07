@@ -532,6 +532,8 @@
     box-shadow: none;
   }
   .btn-sm {
+    /* a 36px target; 29px was too small for a thumb */
+    min-height: 36px;
     font-size: 12.5px;
     padding: 7px 11px;
   }
@@ -572,6 +574,7 @@
   /* A selectable chip: ink outline, filled solid when pressed. Used for
      moods, cadences, lenses, categories. */
   .chip {
+    min-height: 36px;
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -610,6 +613,7 @@
 
   /* A range input drawn as a plotted bar with a hard square thumb. */
   .range {
+    height: 32px;
     appearance: none;
     -webkit-appearance: none;
     width: 100%;
@@ -669,6 +673,9 @@
 
   /* A checkbox is a hard square that takes the spot ink when struck. */
   .ck {
+    width: 36px;
+    height: 36px;
+    flex: 0 0 36px;
     appearance: none;
     -webkit-appearance: none;
     width: 22px;
@@ -685,16 +692,36 @@
     background: rgb(var(--spot));
     border-color: rgb(var(--spot));
   }
-  .ck:checked::after {
-    content: "";
+  .range-wrap > .plot {
+    top: 12.5px;
+  }
+
+  /*
+   * Off-canvas until focused. From the top of any page, Tab otherwise walks
+   * all 19 rail links before reaching the content.
+   */
+  .skip {
     position: absolute;
-    left: 5px;
-    top: 9px;
-    width: 9px;
-    height: 4px;
-    border: solid #fff;
-    border-width: 0 0 2.5px 2.5px;
-    transform: rotate(-45deg);
+    left: -9999px;
+    top: 12px;
+    z-index: 60;
+    background: rgb(var(--text-1));
+    color: rgb(var(--knock));
+    padding: 10px 14px;
+    font-size: 13px;
+    font-variation-settings: "wdth" 96, "wght" 700;
+    text-decoration: none;
+  }
+  .skip:focus-visible {
+    left: 12px;
+  }
+
+  .ck:checked::after {
+    left: 12px;
+    top: 15px;
+    width: 14px;
+    height: 7px;
+    border-width: 0 0 3px 3px;
   }
 
   /* ---------- wizard ---------- */

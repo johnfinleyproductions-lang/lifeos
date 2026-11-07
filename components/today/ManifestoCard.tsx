@@ -36,7 +36,7 @@ export async function ManifestoCard({
             Write this morning
           </Link>
           <span className="text-[12.5px] text-ink-300">
-            Six prompts, about ninety seconds
+            Quick, thirty seconds. Or the full five cards
           </span>
         </div>
       </div>
@@ -46,10 +46,21 @@ export async function ManifestoCard({
   if (mode === "line") {
     return (
       <div className="flex items-baseline gap-x-4 gap-y-1 flex-wrap pt-1">
+        {/*
+          A Quick morning never asks for a manifesto, so the field is "".
+          Printing the quote marks around nothing left a pair of orange
+          commas floating on the page.
+        */}
         <p className="font-serif italic text-[clamp(17px,1.7vw,20px)] leading-[1.4] m-0 text-ink-100 min-w-[26ch] flex-1">
-          <span className="text-accent-spot not-italic">&ldquo;</span>
-          {morning.manifesto}
-          <span className="text-accent-spot not-italic">&rdquo;</span>
+          {morning.manifesto ? (
+            <>
+              <span className="text-accent-spot not-italic">&ldquo;</span>
+              {morning.manifesto}
+              <span className="text-accent-spot not-italic">&rdquo;</span>
+            </>
+          ) : (
+            <span className="text-ink-300">A quick morning. The three are above.</span>
+          )}
         </p>
         <span
           className="flex items-center gap-[7px] text-[12px] text-ink-300 shrink-0"
@@ -70,9 +81,16 @@ export async function ManifestoCard({
   return (
     <div className="sheet sheet-hi sheet-cut shadow-mis px-[30px] pt-[30px] pb-6">
       <p className="font-serif font-normal text-[clamp(24px,3.4vw,41px)] leading-[1.16] tracking-[-0.012em] m-0 max-w-[30ch] text-balance fx-print">
-        <span className="text-accent-spot">&ldquo;</span>
-        {morning.manifesto}
-        <span className="text-accent-spot">&rdquo;</span>
+        {morning.manifesto ? (
+          <>
+            <span className="text-accent-spot">&ldquo;</span>
+            {morning.manifesto}
+            <span className="text-accent-spot">&rdquo;</span>
+          </>
+        ) : (
+          /* Quick morning: the three carry the page instead. */
+          <span className="italic">The day is set.</span>
+        )}
       </p>
       <div className="flex items-center gap-4 flex-wrap mt-5 pt-4 border-t-[1.5px] border-ink-500">
         <span

@@ -8,7 +8,12 @@ import { Watermark } from "@/components/field/Watermark";
  * plotted bars. Came over from the Discipline page when it folded into
  * Insights; the Today card prints the same six smaller.
  */
-export function BalanceSheet({ balance }: { balance: BalanceScore | null }) {
+export function BalanceSheet({
+  balance,
+}: {
+  // Partial: a reading nobody took has no value, and is not a zero.
+  balance: Partial<BalanceScore> | null;
+}) {
   return (
     <section>
       <div className="tab-row">
@@ -30,11 +35,19 @@ export function BalanceSheet({ balance }: { balance: BalanceScore | null }) {
                 <span className="plot flex-1">
                   <span
                     className={d.accentClass}
-                    style={{ width: `${(balance[d.key] / 10) * 100}%` }}
+                    style={{
+                      width: `${((balance[d.key] ?? 0) / 10) * 100}%`,
+                    }}
                   />
                 </span>
-                <span className="w-8 text-right text-[12.5px] text-ink-400 tabular-nums">
-                  {balance[d.key]}
+                <span
+                  className={
+                    balance[d.key] === undefined
+                      ? "w-12 text-right text-[12.5px] text-ink-400 italic"
+                      : "w-12 text-right text-[12.5px] text-ink-400 tabular-nums"
+                  }
+                >
+                  {balance[d.key] === undefined ? "not set" : balance[d.key]}
                 </span>
               </div>
             ))}

@@ -34,25 +34,3 @@ export function depthChoiceFromStored(
 export function storedFromDepthChoice(choice: DepthChoice): RitualDepth {
   return choice === "quick" ? "quick" : "standard";
 }
-
-/* ---- legacy -------------------------------------------------------------
- * The Settings control that wrote a browser-local default is gone. These
- * two stay exported only so components/settings/RitualDepthToggle.tsx,
- * which another stream owns, still compiles until it is deleted at merge.
- * Nothing reads the value.
- */
-const KEY = "lifeos.ritualDepth";
-
-/** @deprecated Depth is chosen on the wizard's first card. */
-export function getRitualDepthDefault(): RitualDepth {
-  if (typeof window === "undefined") return "standard";
-  const stored = window.localStorage.getItem(KEY);
-  if (stored === "quick" || stored === "deep") return stored;
-  return "standard";
-}
-
-/** @deprecated Depth is chosen on the wizard's first card. */
-export function setRitualDepthDefault(depth: RitualDepth) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(KEY, depth);
-}

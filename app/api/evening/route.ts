@@ -1,3 +1,4 @@
+import { syncEveningWins } from "@/lib/confidence/sync-evening-wins";
 import { NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
 import { todayKey } from "@/lib/time/day";
@@ -66,6 +67,7 @@ export async function POST(request: Request) {
         updatedAt: new Date(),
       })
       .where(eq(lifeosDailyCheckins.id, existing[0].id));
+    await syncEveningWins(user.id);
     return NextResponse.json({ ok: true, updated: true });
   }
 
@@ -76,5 +78,6 @@ export async function POST(request: Request) {
     ritualDepth,
   });
 
+  await syncEveningWins(user.id);
   return NextResponse.json({ ok: true, created: true });
 }

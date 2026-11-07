@@ -14,7 +14,6 @@ import { PROTOCOLS, getProtocol } from "@/lib/protocols/definitions";
 import { morningManifestoSchema } from "@/lib/manifesto/schema";
 import { PageStamp } from "@/components/PageStamp";
 import { KEPT_PROTOCOL_SET } from "@/app/protocols/kept";
-import { syncEveningWins } from "./confidence-sync";
 
 const KIND_LABEL: Record<string, string> = {
   manual: "added by hand",
@@ -29,7 +28,6 @@ export default async function IdentityPage() {
   const { user } = await requireUserContext();
 
   // The evening win files itself; bring the file up to date first.
-  await syncEveningWins(user.id);
 
   const [latestCheckin, compassRows, confidenceEntries, runs] =
     await Promise.all([
