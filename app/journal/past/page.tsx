@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { lifeosJournalEntries } from "@/lib/db/schema/lifeos";
 import { requireUserContext } from "@/lib/auth/server-helpers";
 import { getLens } from "@/lib/journal/lenses";
+import { PageStamp } from "@/components/PageStamp";
 
 const MODE_ACCENT: Record<string, string> = {
   stream: "text-accent-violet",
@@ -32,25 +33,17 @@ export default async function JournalPastPage() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <div className="mb-6 flex items-center justify-between">
-        <Link
-          href="/journal"
-          className="text-xs text-ink-400 hover:text-ink-100 transition"
-        >
-          ← Today&apos;s page
-        </Link>
-        <Link
-          href="/journal/decisions"
-          className="text-xs text-ink-400 hover:text-ink-100 transition"
-        >
-          Decisions log →
-        </Link>
-      </div>
-
-      <h1 className="t-h1 text-ink-50 mb-1">Past entries</h1>
-      <p className="text-sm text-ink-300 mb-8">
-        {entries.length} {entries.length === 1 ? "entry" : "entries"}.
-      </p>
+      <PageStamp
+        title="Past entries"
+        subtitle={`${entries.length} ${entries.length === 1 ? "entry" : "entries"}.`}
+        backHref="/journal"
+        backLabel="Today's page"
+        right={
+          <Link href="/journal/decisions" className="btn btn-sm btn-ghost">
+            Decisions log
+          </Link>
+        }
+      />
 
       {entries.length === 0 ? (
         <div className="card text-center py-12">

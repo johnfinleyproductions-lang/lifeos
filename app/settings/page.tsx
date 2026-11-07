@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireUserContext } from "@/lib/auth/server-helpers";
 import { RitualDepthToggle } from "@/components/settings/RitualDepthToggle";
+import { PageStamp } from "@/components/PageStamp";
 
 const EC_URL =
   process.env.NEXT_PUBLIC_EC_URL?.trim() ||
@@ -11,22 +12,10 @@ export default async function SettingsPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="mb-8 flex items-center justify-between">
-        <Link
-          href="/"
-          className="text-xs text-ink-400 hover:text-ink-100 transition"
-        >
-          ← Today
-        </Link>
-        <div className="text-xs text-ink-400 lbl">
-          Settings
-        </div>
-      </div>
-
-      <h1 className="t-h1 text-ink-50 mb-1">Settings</h1>
-      <p className="text-sm text-ink-300 mb-8">
-        Tune how LifeOS shows up in your day.
-      </p>
+      <PageStamp
+        title="Settings"
+        subtitle="Tune how LifeOS shows up in your day."
+      />
 
       <Section title="You">
         <div className="card">

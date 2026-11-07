@@ -1,10 +1,9 @@
-import Link from "next/link";
-import { format } from "date-fns";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { lifeosCompass } from "@/lib/db/schema/lifeos";
 import { requireUserContext } from "@/lib/auth/server-helpers";
 import { WeekEditor } from "@/components/compass/WeekEditor";
+import { PageStamp } from "@/components/PageStamp";
 import { idealWeekSchema, type IdealWeek } from "@/lib/compass/schema";
 
 export default async function WeekPage() {
@@ -24,24 +23,12 @@ export default async function WeekPage() {
 
   return (
     <div className="max-w-5xl mx-auto">
-      <div className="mb-6 flex items-center justify-between">
-        <Link
-          href="/compass"
-          className="text-xs text-ink-400 hover:text-ink-100 transition"
-        >
-          ← Compass
-        </Link>
-        <div className="text-xs text-ink-400 lbl">
-          {format(new Date(), "EEEE · MMMM d")}
-        </div>
-      </div>
-
-      <div className="mb-6">
-        <h1 className="t-h1 text-ink-50 mb-1">Ideal week</h1>
-        <p className="text-sm text-ink-300">
-          The rhythm you want — anchors, blocks, rituals. Not a schedule.
-        </p>
-      </div>
+      <PageStamp
+        title="Ideal week"
+        subtitle="The rhythm you want: anchors, blocks, rituals. Not a schedule."
+        backHref="/compass"
+        backLabel="Compass"
+      />
 
       <WeekEditor initial={initial} />
     </div>

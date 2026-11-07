@@ -48,8 +48,8 @@ export default async function EveningPage() {
     rows[0]?.ritualDepth === "deep" ? "deep" : "standard";
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <PageStamp />
+    <div className="max-w-[1080px] mx-auto">
+      <PageStamp title="Evening shutdown" backLabel="Leave" />
       <EveningWizard
         initial={initial}
         morningPriorities={morningPriorities}

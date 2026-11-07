@@ -6,6 +6,7 @@ import { lifeosJournalEntries } from "@/lib/db/schema/lifeos";
 import { requireUserContext } from "@/lib/auth/server-helpers";
 import { getLens } from "@/lib/journal/lenses";
 import { DECISION_CATEGORY_LABELS } from "@/lib/journal/schema";
+import { PageStamp } from "@/components/PageStamp";
 
 export default async function JournalDecisionsPage() {
   const { user } = await requireUserContext();
@@ -44,27 +45,17 @@ export default async function JournalDecisionsPage() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <div className="mb-6 flex items-center justify-between">
-        <Link
-          href="/journal"
-          className="text-xs text-ink-400 hover:text-ink-100 transition"
-        >
-          ← Today&apos;s page
-        </Link>
-        <Link
-          href="/journal/past"
-          className="text-xs text-ink-400 hover:text-ink-100 transition"
-        >
-          Past entries →
-        </Link>
-      </div>
-
-      <h1 className="t-h1 text-ink-50 mb-1">
-        Decisions log
-      </h1>
-      <p className="text-sm text-ink-300 mb-8">
-        Every entry tagged as a decision. Read backward — pattern-spotting.
-      </p>
+      <PageStamp
+        title="Decisions log"
+        subtitle="Every entry tagged as a decision. Read backward and the patterns show."
+        backHref="/journal"
+        backLabel="Today's page"
+        right={
+          <Link href="/journal/past" className="btn btn-sm btn-ghost">
+            Past entries
+          </Link>
+        }
+      />
 
       {total === 0 ? (
         <div className="card text-center py-12">

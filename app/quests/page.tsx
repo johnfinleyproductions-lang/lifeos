@@ -34,25 +34,17 @@ export default async function QuestsPage() {
 
   return (
     <div className="max-w-5xl mx-auto">
-      <PageStamp />
+      <PageStamp
+        title="Quarterly quests"
+        subtitle="The few big things that matter most for the next ninety days."
+      />
 
-      <div className="flex items-end justify-between mb-8">
-        <div>
-          <h1 className="t-h1 text-ink-50 mb-1">
-            Quarterly quests
-          </h1>
-          <p className="text-sm text-ink-300">
-            The few big things that matter most for the next 90 days.
-          </p>
-        </div>
-        <div className="text-right">
-          <div className="font-serif text-xl text-ink-100">
-            {progress.quarter}
-          </div>
-          <div className="text-xs text-ink-400 mt-0.5">
-            Day {progress.day} / {progress.totalDays} · {progress.phase}
-          </div>
-        </div>
+      <div className="tab-row mb-6">
+        <span className="tab">{progress.quarter}</span>
+        <span className="fill" />
+        <span className="text-[11.5px] text-ink-400 tabular-nums">
+          Day {progress.day} of {progress.totalDays}, {progress.phase}
+        </span>
       </div>
 
       <QuestsClient quests={serialised} currentQuarter={progress.quarter} />

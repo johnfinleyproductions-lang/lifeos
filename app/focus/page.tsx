@@ -40,12 +40,7 @@ export default async function FocusPage() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <PageStamp />
-
-      <h1 className="t-h1 text-ink-50 mb-1">Focus</h1>
-      <p className="text-sm text-ink-300 mb-8">
-        Where the work actually happens.
-      </p>
+      <PageStamp title="Focus" subtitle="Where the work actually happens." />
 
       <FocusClient
         active={

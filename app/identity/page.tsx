@@ -52,12 +52,10 @@ export default async function IdentityPage() {
 
   return (
     <div className="max-w-5xl mx-auto">
-      <PageStamp />
-
-      <h1 className="t-h1 text-ink-50 mb-1">Identity</h1>
-      <p className="text-sm text-ink-300 mb-8">
-        Who you&apos;re becoming, and what proves it.
-      </p>
+      <PageStamp
+        title="Identity"
+        subtitle="Who you're becoming, and what proves it."
+      />
 
       {identityStatement && (
         <div className="card mb-10">

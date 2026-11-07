@@ -68,12 +68,10 @@ export default async function HabitsPage() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <PageStamp />
-
-      <h1 className="t-h1 text-ink-50 mb-1">Habits</h1>
-      <p className="text-sm text-ink-300 mb-8">
-        The small things you keep doing.
-      </p>
+      <PageStamp
+        title="Habits"
+        subtitle="The small things you keep doing."
+      />
 
       <HabitsClient habits={habitsWithCompletions} />
     </div>

@@ -1,10 +1,10 @@
-import Link from "next/link";
 import { and, eq } from "drizzle-orm";
 import { format } from "date-fns";
 import { db } from "@/lib/db";
 import { lifeosDailyCheckins } from "@/lib/db/schema/lifeos";
 import { requireUserContext } from "@/lib/auth/server-helpers";
 import { ManifestoWizard } from "@/components/morning/ManifestoWizard";
+import { PageStamp } from "@/components/PageStamp";
 import {
   morningManifestoSchema,
   type MorningManifesto,
@@ -35,20 +35,7 @@ export default async function MorningPage() {
 
   return (
     <div className="max-w-[1080px] mx-auto">
-      <header className="flex items-start justify-between gap-5 mb-6">
-        <div>
-          <div
-            className="text-xs text-ink-300"
-            style={{ fontVariationSettings: "'wdth' 100, 'wght' 620" }}
-          >
-            {format(new Date(), "EEEE, d MMMM")}
-          </div>
-          <h1 className="t-h1 mt-[7px]">Morning manifesto</h1>
-        </div>
-        <Link href="/" className="btn btn-sm btn-ghost shrink-0">
-          Leave
-        </Link>
-      </header>
+      <PageStamp title="Morning manifesto" backLabel="Leave" />
       <ManifestoWizard initial={initial} />
     </div>
   );

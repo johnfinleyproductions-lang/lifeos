@@ -1,5 +1,3 @@
-import Link from "next/link";
-import { format } from "date-fns";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { lifeosQuests } from "@/lib/db/schema/lifeos";
@@ -9,6 +7,7 @@ import {
   getSuggestedWins,
 } from "@/lib/reflection/auto-detect";
 import { WeeklyReviewClient } from "@/components/reflection/WeeklyReviewClient";
+import { PageStamp } from "@/components/PageStamp";
 
 export default async function WeeklyReviewPage() {
   const { user } = await requireUserContext();
@@ -36,22 +35,12 @@ export default async function WeeklyReviewPage() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="mb-8 flex items-center justify-between">
-        <Link
-          href="/discipline"
-          className="text-xs text-ink-400 hover:text-ink-100 transition"
-        >
-          ← Discipline
-        </Link>
-        <div className="text-xs text-ink-400 lbl">
-          {format(new Date(), "EEEE · MMMM d")}
-        </div>
-      </div>
-
-      <h1 className="t-h1 text-ink-50 mb-1">Weekly review</h1>
-      <p className="text-sm text-ink-300 mb-8">
-        20 minutes. Six phases. Sets the rhythm for next week.
-      </p>
+      <PageStamp
+        title="Weekly review"
+        subtitle="Twenty minutes. Six phases. Sets the rhythm for next week."
+        backHref="/discipline"
+        backLabel="Discipline"
+      />
 
       <WeeklyReviewClient
         scorecard={scorecard}

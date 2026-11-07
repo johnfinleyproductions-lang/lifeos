@@ -1,9 +1,8 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { format } from "date-fns";
 import { requireUserContext } from "@/lib/auth/server-helpers";
 import { getProtocol } from "@/lib/protocols/definitions";
 import { ProtocolRunner } from "@/components/protocols/ProtocolRunner";
+import { PageStamp } from "@/components/PageStamp";
 
 export default async function ProtocolPage({
   params,
@@ -17,17 +16,7 @@ export default async function ProtocolPage({
 
   return (
     <div className="max-w-3xl mx-auto">
-      <div className="mb-8 flex items-center justify-between">
-        <Link
-          href="/identity"
-          className="text-xs text-ink-400 hover:text-ink-100 transition"
-        >
-          ← Identity
-        </Link>
-        <div className="text-xs text-ink-400 lbl">
-          {format(new Date(), "EEEE · MMMM d")}
-        </div>
-      </div>
+      <PageStamp backHref="/identity" backLabel="Identity" />
       <ProtocolRunner protocol={protocol} />
     </div>
   );

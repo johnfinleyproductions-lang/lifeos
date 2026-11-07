@@ -1,10 +1,9 @@
-import Link from "next/link";
-import { format } from "date-fns";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { lifeosCompass } from "@/lib/db/schema/lifeos";
 import { requireUserContext } from "@/lib/auth/server-helpers";
 import { FutureEditor } from "@/components/compass/FutureEditor";
+import { PageStamp } from "@/components/PageStamp";
 import {
   futurePathsSchema,
   type FuturePaths,
@@ -28,24 +27,12 @@ export default async function FuturePage() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <div className="mb-6 flex items-center justify-between">
-        <Link
-          href="/compass"
-          className="text-xs text-ink-400 hover:text-ink-100 transition"
-        >
-          ← Compass
-        </Link>
-        <div className="text-xs text-ink-400 lbl">
-          {format(new Date(), "EEEE · MMMM d")}
-        </div>
-      </div>
-
-      <div className="mb-6">
-        <h1 className="t-h1 text-ink-50 mb-1">Future</h1>
-        <p className="text-sm text-ink-300">
-          Sketches across four horizons. Where you&apos;re aiming.
-        </p>
-      </div>
+      <PageStamp
+        title="Future"
+        subtitle="Sketches across four horizons. Where you're aiming."
+        backHref="/compass"
+        backLabel="Compass"
+      />
 
       <FutureEditor initial={initial} />
     </div>

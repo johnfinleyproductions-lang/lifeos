@@ -13,24 +13,20 @@ export default async function InsightsPage() {
 
   return (
     <div className="max-w-5xl mx-auto">
-      <PageStamp />
+      <PageStamp
+        title="Insights"
+        subtitle={`The last ${data.windowDays} days, and what is showing in them.`}
+      />
 
-      <h1 className="t-h1 text-ink-50 mb-1">Insights</h1>
-      <p className="text-sm text-ink-300 mb-8">
-        Last {data.windowDays} days — what&apos;s emerging in the data.
-      </p>
-
-      <section className="mb-10">
+      <div className="mb-8">
         <StatCards data={data} />
-      </section>
+      </div>
 
-      <section className="mb-10">
+      <div className="mb-8">
         <PatternList patterns={patterns} />
-      </section>
+      </div>
 
-      <section>
-        <Trends data={data} />
-      </section>
+      <Trends data={data} />
     </div>
   );
 }

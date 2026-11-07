@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { format } from "date-fns";
 import { requireUserContext } from "@/lib/auth/server-helpers";
 import {
   getScorecard,
@@ -21,22 +20,15 @@ export default async function DisciplinePage() {
 
   return (
     <div className="max-w-5xl mx-auto">
-      <PageStamp />
-
-      <div className="flex items-end justify-between mb-8">
-        <div>
-          <h1 className="t-h1 text-ink-50 mb-1">Discipline</h1>
-          <p className="text-sm text-ink-300">
-            The pattern of how you actually live.
-          </p>
-        </div>
-        <Link
-          href="/weekly-review"
-          className="px-4 py-2 rounded-lg bg-accent-gold/15 text-accent-gold border border-accent-gold/30 text-sm hover:bg-accent-gold/25 transition"
-        >
-          Run weekly review →
-        </Link>
-      </div>
+      <PageStamp
+        title="Discipline"
+        subtitle="The pattern of how you actually live."
+        right={
+          <Link href="/weekly-review" className="btn btn-sm">
+            Run weekly review
+          </Link>
+        }
+      />
 
       {/* 7-day scorecard */}
       <section className="mb-8">

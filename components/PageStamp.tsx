@@ -37,22 +37,31 @@ function dayOfYear(d: Date) {
  * Replaces the per-page header that paired an arrow-in-link ("← Today")
  * with a tracked-out caps date joined by a middle dot. Seventeen pages
  * had their own copy of it.
+ *
+ * `backHref` and `backLabel` cover the pages whose way out was not Today:
+ * Future and Ideal week go back to Compass, a protocol goes back to
+ * Identity, the journal archives go back to the journal page. `right`
+ * takes a page's own cross-links, as buttons.
  */
 export function PageStamp({
   title,
   subtitle,
   right,
   back = true,
+  backHref = "/",
+  backLabel = "Today",
 }: {
   title?: string;
   subtitle?: string;
   right?: React.ReactNode;
   back?: boolean;
+  backHref?: string;
+  backLabel?: string;
 }) {
   const now = new Date();
 
   return (
-    <header className="flex items-start justify-between gap-5 mb-6">
+    <header className="flex items-start justify-between gap-4 md:gap-5 mb-6">
       <div className="min-w-0">
         <div
           className="text-xs text-ink-300"
@@ -64,14 +73,16 @@ export function PageStamp({
         </div>
         {title && <h1 className="t-h1 mt-[7px]">{title}</h1>}
         {subtitle && (
-          <p className="t-read text-ink-300 mt-2 max-w-[62ch]">{subtitle}</p>
+          <p className="text-[14.5px] text-ink-300 mt-2 max-w-[62ch]">
+            {subtitle}
+          </p>
         )}
       </div>
-      <div className="flex items-center gap-2 shrink-0">
+      <div className="flex items-center justify-end gap-2 shrink-0 flex-wrap max-w-[50%]">
         {right}
         {back && (
-          <Link href="/" className="btn btn-sm btn-ghost">
-            Today
+          <Link href={backHref} className="btn btn-sm btn-ghost">
+            {backLabel}
           </Link>
         )}
       </div>
