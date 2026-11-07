@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getProfile } from "@/lib/profiles/config";
 import { findOrCreateUserForProfile } from "@/lib/profiles/provision";
 import { setActiveProfile, clearActiveProfile } from "@/lib/profiles/cookie";
+import { isHouseholdUnlocked } from "@/lib/profiles/household";
 
 const switchSchema = z.object({
   slug: z.string().min(1).max(40),
@@ -13,8 +14,19 @@ const switchSchema = z.object({
  *
  * On first selection of a profile, the user record + workspace are
  * auto-provisioned. Subsequent selections re-use the existing rows.
+ *
+ * The household gate is checked first. Without it this endpoint would
+ * provision and sign in anyone who could reach the URL, which is what
+ * it used to do.
  */
 export async function POST(request: Request) {
+  if (!(await isHouseholdUnlocked())) {
+    return NextResponse.json(
+      { error: "This device is locked." },
+      { status: 401 },
+    );
+  }
+
   let body: unknown;
   try {
     body = await request.json();
@@ -41,7 +53,10 @@ export async function POST(request: Request) {
   try {
     const userId = await findOrCreateUserForProfile(profile);
     await setActiveProfile(profile.slug, userId);
-    return NextResponse.json({ ok: true, slug: profile.slug, userId });
+    // The user id stays server-side. The caller only needs to know it
+    // worked, and handing out real ids made the old forged-cookie path
+    // trivial to walk.
+    return NextResponse.json({ ok: true, slug: profile.slug });
   } catch (e) {
     console.error("profile switch failed:", e);
     return NextResponse.json(
