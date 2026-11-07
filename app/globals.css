@@ -20,58 +20,67 @@
   :root {
     color-scheme: light;
 
+    /* Channel triplets, not hex, so every Tailwind alpha modifier in the
+       app (bg-accent-violet/30, border-ink-600/50) still resolves. With a
+       plain var() colour Tailwind drops the alpha silently and the rule
+       never reaches the stylesheet. */
+
     /* surfaces, lightest ground to raised panel */
-    --surface-0: #c3c5bc; /* rail, tab bar */
-    --surface-1: #d5d6cf; /* page */
-    --surface-2: #e7e8e2; /* panels */
-    --surface-3: #f2f3ee; /* input surfaces, the hero */
+    --surface-0: 195 197 188; /* rail, tab bar */
+    --surface-1: 213 214 207; /* page */
+    --surface-2: 231 232 226; /* panels */
+    --surface-3: 242 243 238; /* input surfaces, the hero */
 
     /* text, strongest to faintest */
-    --text-1: #000000;
-    --text-2: #474a44;
-    --text-3: #6e726a;
+    --text-1: 0 0 0;
+    --text-2: 71 74 68;
+    --text-3: 110 114 106;
 
-    --knock: #e7e8e2; /* type knocked out of a filled block */
-    --line: rgba(0, 0, 0, 0.26);
-    --line-soft: rgba(0, 0, 0, 0.12);
+    --knock: 231 232 226; /* type knocked out of a filled block */
 
-    --spot: #ff5436; /* fluorescent orange */
-    --green: #00a95c;
-    --sky: #0067a8;
-    --violet: #6e55a8;
-    --rose: #ff48a0;
-    --gold: #d79d00;
+    /* Rules are a solid tone rather than ink at low alpha, so they read
+       the same whatever sits behind them. */
+    --line: 169 171 163;
+    --line-soft: 196 198 190;
+
+    --spot: 255 84 54; /* fluorescent orange */
+    --green: 0 169 92;
+    --sky: 0 103 168;
+    --violet: 110 85 168;
+    --rose: 255 72 160;
+    --gold: 215 157 0;
   }
 
   [data-theme="night"] {
     color-scheme: dark;
 
-    --surface-0: #0b0d0b;
-    --surface-1: #121512;
-    --surface-2: #1c201c;
-    --surface-3: #262b26;
+    --surface-0: 11 13 11;
+    --surface-1: 18 21 18;
+    --surface-2: 28 32 28;
+    --surface-3: 38 43 38;
 
-    --text-1: #d7d9d1;
-    --text-2: #9ca096;
-    --text-3: #767a71;
+    --text-1: 215 217 209;
+    --text-2: 156 160 150;
+    --text-3: 118 122 113;
 
-    --knock: #121512;
-    --line: rgba(215, 217, 209, 0.3);
-    --line-soft: rgba(215, 217, 209, 0.13);
+    --knock: 18 21 18;
 
-    --spot: #ff6a4d;
-    --green: #3fcb83;
-    --sky: #4fa8de;
-    --violet: #9a82d8;
-    --rose: #ff74b8;
-    --gold: #e8b93b;
+    --line: 69 74 68;
+    --line-soft: 46 51 46;
+
+    --spot: 255 106 77;
+    --green: 63 203 131;
+    --sky: 79 168 222;
+    --violet: 154 130 216;
+    --rose: 255 116 184;
+    --gold: 232 185 59;
   }
 
   html,
   body {
     height: 100%;
-    background-color: var(--surface-1);
-    color: var(--text-1);
+    background-color: rgb(var(--surface-1));
+    color: rgb(var(--text-1));
   }
 
   body {
@@ -82,7 +91,7 @@
   }
 
   ::selection {
-    background: var(--spot);
+    background: rgb(var(--spot));
     color: #fff;
   }
 
@@ -93,7 +102,7 @@
   textarea:focus-visible,
   select:focus-visible,
   [tabindex]:focus-visible {
-    outline: 2.5px solid var(--spot);
+    outline: 2.5px solid rgb(var(--spot));
     outline-offset: 2px;
   }
 
@@ -105,10 +114,10 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: var(--line);
+    background: rgb(var(--line));
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: var(--text-3);
+    background: rgb(var(--text-3));
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -132,8 +141,8 @@
      rejects, so it becomes inert and the markup stays valid.
      --------------------------------------------------------------- */
   .card {
-    background: var(--surface-2);
-    border: 1.5px solid var(--text-1);
+    background: rgb(var(--surface-2));
+    border: 1.5px solid rgb(var(--text-1));
     padding: 1.125rem;
     position: relative;
   }
@@ -165,10 +174,20 @@
     font-variation-settings: "wdth" 100, "wght" 650;
   }
 
+  /* A quiet label. Sentence case, no tracking: the tracked-out caps
+     label is the idiom this system replaces. */
+  .lbl {
+    font-size: 11.5px;
+    color: rgb(var(--text-3));
+    font-variation-settings: "wdth" 100, "wght" 660;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
   /* ---------- stat tile ---------- */
   .stat-l {
     font-size: 11.5px;
-    color: var(--text-3);
+    color: rgb(var(--text-3));
     font-variation-settings: "wdth" 100, "wght" 660;
   }
   .stat-v {
@@ -182,19 +201,19 @@
   .stat-v small {
     font-size: 15px;
     font-variation-settings: "wght" 700;
-    color: var(--text-2);
+    color: rgb(var(--text-2));
     margin-left: 2px;
   }
   .stat-f {
     font-size: 11.5px;
-    color: var(--text-2);
+    color: rgb(var(--text-2));
     margin-top: 5px;
   }
 
   /* A plotted bar: flat fill, square ends, no gradient. */
   .plot {
     height: 7px;
-    background: var(--line-soft);
+    background: rgb(var(--line-soft));
   }
   .plot > span {
     display: block;
@@ -212,15 +231,15 @@
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    background: var(--text-1);
-    color: var(--knock);
+    background: rgb(var(--text-1));
+    color: rgb(var(--knock));
     font-variation-settings: "wdth" 92, "wght" 700;
     font-size: 12.5px;
     line-height: 1;
     padding: 6px 11px 7px;
   }
   .tab-spot {
-    background: var(--spot);
+    background: rgb(var(--spot));
     color: #fff;
   }
   /* label, then a rule that runs out to the edge */
@@ -233,20 +252,20 @@
   .tab-row .fill {
     flex: 1;
     height: 2px;
-    background: var(--text-1);
+    background: rgb(var(--text-1));
   }
 
   .sheet {
-    background: var(--surface-2);
-    border: 1.5px solid var(--text-1);
+    background: rgb(var(--surface-2));
+    border: 1.5px solid rgb(var(--text-1));
     padding: 18px;
   }
   .sheet-hi {
-    background: var(--surface-3);
+    background: rgb(var(--surface-3));
   }
   .sheet-bare {
     background: transparent;
-    border: 1.5px solid var(--line);
+    border: 1.5px solid rgb(var(--line));
   }
 
   /* ---------- controls ---------- */
@@ -254,9 +273,9 @@
     font-variation-settings: "wdth" 96, "wght" 700;
     font-size: 14px;
     line-height: 1;
-    background: var(--text-1);
-    color: var(--knock);
-    border: 1.5px solid var(--text-1);
+    background: rgb(var(--text-1));
+    color: rgb(var(--knock));
+    border: 1.5px solid rgb(var(--text-1));
     padding: 11px 16px;
     cursor: pointer;
     transition:
@@ -264,11 +283,11 @@
       box-shadow 0.08s steps(2);
   }
   .btn:hover {
-    box-shadow: 3px 3px 0 var(--spot);
+    box-shadow: 3px 3px 0 rgb(var(--spot));
   }
   .btn:active {
     transform: translate(2px, 2px);
-    box-shadow: 1px 1px 0 var(--spot);
+    box-shadow: 1px 1px 0 rgb(var(--spot));
   }
   .btn:disabled {
     opacity: 0.34;
@@ -277,23 +296,23 @@
     transform: none;
   }
   .btn-spot {
-    background: var(--spot);
-    border-color: var(--spot);
+    background: rgb(var(--spot));
+    border-color: rgb(var(--spot));
     color: #fff;
   }
   .btn-spot:hover {
-    box-shadow: 3px 3px 0 var(--text-1);
+    box-shadow: 3px 3px 0 rgb(var(--text-1));
   }
   .btn-spot:active {
-    box-shadow: 1px 1px 0 var(--text-1);
+    box-shadow: 1px 1px 0 rgb(var(--text-1));
   }
   .btn-ghost {
     background: transparent;
-    color: var(--text-1);
+    color: rgb(var(--text-1));
   }
   .btn-ghost:hover {
-    background: var(--text-1);
-    color: var(--knock);
+    background: rgb(var(--text-1));
+    color: rgb(var(--knock));
     box-shadow: none;
   }
   .btn-sm {
@@ -311,21 +330,21 @@
     font-family: var(--font-newsreader), ui-serif, Georgia, serif;
     font-size: 17px;
     line-height: 1.55;
-    color: var(--text-1);
-    background: var(--surface-3);
-    border: 1.5px solid var(--text-1);
+    color: rgb(var(--text-1));
+    background: rgb(var(--surface-3));
+    border: 1.5px solid rgb(var(--text-1));
     padding: 12px 13px;
     outline: none;
     resize: vertical;
   }
   .inp::placeholder,
   .ta::placeholder {
-    color: var(--text-3);
+    color: rgb(var(--text-3));
     font-style: italic;
   }
   .inp:focus,
   .ta:focus {
-    box-shadow: 3px 3px 0 var(--spot);
+    box-shadow: 3px 3px 0 rgb(var(--spot));
   }
 
   /* A checkbox is a hard square that takes the spot ink when struck. */
@@ -336,15 +355,15 @@
     height: 22px;
     flex: 0 0 22px;
     margin: 0;
-    border: 1.5px solid var(--text-1);
-    background: var(--surface-3);
+    border: 1.5px solid rgb(var(--text-1));
+    background: rgb(var(--surface-3));
     cursor: pointer;
     position: relative;
     transition: background 0.1s steps(2);
   }
   .ck:checked {
-    background: var(--spot);
-    border-color: var(--spot);
+    background: rgb(var(--spot));
+    border-color: rgb(var(--spot));
   }
   .ck:checked::after {
     content: "";
@@ -367,14 +386,14 @@
   .gauge i {
     width: 9px;
     display: block;
-    background: var(--line);
+    background: rgb(var(--line));
   }
   .gauge i:nth-child(1) { height: 8px; }
   .gauge i:nth-child(2) { height: 11px; }
   .gauge i:nth-child(3) { height: 14px; }
   .gauge i:nth-child(4) { height: 17px; }
   .gauge i:nth-child(5) { height: 20px; }
-  .gauge i.on { background: var(--spot); }
+  .gauge i.on { background: rgb(var(--spot)); }
 
   /* ---------- wizard ---------- */
   .wiz {
@@ -382,9 +401,9 @@
     margin: 0 auto;
   }
   .wiz-card {
-    background: var(--surface-3);
-    border: 1.5px solid var(--text-1);
-    box-shadow: 6px 6px 0 var(--spot);
+    background: rgb(var(--surface-3));
+    border: 1.5px solid rgb(var(--text-1));
+    box-shadow: 6px 6px 0 rgb(var(--spot));
     padding: 32px 34px 28px;
   }
   .wiz-bar {
@@ -396,13 +415,13 @@
     flex: 1;
     height: 6px;
     display: block;
-    background: var(--line);
+    background: rgb(var(--line));
   }
-  .wiz-bar i.on { background: var(--text-1); }
-  .wiz-bar i.cur { background: var(--spot); }
+  .wiz-bar i.on { background: rgb(var(--text-1)); }
+  .wiz-bar i.cur { background: rgb(var(--spot)); }
   .wiz-step {
     font-size: 11.5px;
-    color: var(--text-3);
+    color: rgb(var(--text-3));
     font-variation-settings: "wght" 660;
     margin-bottom: 9px;
   }
@@ -418,7 +437,7 @@
     font-family: var(--font-newsreader), ui-serif, Georgia, serif;
     font-style: italic;
     font-size: 16px;
-    color: var(--text-2);
+    color: rgb(var(--text-2));
     margin: 0 0 20px;
   }
   .wiz-foot {
@@ -428,14 +447,14 @@
     gap: 12px;
     margin-top: 26px;
     padding-top: 20px;
-    border-top: 1.5px solid var(--line);
+    border-top: 1.5px solid rgb(var(--line));
   }
   .wiz-count {
     font-size: 11.5px;
-    color: var(--text-3);
+    color: rgb(var(--text-3));
     font-variant-numeric: tabular-nums;
   }
-  .wiz-count.over { color: var(--spot); }
+  .wiz-count.over { color: rgb(var(--spot)); }
 
   /* A 1–5 pick, as five hard keys rather than a slider. */
   .pick {
@@ -444,16 +463,16 @@
   }
   .pick button {
     flex: 1;
-    border: 1.5px solid var(--text-1);
-    background: var(--surface-3);
-    color: var(--text-1);
+    border: 1.5px solid rgb(var(--text-1));
+    background: rgb(var(--surface-3));
+    color: rgb(var(--text-1));
     padding: 12px 0 10px;
     cursor: pointer;
     font-variant-numeric: tabular-nums;
   }
   .pick button[aria-pressed="true"] {
-    background: var(--spot);
-    border-color: var(--spot);
+    background: rgb(var(--spot));
+    border-color: rgb(var(--spot));
     color: #fff;
   }
 
@@ -461,7 +480,7 @@
   @media (max-width: 760px) {
     .wiz-card {
       padding: 22px 20px 20px;
-      box-shadow: 4px 4px 0 var(--spot);
+      box-shadow: 4px 4px 0 rgb(var(--spot));
     }
     .wiz-foot {
       position: fixed;
@@ -471,8 +490,8 @@
       z-index: 31;
       margin: 0;
       padding: 11px 18px calc(11px + env(safe-area-inset-bottom));
-      background: var(--surface-0);
-      border-top: 1.5px solid var(--text-1);
+      background: rgb(var(--surface-0));
+      border-top: 1.5px solid rgb(var(--text-1));
     }
     .wiz-foot .btn-next { flex: 1; }
     .wiz { padding-bottom: 76px; }

@@ -30,7 +30,7 @@ function DayRatingChart({ data }: { data: InsightsData }) {
   return (
     <div className="card">
       <div className="card-glow" />
-      <div className="text-xs uppercase tracking-[0.18em] text-ink-400 mb-3">
+      <div className="lbl mb-3">
         Evening rating · last {data.windowDays} days
       </div>
       <div className="flex items-end gap-[3px] h-32">
@@ -72,7 +72,7 @@ function FocusChart({ data }: { data: InsightsData }) {
   return (
     <div className="card">
       <div className="card-glow" />
-      <div className="text-xs uppercase tracking-[0.18em] text-ink-400 mb-3">
+      <div className="lbl mb-3">
         Focus minutes · last {data.windowDays} days · max{" "}
         {Math.round(maxMinutes)}m
       </div>
@@ -105,7 +105,7 @@ function HabitHeatmap({ data }: { data: InsightsData }) {
   return (
     <div className="card overflow-x-auto">
       <div className="card-glow" />
-      <div className="text-xs uppercase tracking-[0.18em] text-ink-400 mb-3">
+      <div className="lbl mb-3">
         Habit grid · last {data.windowDays} days
       </div>
       <div className="space-y-1.5 min-w-[400px]">

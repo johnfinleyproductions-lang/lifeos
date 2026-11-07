@@ -10,6 +10,7 @@ import {
 import { requireUserContext } from "@/lib/auth/server-helpers";
 import { PROTOCOLS, ACCENT_TEXT } from "@/lib/protocols/definitions";
 import { morningManifestoSchema } from "@/lib/manifesto/schema";
+import { PageStamp } from "@/components/PageStamp";
 
 export default async function IdentityPage() {
   const { user } = await requireUserContext();
@@ -51,19 +52,9 @@ export default async function IdentityPage() {
 
   return (
     <div className="max-w-5xl mx-auto">
-      <div className="mb-8 flex items-center justify-between">
-        <Link
-          href="/"
-          className="text-xs text-ink-400 hover:text-ink-100 transition"
-        >
-          ← Today
-        </Link>
-        <div className="text-xs text-ink-400 uppercase tracking-[0.18em]">
-          {format(new Date(), "EEEE · MMMM d")}
-        </div>
-      </div>
+      <PageStamp />
 
-      <h1 className="font-serif text-3xl text-ink-50 mb-1">Identity</h1>
+      <h1 className="t-h1 text-ink-50 mb-1">Identity</h1>
       <p className="text-sm text-ink-300 mb-8">
         Who you&apos;re becoming, and what proves it.
       </p>
@@ -71,10 +62,10 @@ export default async function IdentityPage() {
       {identityStatement && (
         <div className="card mb-10">
           <div className="card-glow" />
-          <div className="text-xs uppercase tracking-[0.18em] text-accent-violet mb-2">
+          <div className="text-xs lbl text-accent-violet mb-2">
             Today&apos;s identity statement
           </div>
-          <p className="font-serif text-2xl text-ink-50 leading-snug">
+          <p className="t-h2 text-ink-50 leading-snug">
             {identityStatement}
           </p>
           <div className="text-[11px] text-ink-400 mt-3">
@@ -121,7 +112,7 @@ export default async function IdentityPage() {
                     {e.body}
                   </p>
                 )}
-                <div className="text-[10px] uppercase tracking-wider text-ink-500 mt-2">
+                <div className="text-[10px] lbl text-ink-500 mt-2">
                   {e.kind === "manual" ? "manual" : e.kind.replace("auto_", "")}
                 </div>
               </div>
@@ -139,11 +130,11 @@ export default async function IdentityPage() {
             <Link
               key={p.slug}
               href={`/protocols/${p.slug}`}
-              className="card hover:bg-white/[0.02] transition"
+              className="card hover:bg-ink-800 transition"
             >
               <div className="card-glow" />
               <div
-                className={`text-xs uppercase tracking-[0.18em] mb-1 ${
+                className={`text-xs lbl mb-1 ${
                   ACCENT_TEXT[p.accent]
                 }`}
               >
@@ -171,7 +162,7 @@ export default async function IdentityPage() {
         >
           <Link
             href="/protocols/future_letter"
-            className="card block hover:bg-white/[0.02] transition"
+            className="card block hover:bg-ink-800 transition"
           >
             <div className="card-glow" />
             <p className="text-sm text-ink-300 mb-2">
@@ -199,7 +190,7 @@ function Section({
   return (
     <section className="mb-10">
       <div className="mb-4">
-        <h2 className="text-xs uppercase tracking-[0.18em] text-ink-400">
+        <h2 className="lbl">
           {title}
         </h2>
         {subtitle && (

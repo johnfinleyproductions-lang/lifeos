@@ -160,7 +160,7 @@ export function CoachChat() {
                   key={s}
                   type="button"
                   onClick={() => send(s)}
-                  className="text-xs px-3 py-2 rounded-lg border border-white/10 text-ink-200 hover:border-white/30 hover:text-ink-50 transition"
+                  className="text-xs px-3 py-2 rounded-lg border border-ink-600 text-ink-200 hover:border-ink-50 hover:text-ink-50 transition"
                 >
                   {s}
                 </button>
@@ -282,7 +282,7 @@ function Message({
   return (
     <div className="flex justify-start">
       <div className="max-w-[85%]">
-        <div className="text-[10px] uppercase tracking-[0.18em] text-accent-violet mb-1">
+        <div className="text-[10px] lbl text-accent-violet mb-1">
           Coach
         </div>
         <div className="text-base text-ink-100 whitespace-pre-wrap leading-relaxed">

@@ -47,7 +47,7 @@ export default async function JournalPastPage() {
         </Link>
       </div>
 
-      <h1 className="font-serif text-3xl text-ink-50 mb-1">Past entries</h1>
+      <h1 className="t-h1 text-ink-50 mb-1">Past entries</h1>
       <p className="text-sm text-ink-300 mb-8">
         {entries.length} {entries.length === 1 ? "entry" : "entries"}.
       </p>
@@ -71,7 +71,7 @@ export default async function JournalPastPage() {
         <div className="space-y-8">
           {Array.from(grouped.entries()).map(([date, dayEntries]) => (
             <section key={date}>
-              <div className="text-xs uppercase tracking-[0.18em] text-ink-400 mb-3">
+              <div className="lbl mb-3">
                 {format(new Date(date), "EEEE · MMMM d, yyyy")}
               </div>
               <div className="space-y-2">
@@ -85,7 +85,7 @@ export default async function JournalPastPage() {
                       <div className="flex items-start justify-between gap-3 mb-2">
                         <div className="flex items-center gap-2">
                           <span
-                            className={`text-[10px] uppercase tracking-wider ${
+                            className={`text-[10px] lbl ${
                               MODE_ACCENT[e.mode] ?? "text-ink-400"
                             }`}
                           >
@@ -97,7 +97,7 @@ export default async function JournalPastPage() {
                             </span>
                           )}
                           {e.isDecision && (
-                            <span className="text-[10px] text-accent-gold uppercase tracking-wider">
+                            <span className="text-[10px] text-accent-gold lbl">
                               · decision
                             </span>
                           )}
@@ -123,8 +123,8 @@ export default async function JournalPastPage() {
                           : e.body}
                       </div>
                       {e.isDecision && e.decisionSummary && (
-                        <div className="mt-3 pt-3 border-t border-white/5 text-xs text-ink-300">
-                          <span className="text-accent-gold uppercase tracking-wider">
+                        <div className="mt-3 pt-3 border-t border-ink-600 text-xs text-ink-300">
+                          <span className="text-accent-gold lbl">
                             Decision:
                           </span>{" "}
                           {e.decisionSummary}

@@ -126,12 +126,12 @@ export function JournalEditor() {
             onClick={() => setMode(opt.key)}
             className={`flex-1 px-4 py-3 rounded-xl border text-left transition ${
               mode === opt.key
-                ? "border-white/15 bg-white/[0.03]"
-                : "border-white/5 hover:border-white/10"
+                ? "border-ink-500 bg-ink-800"
+                : "border-ink-600 hover:border-ink-500"
             }`}
           >
             <div
-              className={`text-xs uppercase tracking-[0.18em] mb-1 ${
+              className={`text-xs lbl mb-1 ${
                 mode === opt.key ? opt.accent : "text-ink-400"
               }`}
             >
@@ -152,7 +152,7 @@ export function JournalEditor() {
       {mode === "framework" && (
         <div className="card">
           <div className="card-glow" />
-          <div className="text-xs uppercase tracking-[0.18em] text-ink-400 mb-3">
+          <div className="lbl mb-3">
             Lens
           </div>
           <div className="flex flex-wrap gap-2">
@@ -164,7 +164,7 @@ export function JournalEditor() {
                 className={`px-3 py-1.5 rounded-full text-xs border transition ${
                   lensKey === l.key
                     ? "border-accent-sky bg-accent-sky/10 text-accent-sky"
-                    : "border-white/10 text-ink-300 hover:border-white/30"
+                    : "border-ink-600 text-ink-300 hover:border-ink-50"
                 }`}
               >
                 {l.title}
@@ -172,7 +172,7 @@ export function JournalEditor() {
             ))}
           </div>
           {lens && (
-            <div className="mt-4 pt-4 border-t border-white/5">
+            <div className="mt-4 pt-4 border-t border-ink-600">
               <div className="font-serif text-lg text-ink-50 mb-1">
                 {lens.prompt}
               </div>
@@ -199,7 +199,7 @@ export function JournalEditor() {
                 : "text-base text-ink-100"
           }`}
         />
-        <div className="flex items-center justify-between text-[11px] text-ink-400 mt-3 pt-3 border-t border-white/5 gap-3">
+        <div className="flex items-center justify-between text-[11px] text-ink-400 mt-3 pt-3 border-t border-ink-600 gap-3">
           <span>
             {body.length} / 20000 ·{" "}
             {body.trim().split(/\s+/).filter(Boolean).length} words
@@ -227,7 +227,7 @@ export function JournalEditor() {
           className="w-full flex items-center justify-between text-left"
         >
           <div>
-            <div className="text-xs uppercase tracking-[0.18em] text-ink-400 mb-1">
+            <div className="lbl mb-1">
               Decision tag
             </div>
             <div className="text-sm text-ink-200">
@@ -252,17 +252,17 @@ export function JournalEditor() {
         </button>
 
         {isDecision && (
-          <div className="mt-4 pt-4 border-t border-white/5 space-y-3">
+          <div className="mt-4 pt-4 border-t border-ink-600 space-y-3">
             <input
               type="text"
               value={decisionSummary}
               onChange={(e) => setDecisionSummary(e.target.value)}
               placeholder="One-line summary of the decision"
               maxLength={280}
-              className="w-full bg-ink-900 border border-white/5 rounded-lg px-3 py-2 text-sm focus:border-accent-gold focus:outline-none"
+              className="w-full bg-ink-900 border border-ink-600 rounded-lg px-3 py-2 text-sm focus:border-accent-gold focus:outline-none"
             />
             <div>
-              <div className="text-[11px] uppercase tracking-[0.18em] text-ink-400 mb-2">
+              <div className="lbl mb-2">
                 Category
               </div>
               <div className="flex flex-wrap gap-1.5">
@@ -279,7 +279,7 @@ export function JournalEditor() {
                     className={`px-2.5 py-1 rounded-full text-[11px] border transition ${
                       decisionCategory === key
                         ? "border-accent-gold bg-accent-gold/10 text-accent-gold"
-                        : "border-white/10 text-ink-300 hover:border-white/30"
+                        : "border-ink-600 text-ink-300 hover:border-ink-50"
                     }`}
                   >
                     {label}
@@ -288,7 +288,7 @@ export function JournalEditor() {
               </div>
             </div>
             <div>
-              <div className="text-[11px] uppercase tracking-[0.18em] text-ink-400 mb-2">
+              <div className="lbl mb-2">
                 Door type
               </div>
               <div className="flex gap-2">
@@ -313,7 +313,7 @@ export function JournalEditor() {
                     className={`flex-1 px-3 py-2 rounded-lg border text-left transition ${
                       decisionDoor === d.key
                         ? "border-accent-gold/50 bg-accent-gold/5"
-                        : "border-white/10 hover:border-white/30"
+                        : "border-ink-600 hover:border-ink-50"
                     }`}
                   >
                     <div className="text-sm text-ink-100">{d.label}</div>

@@ -25,10 +25,10 @@ export async function EveningSummaryCard() {
       <div className="card-glow" />
       <div className="flex items-start justify-between gap-6 mb-5">
         <div className="flex-1">
-          <div className="text-xs uppercase tracking-[0.18em] text-ink-400 mb-2">
+          <div className="lbl mb-2">
             Day closed
           </div>
-          <p className="font-serif text-2xl text-ink-50 leading-snug">
+          <p className="t-h2 text-ink-50 leading-snug">
             {evening.dayRating}/5 · {evening.dayMood}
             <span className="text-ink-400 text-base ml-2">
               ({RATING_LABELS[evening.dayRating]})
@@ -62,7 +62,7 @@ export async function EveningSummaryCard() {
       </div>
 
       {(evening.reframe || evening.release) && (
-        <div className="mt-5 pt-5 border-t border-white/5 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+        <div className="mt-5 pt-5 border-t border-ink-600 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           {evening.reframe && (
             <SummaryField
               color="text-accent-violet"
@@ -95,7 +95,7 @@ function SummaryField({
   return (
     <div>
       <div
-        className={`text-[10px] uppercase tracking-[0.16em] mb-1 ${color}`}
+        className={`text-[10px] lbl mb-1 ${color}`}
       >
         {label}
       </div>

@@ -18,12 +18,12 @@ export default async function SettingsPage() {
         >
           ← Today
         </Link>
-        <div className="text-xs text-ink-400 uppercase tracking-[0.18em]">
+        <div className="text-xs text-ink-400 lbl">
           Settings
         </div>
       </div>
 
-      <h1 className="font-serif text-3xl text-ink-50 mb-1">Settings</h1>
+      <h1 className="t-h1 text-ink-50 mb-1">Settings</h1>
       <p className="text-sm text-ink-300 mb-8">
         Tune how LifeOS shows up in your day.
       </p>
@@ -123,7 +123,7 @@ function Section({
   return (
     <section className="mb-8">
       <div className="mb-3">
-        <h2 className="text-xs uppercase tracking-[0.18em] text-ink-400">
+        <h2 className="lbl">
           {title}
         </h2>
         {subtitle && (

@@ -78,11 +78,11 @@ export function ProtocolRunner({ protocol }: { protocol: Protocol }) {
       <div className="card max-w-2xl mx-auto">
         <div className="card-glow" />
         <div
-          className={`text-xs uppercase tracking-[0.18em] ${accentText} mb-2`}
+          className={`text-xs lbl ${accentText} mb-2`}
         >
           {protocol.title}
         </div>
-        <h1 className="font-serif text-3xl text-ink-50 mb-3 leading-snug">
+        <h1 className="t-h1 text-ink-50 mb-3 leading-snug">
           {protocol.subtitle}
         </h1>
         <p className="text-base text-ink-300 leading-relaxed mb-6">
@@ -113,7 +113,7 @@ export function ProtocolRunner({ protocol }: { protocol: Protocol }) {
       <div className="card-glow" />
       <div className="flex items-center justify-between mb-6">
         <div
-          className={`text-xs uppercase tracking-[0.18em] ${accentText}`}
+          className={`text-xs lbl ${accentText}`}
         >
           {protocol.title} · {step} / {totalSteps}
         </div>
@@ -130,7 +130,7 @@ export function ProtocolRunner({ protocol }: { protocol: Protocol }) {
       </div>
 
       <div className="min-h-[260px]">
-        <h2 className="font-serif text-2xl text-ink-50 mb-1.5 leading-snug">
+        <h2 className="t-h2 text-ink-50 mb-1.5 leading-snug">
           {prompt.label}
         </h2>
         {prompt.subhead && (
@@ -145,7 +145,7 @@ export function ProtocolRunner({ protocol }: { protocol: Protocol }) {
             autoFocus
             placeholder={prompt.placeholder}
             maxLength={prompt.maxLength ?? 200}
-            className="w-full bg-ink-900 border border-white/5 rounded-lg px-4 py-3 text-base focus:border-white/30 focus:outline-none"
+            className="w-full bg-ink-900 border border-ink-600 rounded-lg px-4 py-3 text-base focus:border-accent-spot focus:outline-none"
           />
         ) : (
           <textarea
@@ -155,7 +155,7 @@ export function ProtocolRunner({ protocol }: { protocol: Protocol }) {
             rows={6}
             placeholder={prompt.placeholder}
             maxLength={prompt.maxLength ?? 1000}
-            className="w-full bg-ink-900 border border-white/5 rounded-lg px-4 py-3 text-base leading-snug focus:border-white/30 focus:outline-none resize-none"
+            className="w-full bg-ink-900 border border-ink-600 rounded-lg px-4 py-3 text-base leading-snug focus:border-accent-spot focus:outline-none resize-none"
           />
         )}
 

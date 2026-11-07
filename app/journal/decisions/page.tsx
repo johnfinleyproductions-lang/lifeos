@@ -59,7 +59,7 @@ export default async function JournalDecisionsPage() {
         </Link>
       </div>
 
-      <h1 className="font-serif text-3xl text-ink-50 mb-1">
+      <h1 className="t-h1 text-ink-50 mb-1">
         Decisions log
       </h1>
       <p className="text-sm text-ink-300 mb-8">
@@ -111,13 +111,13 @@ export default async function JournalDecisionsPage() {
                   <div className="flex items-start justify-between gap-3 mb-2">
                     <div className="flex flex-wrap items-center gap-2">
                       {categoryLabel && (
-                        <span className="text-[10px] uppercase tracking-wider text-accent-gold bg-accent-gold/10 px-2 py-0.5 rounded">
+                        <span className="text-[10px] lbl text-accent-gold bg-accent-gold/10 px-2 py-0.5 rounded">
                           {categoryLabel}
                         </span>
                       )}
                       {d.decisionDoor && (
                         <span
-                          className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded ${
+                          className={`text-[10px] lbl px-2 py-0.5 rounded ${
                             d.decisionDoor === "two_way"
                               ? "text-accent-green bg-accent-green/10"
                               : "text-accent-rose bg-accent-rose/10"
@@ -168,7 +168,7 @@ function Stat({
   return (
     <div className="card">
       <div className="card-glow" />
-      <div className="text-[10px] uppercase tracking-[0.18em] text-ink-400 mb-1">
+      <div className="lbl mb-1">
         {label}
       </div>
       <div

@@ -78,7 +78,7 @@ export function FutureEditor({ initial }: { initial: FuturePaths }) {
       {HORIZONS.map((h) => (
         <div key={h.key}>
           <div className="mb-2">
-            <div className="text-xs uppercase tracking-[0.18em] text-accent-violet">
+            <div className="text-xs lbl text-accent-violet">
               {h.label}
             </div>
             <div className="font-serif text-lg text-ink-100 mt-0.5">
@@ -93,7 +93,7 @@ export function FutureEditor({ initial }: { initial: FuturePaths }) {
             rows={4}
             maxLength={2000}
             placeholder="Sketch it…"
-            className="w-full bg-ink-900 border border-white/5 rounded-lg px-4 py-3 text-base leading-snug focus:border-accent-violet/40 focus:outline-none resize-none"
+            className="w-full bg-ink-900 border border-ink-600 rounded-lg px-4 py-3 text-base leading-snug focus:border-accent-violet/40 focus:outline-none resize-none"
           />
         </div>
       ))}

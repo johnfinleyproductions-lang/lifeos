@@ -8,6 +8,7 @@ import {
 } from "@/lib/reflection/auto-detect";
 import { YearHeatmap } from "@/components/reflection/YearHeatmap";
 import { BALANCE_DIMENSIONS } from "@/lib/reflection/balance";
+import { PageStamp } from "@/components/PageStamp";
 
 export default async function DisciplinePage() {
   const { user } = await requireUserContext();
@@ -20,21 +21,11 @@ export default async function DisciplinePage() {
 
   return (
     <div className="max-w-5xl mx-auto">
-      <div className="mb-8 flex items-center justify-between">
-        <Link
-          href="/"
-          className="text-xs text-ink-400 hover:text-ink-100 transition"
-        >
-          ← Today
-        </Link>
-        <div className="text-xs text-ink-400 uppercase tracking-[0.18em]">
-          {format(new Date(), "EEEE · MMMM d")}
-        </div>
-      </div>
+      <PageStamp />
 
       <div className="flex items-end justify-between mb-8">
         <div>
-          <h1 className="font-serif text-3xl text-ink-50 mb-1">Discipline</h1>
+          <h1 className="t-h1 text-ink-50 mb-1">Discipline</h1>
           <p className="text-sm text-ink-300">
             The pattern of how you actually live.
           </p>
@@ -49,7 +40,7 @@ export default async function DisciplinePage() {
 
       {/* 7-day scorecard */}
       <section className="mb-8">
-        <div className="text-xs uppercase tracking-[0.18em] text-ink-400 mb-3">
+        <div className="lbl mb-3">
           Last 7 days
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -93,7 +84,7 @@ export default async function DisciplinePage() {
       {/* Balance from latest weekly review */}
       <section className="mb-8">
         <div className="flex items-baseline justify-between mb-3">
-          <div className="text-xs uppercase tracking-[0.18em] text-ink-400">
+          <div className="lbl">
             Balance · most recent review
           </div>
           {!balance && (
@@ -131,7 +122,7 @@ export default async function DisciplinePage() {
 
       {/* Year heatmap */}
       <section>
-        <div className="text-xs uppercase tracking-[0.18em] text-ink-400 mb-3">
+        <div className="lbl mb-3">
           The year
         </div>
         <YearHeatmap cells={heatmap} />
@@ -154,10 +145,10 @@ function Stat({
   return (
     <div className="card">
       <div className="card-glow" />
-      <div className={`text-[10px] uppercase tracking-wider mb-1 ${accent}`}>
+      <div className={`text-[10px] lbl mb-1 ${accent}`}>
         {label}
       </div>
-      <div className="font-serif text-2xl text-ink-50 tabular-nums">
+      <div className="t-h2 text-ink-50 tabular-nums">
         {value}
         {unit && (
           <span className="text-sm text-ink-400 ml-1">{unit}</span>

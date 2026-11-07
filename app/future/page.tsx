@@ -35,13 +35,13 @@ export default async function FuturePage() {
         >
           ← Compass
         </Link>
-        <div className="text-xs text-ink-400 uppercase tracking-[0.18em]">
+        <div className="text-xs text-ink-400 lbl">
           {format(new Date(), "EEEE · MMMM d")}
         </div>
       </div>
 
       <div className="mb-6">
-        <h1 className="font-serif text-3xl text-ink-50 mb-1">Future</h1>
+        <h1 className="t-h1 text-ink-50 mb-1">Future</h1>
         <p className="text-sm text-ink-300">
           Sketches across four horizons. Where you&apos;re aiming.
         </p>

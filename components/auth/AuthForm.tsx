@@ -34,7 +34,7 @@ export function AuthForm() {
     return (
       <div className="card max-w-md w-full text-center">
         <div className="card-glow" />
-        <div className="font-serif text-3xl text-ink-50 mb-3">
+        <div className="t-h1 text-ink-50 mb-3">
           Check your email.
         </div>
         <p className="text-sm text-ink-300 leading-relaxed mb-4">
@@ -79,7 +79,7 @@ export function AuthForm() {
         required
         autoComplete="email"
         inputMode="email"
-        className="w-full bg-ink-900 border border-white/5 rounded-lg px-4 py-3 text-base focus:border-accent-violet/40 focus:outline-none mb-4"
+        className="w-full bg-ink-900 border border-ink-600 rounded-lg px-4 py-3 text-base focus:border-accent-violet/40 focus:outline-none mb-4"
       />
       {error && (
         <div className="text-sm text-accent-rose bg-accent-rose/10 border border-accent-rose/30 rounded-lg px-3 py-2 mb-4">

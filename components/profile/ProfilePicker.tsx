@@ -56,8 +56,8 @@ export function ProfilePicker({
               onClick={() => pick(p.slug)}
               disabled={picking !== null}
               className={`card text-left transition py-8 ${
-                active ? "border-white/20" : ""
-              } ${inFlight ? "opacity-60" : "hover:bg-white/[0.03]"}`}
+                active ? "border-ink-500" : ""
+              } ${inFlight ? "opacity-60" : "hover:bg-ink-800"}`}
             >
               <div className="card-glow" />
               <div className="flex items-center gap-4">
@@ -74,7 +74,7 @@ export function ProfilePicker({
                     {p.email}
                   </div>
                   {active && (
-                    <div className="text-[10px] uppercase tracking-wider text-accent-green mt-1">
+                    <div className="text-[10px] lbl text-accent-green mt-1">
                       Currently active
                     </div>
                   )}

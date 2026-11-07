@@ -24,7 +24,7 @@ export default async function ProtocolPage({
         >
           ← Identity
         </Link>
-        <div className="text-xs text-ink-400 uppercase tracking-[0.18em]">
+        <div className="text-xs text-ink-400 lbl">
           {format(new Date(), "EEEE · MMMM d")}
         </div>
       </div>

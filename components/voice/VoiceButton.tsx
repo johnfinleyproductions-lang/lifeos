@@ -116,7 +116,7 @@ export function VoiceButton({
         className={`${sizeClass} shrink-0 rounded-lg grid place-items-center transition border ${
           listening
             ? "bg-accent-rose/15 text-accent-rose border-accent-rose/40 animate-pulse"
-            : "bg-ink-700 text-ink-300 border-white/5 hover:bg-ink-600 hover:text-ink-100"
+            : "bg-ink-700 text-ink-300 border-ink-600 hover:bg-ink-600 hover:text-ink-100"
         } disabled:opacity-30 disabled:cursor-not-allowed`}
       >
         {listening ? (

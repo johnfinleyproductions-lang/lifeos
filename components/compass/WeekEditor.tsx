@@ -62,7 +62,7 @@ export function WeekEditor({ initial }: { initial: IdealWeek }) {
         {DAYS.map((day) => (
           <div key={day} className="card">
             <div className="card-glow" />
-            <div className="text-xs uppercase tracking-[0.18em] text-accent-sky mb-2">
+            <div className="text-xs lbl text-accent-sky mb-2">
               {DAY_LABELS[day]}
             </div>
             <textarea

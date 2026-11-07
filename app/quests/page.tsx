@@ -1,11 +1,10 @@
-import Link from "next/link";
 import { and, eq } from "drizzle-orm";
-import { format } from "date-fns";
 import { db } from "@/lib/db";
 import { lifeosQuests } from "@/lib/db/schema/lifeos";
 import { requireUserContext } from "@/lib/auth/server-helpers";
 import { QuestsClient } from "@/components/quests/QuestsClient";
 import { quarterProgress } from "@/lib/quests/quarter";
+import { PageStamp } from "@/components/PageStamp";
 
 export default async function QuestsPage() {
   const { user } = await requireUserContext();
@@ -35,21 +34,11 @@ export default async function QuestsPage() {
 
   return (
     <div className="max-w-5xl mx-auto">
-      <div className="mb-8 flex items-center justify-between">
-        <Link
-          href="/"
-          className="text-xs text-ink-400 hover:text-ink-100 transition"
-        >
-          ← Today
-        </Link>
-        <div className="text-xs text-ink-400 uppercase tracking-[0.18em]">
-          {format(new Date(), "EEEE · MMMM d")}
-        </div>
-      </div>
+      <PageStamp />
 
       <div className="flex items-end justify-between mb-8">
         <div>
-          <h1 className="font-serif text-3xl text-ink-50 mb-1">
+          <h1 className="t-h1 text-ink-50 mb-1">
             Quarterly quests
           </h1>
           <p className="text-sm text-ink-300">

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { and, eq, gte, inArray } from "drizzle-orm";
 import { format, subDays } from "date-fns";
 import { db } from "@/lib/db";
@@ -8,6 +7,7 @@ import {
 } from "@/lib/db/schema/lifeos";
 import { requireUserContext } from "@/lib/auth/server-helpers";
 import { HabitsClient } from "@/components/habits/HabitsClient";
+import { PageStamp } from "@/components/PageStamp";
 
 export default async function HabitsPage() {
   const { user } = await requireUserContext();
@@ -68,19 +68,9 @@ export default async function HabitsPage() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="mb-8 flex items-center justify-between">
-        <Link
-          href="/"
-          className="text-xs text-ink-400 hover:text-ink-100 transition"
-        >
-          ← Today
-        </Link>
-        <div className="text-xs text-ink-400 uppercase tracking-[0.18em]">
-          {format(new Date(), "EEEE · MMMM d")}
-        </div>
-      </div>
+      <PageStamp />
 
-      <h1 className="font-serif text-3xl text-ink-50 mb-1">Habits</h1>
+      <h1 className="t-h1 text-ink-50 mb-1">Habits</h1>
       <p className="text-sm text-ink-300 mb-8">
         The small things you keep doing.
       </p>

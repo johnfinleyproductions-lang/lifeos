@@ -15,14 +15,14 @@ export default async function JournalPage() {
         >
           ← Today
         </Link>
-        <div className="text-xs text-ink-400 uppercase tracking-[0.18em]">
+        <div className="text-xs text-ink-400 lbl">
           {format(new Date(), "EEEE · MMMM d")}
         </div>
       </div>
 
       <div className="mb-6 flex items-end justify-between">
         <div>
-          <h1 className="font-serif text-3xl text-ink-50 mb-1">Journal</h1>
+          <h1 className="t-h1 text-ink-50 mb-1">Journal</h1>
           <p className="text-sm text-ink-300">
             Private writing space. Stays here.
           </p>

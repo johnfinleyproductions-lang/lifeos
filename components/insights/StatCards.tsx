@@ -58,10 +58,10 @@ function Stat({
   return (
     <div className="card">
       <div className="card-glow" />
-      <div className={`text-[10px] uppercase tracking-wider mb-1 ${accent}`}>
+      <div className={`text-[10px] lbl mb-1 ${accent}`}>
         {label}
       </div>
-      <div className="font-serif text-3xl text-ink-50 tabular-nums">
+      <div className="t-h1 text-ink-50 tabular-nums">
         {value}
         {unit && <span className="text-sm text-ink-400 ml-1">{unit}</span>}
       </div>

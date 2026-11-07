@@ -110,7 +110,7 @@ export function HabitsClient({ habits }: { habits: Habit[] }) {
                 <div className="font-serif text-lg text-ink-100 truncate">
                   {h.name}
                 </div>
-                <div className="text-[11px] text-ink-400 uppercase tracking-wider mt-0.5">
+                <div className="text-[11px] text-ink-400 lbl mt-0.5">
                   {h.cadence} · {streakCount} of last 7
                 </div>
               </div>
@@ -121,7 +121,7 @@ export function HabitsClient({ habits }: { habits: Habit[] }) {
                 className={`shrink-0 px-4 py-2 rounded-lg text-sm transition border ${
                   todayDone
                     ? "bg-accent-green/15 text-accent-green border-accent-green/30"
-                    : "border-white/10 text-ink-200 hover:border-white/30"
+                    : "border-ink-600 text-ink-200 hover:border-ink-50"
                 } disabled:opacity-50`}
               >
                 {toggling === h.id
@@ -176,9 +176,9 @@ export function HabitsClient({ habits }: { habits: Habit[] }) {
             placeholder="e.g. Read 20 pages"
             maxLength={80}
             autoFocus
-            className="w-full bg-ink-900 border border-white/5 rounded-lg px-3 py-2.5 text-sm focus:border-accent-green focus:outline-none mb-4"
+            className="w-full bg-ink-900 border border-ink-600 rounded-lg px-3 py-2.5 text-sm focus:border-accent-green focus:outline-none mb-4"
           />
-          <div className="text-[11px] uppercase tracking-[0.18em] text-ink-400 mb-2">
+          <div className="lbl mb-2">
             Cadence
           </div>
           <div className="flex gap-2 mb-5">
@@ -190,7 +190,7 @@ export function HabitsClient({ habits }: { habits: Habit[] }) {
                 className={`px-3 py-1.5 rounded-full text-xs border transition ${
                   cadence === c
                     ? "border-accent-violet bg-accent-violet/10 text-accent-violet"
-                    : "border-white/10 text-ink-300 hover:border-white/30"
+                    : "border-ink-600 text-ink-300 hover:border-ink-50"
                 }`}
               >
                 {c}
@@ -227,7 +227,7 @@ export function HabitsClient({ habits }: { habits: Habit[] }) {
           <button
             type="button"
             onClick={() => setShowForm(true)}
-            className="w-full py-3 text-sm text-ink-300 hover:text-ink-100 transition border border-dashed border-white/10 rounded-xl hover:border-white/30"
+            className="w-full py-3 text-sm text-ink-300 hover:text-ink-100 transition border border-dashed border-ink-600 rounded-xl hover:border-ink-50"
           >
             + Add habit
           </button>

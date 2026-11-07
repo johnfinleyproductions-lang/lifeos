@@ -60,7 +60,7 @@ export function CompassEditor({ initial }: Props) {
           rows={3}
           maxLength={2000}
           placeholder="My mission is to…"
-          className="w-full bg-ink-900 border border-white/5 rounded-lg px-4 py-3 font-serif text-base leading-snug focus:border-accent-violet/40 focus:outline-none resize-none"
+          className="w-full bg-ink-900 border border-ink-600 rounded-lg px-4 py-3 font-serif text-base leading-snug focus:border-accent-violet/40 focus:outline-none resize-none"
         />
       </Field>
 
@@ -75,7 +75,7 @@ export function CompassEditor({ initial }: Props) {
           rows={6}
           maxLength={4000}
           placeholder="They were the kind of person who…"
-          className="w-full bg-ink-900 border border-white/5 rounded-lg px-4 py-3 font-serif text-base leading-snug focus:border-accent-rose/40 focus:outline-none resize-none"
+          className="w-full bg-ink-900 border border-ink-600 rounded-lg px-4 py-3 font-serif text-base leading-snug focus:border-accent-rose/40 focus:outline-none resize-none"
         />
       </Field>
 
@@ -90,7 +90,7 @@ export function CompassEditor({ initial }: Props) {
           rows={4}
           maxLength={2000}
           placeholder="Success looks like…"
-          className="w-full bg-ink-900 border border-white/5 rounded-lg px-4 py-3 text-base leading-snug focus:border-accent-gold/40 focus:outline-none resize-none"
+          className="w-full bg-ink-900 border border-ink-600 rounded-lg px-4 py-3 text-base leading-snug focus:border-accent-gold/40 focus:outline-none resize-none"
         />
       </Field>
 
@@ -131,7 +131,7 @@ function Field({
   return (
     <div>
       <div className="mb-2">
-        <div className={`text-xs uppercase tracking-[0.18em] ${accent}`}>
+        <div className={`text-xs lbl ${accent}`}>
           {label}
         </div>
         <div className="text-sm text-ink-300 mt-0.5">{sub}</div>

@@ -105,7 +105,7 @@ export function WeeklyReviewClient({
       <div className="card-glow" />
 
       <div className="flex items-center justify-between mb-6">
-        <div className="text-xs uppercase tracking-[0.18em] text-accent-gold">
+        <div className="text-xs lbl text-accent-gold">
           Weekly review · {phase} / {TOTAL_PHASES}
         </div>
         <div className="flex gap-1">
@@ -150,7 +150,7 @@ export function WeeklyReviewClient({
               rows={6}
               maxLength={2000}
               placeholder="The week, in your own words…"
-              className="w-full bg-ink-900 border border-white/5 rounded-lg px-4 py-3 text-base leading-relaxed focus:border-white/30 focus:outline-none resize-none"
+              className="w-full bg-ink-900 border border-ink-600 rounded-lg px-4 py-3 text-base leading-relaxed focus:border-accent-spot focus:outline-none resize-none"
             />
           </Step>
         )}
@@ -167,7 +167,7 @@ export function WeeklyReviewClient({
               rows={8}
               maxLength={2000}
               placeholder="One per line."
-              className="w-full bg-ink-900 border border-white/5 rounded-lg px-4 py-3 text-base leading-relaxed focus:border-accent-green/40 focus:outline-none resize-none"
+              className="w-full bg-ink-900 border border-ink-600 rounded-lg px-4 py-3 text-base leading-relaxed focus:border-accent-green/40 focus:outline-none resize-none"
             />
           </Step>
         )}
@@ -184,9 +184,9 @@ export function WeeklyReviewClient({
             ) : (
               <div className="space-y-3">
                 {activeQuests.map((q) => (
-                  <div key={q.id} className="border-l-2 border-white/5 pl-4">
+                  <div key={q.id} className="border-l-2 border-ink-600 pl-4">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[10px] uppercase tracking-wider text-ink-400">
+                      <span className="text-[10px] lbl text-ink-400">
                         {q.domain} · {q.type}
                       </span>
                       <span className="text-[10px] text-ink-400">
@@ -207,7 +207,7 @@ export function WeeklyReviewClient({
                       }
                       maxLength={500}
                       placeholder="What moved?"
-                      className="w-full bg-ink-900 border border-white/5 rounded-lg px-3 py-2 text-sm focus:border-white/30 focus:outline-none"
+                      className="w-full bg-ink-900 border border-ink-600 rounded-lg px-3 py-2 text-sm focus:border-accent-spot focus:outline-none"
                     />
                   </div>
                 ))}
@@ -264,7 +264,7 @@ export function WeeklyReviewClient({
               rows={3}
               maxLength={1000}
               placeholder="The lesson."
-              className="w-full bg-ink-900 border border-white/5 rounded-lg px-4 py-3 text-base focus:border-accent-sky/40 focus:outline-none resize-none mb-4"
+              className="w-full bg-ink-900 border border-ink-600 rounded-lg px-4 py-3 text-base focus:border-accent-sky/40 focus:outline-none resize-none mb-4"
             />
             <textarea
               value={reframe}
@@ -272,7 +272,7 @@ export function WeeklyReviewClient({
               rows={3}
               maxLength={1000}
               placeholder="A reframe (optional)."
-              className="w-full bg-ink-900 border border-white/5 rounded-lg px-4 py-3 text-base focus:border-accent-violet/40 focus:outline-none resize-none"
+              className="w-full bg-ink-900 border border-ink-600 rounded-lg px-4 py-3 text-base focus:border-accent-violet/40 focus:outline-none resize-none"
             />
           </Step>
         )}
@@ -289,9 +289,9 @@ export function WeeklyReviewClient({
               autoFocus
               maxLength={280}
               placeholder="Next week, I want it to feel…"
-              className="w-full bg-ink-900 border border-white/5 rounded-lg px-4 py-3 text-base focus:border-accent-gold/40 focus:outline-none mb-4"
+              className="w-full bg-ink-900 border border-ink-600 rounded-lg px-4 py-3 text-base focus:border-accent-gold/40 focus:outline-none mb-4"
             />
-            <div className="text-[11px] uppercase tracking-[0.18em] text-ink-400 mb-2">
+            <div className="lbl mb-2">
               Top 3 priorities
             </div>
             <div className="space-y-2">
@@ -310,7 +310,7 @@ export function WeeklyReviewClient({
                     }}
                     maxLength={140}
                     placeholder={i === 0 ? "The one that matters most" : "…"}
-                    className="flex-1 bg-ink-900 border border-white/5 rounded-lg px-3 py-2 text-sm focus:border-white/30 focus:outline-none"
+                    className="flex-1 bg-ink-900 border border-ink-600 rounded-lg px-3 py-2 text-sm focus:border-accent-spot focus:outline-none"
                   />
                 </div>
               ))}
@@ -362,7 +362,7 @@ function Step({
 }) {
   return (
     <div>
-      <h2 className="font-serif text-2xl text-ink-50 mb-1.5 leading-snug">
+      <h2 className="t-h2 text-ink-50 mb-1.5 leading-snug">
         {heading}
       </h2>
       <p className="text-sm text-ink-300 mb-5">{sub}</p>
@@ -373,8 +373,8 @@ function Step({
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg bg-white/[0.02] border border-white/5 px-3 py-2">
-      <div className="text-[10px] uppercase tracking-wider text-ink-400">
+    <div className="rounded-lg bg-ink-800 border border-ink-600 px-3 py-2">
+      <div className="text-[10px] lbl text-ink-400">
         {label}
       </div>
       <div className="font-serif text-base text-ink-100 tabular-nums">

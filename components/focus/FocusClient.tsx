@@ -100,7 +100,7 @@ export function FocusClient({
       {active ? (
         <div className="card text-center py-10">
           <div className="card-glow" />
-          <div className="text-xs uppercase tracking-[0.18em] text-accent-sky mb-3">
+          <div className="text-xs lbl text-accent-sky mb-3">
             In focus
           </div>
           <div className="font-serif text-7xl text-ink-50 tabular-nums mb-3">
@@ -119,7 +119,7 @@ export function FocusClient({
       ) : (
         <div className="card">
           <div className="card-glow" />
-          <div className="text-xs uppercase tracking-[0.18em] text-ink-400 mb-3">
+          <div className="lbl mb-3">
             Start a focus block
           </div>
           <input
@@ -137,7 +137,7 @@ export function FocusClient({
               )
                 startSession();
             }}
-            className="w-full bg-ink-900 border border-white/5 rounded-lg px-4 py-3 text-base focus:border-accent-sky focus:outline-none mb-4"
+            className="w-full bg-ink-900 border border-ink-600 rounded-lg px-4 py-3 text-base focus:border-accent-sky focus:outline-none mb-4"
           />
           {error && (
             <div className="text-xs text-accent-rose mb-3">{error}</div>
@@ -158,7 +158,7 @@ export function FocusClient({
       <div className="card">
         <div className="card-glow" />
         <div className="flex items-center justify-between mb-4">
-          <div className="text-xs uppercase tracking-[0.18em] text-ink-400">
+          <div className="lbl">
             Today
           </div>
           <div className="font-serif text-lg text-ink-100 tabular-nums">

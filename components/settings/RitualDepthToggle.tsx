@@ -55,7 +55,7 @@ export function RitualDepthToggle() {
             className={`w-full text-left p-4 rounded-xl border transition ${
               active
                 ? "border-accent-violet/50 bg-accent-violet/5"
-                : "border-white/5 hover:border-white/15"
+                : "border-ink-600 hover:border-ink-50"
             }`}
           >
             <div className="flex items-center justify-between mb-1">
@@ -67,7 +67,7 @@ export function RitualDepthToggle() {
                 {opt.label}
               </div>
               {active && (
-                <span className="text-[10px] uppercase tracking-wider text-accent-violet">
+                <span className="text-[10px] lbl text-accent-violet">
                   current
                 </span>
               )}

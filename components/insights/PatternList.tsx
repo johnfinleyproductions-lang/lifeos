@@ -15,7 +15,7 @@ export function PatternList({ patterns }: { patterns: Pattern[] }) {
 
   return (
     <div className="space-y-2">
-      <div className="text-xs uppercase tracking-[0.18em] text-ink-400 mb-3">
+      <div className="lbl mb-3">
         What I&apos;m noticing
       </div>
       {patterns.map((p, i) => (

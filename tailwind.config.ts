@@ -35,33 +35,33 @@ const config: Config = {
       },
       colors: {
         ink: {
-          950: "var(--surface-0)", // deepest ground: rail, tab bar
-          900: "var(--surface-1)", // page
-          800: "var(--surface-2)", // panels
-          700: "var(--surface-3)", // raised panels, input surfaces
-          600: "var(--line)",
-          500: "var(--line)",
-          400: "var(--text-3)", // faintest text
-          300: "var(--text-2)",
-          200: "var(--text-2)",
-          100: "var(--text-1)", // body
-          50: "var(--text-1)", // headings
+          950: "rgb(var(--surface-0) / <alpha-value>)", // deepest ground: rail, tab bar
+          900: "rgb(var(--surface-1) / <alpha-value>)", // page
+          800: "rgb(var(--surface-2) / <alpha-value>)", // panels
+          700: "rgb(var(--surface-3) / <alpha-value>)", // raised panels, input surfaces
+          600: "rgb(var(--line-soft) / <alpha-value>)",
+          500: "rgb(var(--line) / <alpha-value>)",
+          400: "rgb(var(--text-3) / <alpha-value>)", // faintest text
+          300: "rgb(var(--text-2) / <alpha-value>)",
+          200: "rgb(var(--text-2) / <alpha-value>)",
+          100: "rgb(var(--text-1) / <alpha-value>)", // body
+          50: "rgb(var(--text-1) / <alpha-value>)", // headings
         },
         // the semantic names the new components use
-        stock: "var(--surface-1)",
-        sheet: "var(--surface-2)",
-        "sheet-hi": "var(--surface-3)",
-        knock: "var(--knock)", // type knocked out of a filled block
-        hair: "var(--line)",
-        "hair-soft": "var(--line-soft)",
+        stock: "rgb(var(--surface-1) / <alpha-value>)",
+        sheet: "rgb(var(--surface-2) / <alpha-value>)",
+        "sheet-hi": "rgb(var(--surface-3) / <alpha-value>)",
+        knock: "rgb(var(--knock) / <alpha-value>)", // type knocked out of a filled block
+        hair: "rgb(var(--line) / <alpha-value>)",
+        "hair-soft": "rgb(var(--line-soft) / <alpha-value>)",
         accent: {
           // the one fluorescent ink: live, today, now
-          spot: "var(--spot)",
-          green: "var(--green)",
-          gold: "var(--gold)",
-          rose: "var(--rose)",
-          violet: "var(--violet)",
-          sky: "var(--sky)",
+          spot: "rgb(var(--spot) / <alpha-value>)",
+          green: "rgb(var(--green) / <alpha-value>)",
+          gold: "rgb(var(--gold) / <alpha-value>)",
+          rose: "rgb(var(--rose) / <alpha-value>)",
+          violet: "rgb(var(--violet) / <alpha-value>)",
+          sky: "rgb(var(--sky) / <alpha-value>)",
         },
       },
       // Nothing in this system is rounded. The keys stay so that the
@@ -83,9 +83,9 @@ const config: Config = {
         // Misregistration, the signature move: a two-pass riso print
         // sitting slightly off its own outline. Spend it on the hero, the
         // primary action, and the active card. Nowhere else.
-        mis: "5px 5px 0 var(--spot)",
-        "mis-sm": "3px 3px 0 var(--spot)",
-        "mis-ink": "4px 4px 0 var(--text-1)",
+        mis: "5px 5px 0 rgb(var(--spot))",
+        "mis-sm": "3px 3px 0 rgb(var(--spot))",
+        "mis-ink": "4px 4px 0 rgb(var(--text-1))",
         none: "none",
       },
     },

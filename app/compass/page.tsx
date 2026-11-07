@@ -24,14 +24,14 @@ export default async function CompassPage() {
         >
           ← Today
         </Link>
-        <div className="text-xs text-ink-400 uppercase tracking-[0.18em]">
+        <div className="text-xs text-ink-400 lbl">
           {format(new Date(), "EEEE · MMMM d")}
         </div>
       </div>
 
       <div className="mb-6 flex items-end justify-between">
         <div>
-          <h1 className="font-serif text-3xl text-ink-50 mb-1">Compass</h1>
+          <h1 className="t-h1 text-ink-50 mb-1">Compass</h1>
           <p className="text-sm text-ink-300">
             Mission, eulogy, success. The long-arc anchors.
           </p>

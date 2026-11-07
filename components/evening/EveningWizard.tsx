@@ -132,7 +132,7 @@ export function EveningWizard({
       <div className="card-glow" />
 
       <div className="flex items-center justify-between mb-6">
-        <div className="text-xs uppercase tracking-[0.18em] text-ink-400">
+        <div className="lbl">
           Evening shutdown · {step} / {totalSteps}
         </div>
         <div className="flex gap-1">
@@ -162,11 +162,11 @@ export function EveningWizard({
                   className={`py-3 rounded-lg border text-sm transition ${
                     dayRating === n
                       ? "border-accent-rose bg-accent-rose/10 text-accent-rose"
-                      : "border-white/5 text-ink-300 hover:border-white/15"
+                      : "border-ink-600 text-ink-300 hover:border-ink-50"
                   }`}
                 >
                   <div className="font-serif text-xl">{n}</div>
-                  <div className="text-[10px] uppercase tracking-wider mt-0.5">
+                  <div className="text-[10px] lbl mt-0.5">
                     {RATING_LABELS[n - 1]}
                   </div>
                 </button>
@@ -183,7 +183,7 @@ export function EveningWizard({
                   className={`px-3 py-1.5 rounded-full text-xs border transition ${
                     dayMood === m
                       ? "border-accent-violet bg-accent-violet/10 text-accent-violet"
-                      : "border-white/10 text-ink-300 hover:border-white/30"
+                      : "border-ink-600 text-ink-300 hover:border-ink-50"
                   }`}
                 >
                   {m}
@@ -196,7 +196,7 @@ export function EveningWizard({
                 value={MOOD_OPTIONS.includes(dayMood) ? "" : dayMood}
                 onChange={(e) => setDayMood(e.target.value)}
                 placeholder="…or type your own"
-                className="flex-1 bg-ink-900 border border-white/5 rounded-lg px-3 py-2 text-sm focus:border-accent-violet focus:outline-none"
+                className="flex-1 bg-ink-900 border border-ink-600 rounded-lg px-3 py-2 text-sm focus:border-accent-violet focus:outline-none"
               />
               <VoiceButton
                 size="sm"
@@ -226,7 +226,7 @@ export function EveningWizard({
                     className={`w-full flex items-center gap-3 p-3 rounded-lg border text-left transition ${
                       done
                         ? "border-accent-green/40 bg-accent-green/5"
-                        : "border-white/5 hover:border-white/15"
+                        : "border-ink-600 hover:border-ink-50"
                     }`}
                   >
                     <span
@@ -266,7 +266,7 @@ export function EveningWizard({
               rows={3}
               maxLength={280}
               placeholder="… I shipped Phase 1 of LifeOS."
-              className="w-full bg-ink-900 border border-white/5 rounded-lg px-4 py-3 font-serif text-lg leading-snug focus:border-accent-green focus:outline-none resize-none"
+              className="w-full bg-ink-900 border border-ink-600 rounded-lg px-4 py-3 font-serif text-lg leading-snug focus:border-accent-green focus:outline-none resize-none"
             />
             <div className="flex items-center justify-between text-[11px] text-ink-400 mt-2">
               <VoiceButton
@@ -296,7 +296,7 @@ export function EveningWizard({
               rows={3}
               maxLength={280}
               placeholder="… that I get distracted at the planning step, not the execution step."
-              className="w-full bg-ink-900 border border-white/5 rounded-lg px-4 py-3 text-base leading-snug focus:border-accent-sky focus:outline-none resize-none"
+              className="w-full bg-ink-900 border border-ink-600 rounded-lg px-4 py-3 text-base leading-snug focus:border-accent-sky focus:outline-none resize-none"
             />
             <div className="flex items-center justify-between text-[11px] text-ink-400 mt-2">
               <VoiceButton
@@ -322,7 +322,7 @@ export function EveningWizard({
               rows={2}
               maxLength={200}
               placeholder="… open the file before coffee."
-              className="w-full bg-ink-900 border border-white/5 rounded-lg px-4 py-3 text-base focus:border-accent-gold focus:outline-none resize-none"
+              className="w-full bg-ink-900 border border-ink-600 rounded-lg px-4 py-3 text-base focus:border-accent-gold focus:outline-none resize-none"
             />
             <div className="flex items-center justify-between text-[11px] text-ink-400 mt-2">
               <VoiceButton
@@ -350,7 +350,7 @@ export function EveningWizard({
               rows={4}
               maxLength={280}
               placeholder="Story I told myself: … / Truer story: …"
-              className="w-full bg-ink-900 border border-white/5 rounded-lg px-4 py-3 text-base leading-snug focus:border-accent-violet focus:outline-none resize-none"
+              className="w-full bg-ink-900 border border-ink-600 rounded-lg px-4 py-3 text-base leading-snug focus:border-accent-violet focus:outline-none resize-none"
             />
             <div className="flex items-center justify-between text-[11px] text-ink-400 mt-2">
               <VoiceButton
@@ -376,7 +376,7 @@ export function EveningWizard({
               rows={3}
               maxLength={280}
               placeholder="… the email I'm anxious about. It can wait until morning."
-              className="w-full bg-ink-900 border border-white/5 rounded-lg px-4 py-3 text-base leading-snug focus:border-accent-rose focus:outline-none resize-none"
+              className="w-full bg-ink-900 border border-ink-600 rounded-lg px-4 py-3 text-base leading-snug focus:border-accent-rose focus:outline-none resize-none"
             />
             <div className="flex items-center justify-between text-[11px] text-ink-400 mt-2">
               <VoiceButton
@@ -434,7 +434,7 @@ function Step({
 }) {
   return (
     <div>
-      <h2 className="font-serif text-2xl text-ink-50 mb-1.5 leading-snug">
+      <h2 className="t-h2 text-ink-50 mb-1.5 leading-snug">
         {heading}
       </h2>
       <p className="text-sm text-ink-300 mb-6">{subhead}</p>
@@ -445,7 +445,7 @@ function Step({
 
 function Label({ children }: { children: React.ReactNode }) {
   return (
-    <div className="text-xs uppercase tracking-[0.18em] text-ink-400 mb-2">
+    <div className="lbl mb-2">
       {children}
     </div>
   );

@@ -47,7 +47,7 @@ export function YearHeatmap({ cells }: { cells: HeatmapCell[] }) {
   return (
     <div className="card overflow-x-auto">
       <div className="card-glow" />
-      <div className="text-xs uppercase tracking-[0.18em] text-ink-400 mb-3">
+      <div className="lbl mb-3">
         365-day check-in
       </div>
       <div

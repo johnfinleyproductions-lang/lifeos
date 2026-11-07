@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { and, eq } from "drizzle-orm";
 import { format } from "date-fns";
 import { db } from "@/lib/db";
@@ -6,6 +5,7 @@ import { lifeosDailyCheckins } from "@/lib/db/schema/lifeos";
 import { requireUserContext } from "@/lib/auth/server-helpers";
 import { EveningWizard } from "@/components/evening/EveningWizard";
 import { morningManifestoSchema } from "@/lib/manifesto/schema";
+import { PageStamp } from "@/components/PageStamp";
 import {
   eveningShutdownSchema,
   type EveningShutdown,
@@ -49,17 +49,7 @@ export default async function EveningPage() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <div className="mb-8 flex items-center justify-between">
-        <Link
-          href="/"
-          className="text-xs text-ink-400 hover:text-ink-100 transition"
-        >
-          ← Today
-        </Link>
-        <div className="text-xs text-ink-400 uppercase tracking-[0.18em]">
-          {format(new Date(), "EEEE · MMMM d")}
-        </div>
-      </div>
+      <PageStamp />
       <EveningWizard
         initial={initial}
         morningPriorities={morningPriorities}

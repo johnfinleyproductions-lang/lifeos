@@ -77,7 +77,7 @@ function Column({
   return (
     <div>
       <div
-        className={`text-[11px] uppercase tracking-[0.18em] mb-3 ${colors.accent}`}
+        className={`text-[11px] lbl mb-3 ${colors.accent}`}
       >
         {label}
       </div>
@@ -100,7 +100,7 @@ function Column({
           <button
             type="button"
             onClick={() => setShowForm(true)}
-            className="w-full py-3 text-sm text-ink-300 hover:text-ink-100 transition border border-dashed border-white/10 rounded-xl hover:border-white/30"
+            className="w-full py-3 text-sm text-ink-300 hover:text-ink-100 transition border border-dashed border-ink-600 rounded-xl hover:border-ink-50"
           >
             + Add {domain} quest
           </button>
@@ -168,7 +168,7 @@ function QuestCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <span
-              className={`text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded ${colors.bg} ${colors.accent}`}
+              className={`text-[10px] lbl px-1.5 py-0.5 rounded ${colors.bg} ${colors.accent}`}
             >
               {quest.type}
             </span>
@@ -332,7 +332,7 @@ function NewQuestForm({
         placeholder="What's the goal?"
         maxLength={200}
         autoFocus
-        className="w-full bg-ink-900 border border-white/5 rounded-lg px-3 py-2.5 text-sm focus:border-accent-green focus:outline-none mb-3"
+        className="w-full bg-ink-900 border border-ink-600 rounded-lg px-3 py-2.5 text-sm focus:border-accent-green focus:outline-none mb-3"
       />
       <textarea
         value={description}
@@ -340,9 +340,9 @@ function NewQuestForm({
         placeholder="Why does it matter? (optional)"
         rows={2}
         maxLength={1000}
-        className="w-full bg-ink-900 border border-white/5 rounded-lg px-3 py-2 text-sm focus:border-accent-green focus:outline-none mb-4 resize-none"
+        className="w-full bg-ink-900 border border-ink-600 rounded-lg px-3 py-2 text-sm focus:border-accent-green focus:outline-none mb-4 resize-none"
       />
-      <div className="text-[11px] uppercase tracking-[0.18em] text-ink-400 mb-2">
+      <div className="lbl mb-2">
         Type
       </div>
       <div className="flex gap-2 mb-5">
@@ -354,7 +354,7 @@ function NewQuestForm({
             className={`px-3 py-1.5 rounded-full text-xs border transition ${
               type === t
                 ? "border-accent-violet bg-accent-violet/10 text-accent-violet"
-                : "border-white/10 text-ink-300 hover:border-white/30"
+                : "border-ink-600 text-ink-300 hover:border-ink-50"
             }`}
           >
             {t}

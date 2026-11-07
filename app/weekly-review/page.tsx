@@ -43,12 +43,12 @@ export default async function WeeklyReviewPage() {
         >
           ← Discipline
         </Link>
-        <div className="text-xs text-ink-400 uppercase tracking-[0.18em]">
+        <div className="text-xs text-ink-400 lbl">
           {format(new Date(), "EEEE · MMMM d")}
         </div>
       </div>
 
-      <h1 className="font-serif text-3xl text-ink-50 mb-1">Weekly review</h1>
+      <h1 className="t-h1 text-ink-50 mb-1">Weekly review</h1>
       <p className="text-sm text-ink-300 mb-8">
         20 minutes. Six phases. Sets the rhythm for next week.
       </p>
