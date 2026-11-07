@@ -7,7 +7,7 @@ export function StatCards({ data }: { data: InsightsData }) {
   const avgRating =
     ratings.length > 0
       ? (ratings.reduce((s, r) => s + r, 0) / ratings.length).toFixed(1)
-      : "—";
+      : null;
 
   const focusHours = (data.totalFocusMinutes / 60).toFixed(1);
 
@@ -17,28 +17,29 @@ export function StatCards({ data }: { data: InsightsData }) {
     habitTotal > 0 ? Math.round((habitDone / habitTotal) * 100) : 0;
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div className="sheet grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-5">
       <Stat
-        label="Avg day rating"
-        value={avgRating}
-        unit="/ 5"
-        accent="text-accent-rose"
+        label="Average day"
+        value={avgRating ?? "none"}
+        unit={avgRating ? "/5" : undefined}
+        foot={`${ratings.length} ${ratings.length === 1 ? "shutdown" : "shutdowns"} rated`}
       />
       <Stat
-        label="Focus hours"
+        label="Focus logged"
         value={focusHours}
-        accent="text-accent-sky"
+        unit="h"
+        foot={`${data.totalFocusMinutes} minutes`}
       />
       <Stat
-        label="Habits hit"
-        value={`${habitPct}`}
+        label="Habits struck"
+        value={String(habitPct)}
         unit="%"
-        accent="text-accent-green"
+        foot={`${habitDone} of ${habitTotal} possible`}
       />
       <Stat
         label="Decisions"
         value={String(data.decisionCount)}
-        accent="text-accent-gold"
+        foot="tagged in the journal"
       />
     </div>
   );
@@ -48,23 +49,21 @@ function Stat({
   label,
   value,
   unit,
-  accent,
+  foot,
 }: {
   label: string;
   value: string;
   unit?: string;
-  accent: string;
+  foot: string;
 }) {
   return (
-    <div className="card">
-      <div className="card-glow" />
-      <div className={`text-[10px] lbl mb-1 ${accent}`}>
-        {label}
-      </div>
-      <div className="t-h1 text-ink-50 tabular-nums">
+    <div>
+      <div className="stat-l">{label}</div>
+      <div className="stat-v">
         {value}
-        {unit && <span className="text-sm text-ink-400 ml-1">{unit}</span>}
+        {unit && <small>{unit}</small>}
       </div>
+      <div className="stat-f">{foot}</div>
     </div>
   );
 }

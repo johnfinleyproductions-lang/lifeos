@@ -79,22 +79,20 @@ export function HabitsClient({ habits }: { habits: Habit[] }) {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3.5">
       {habits.length === 0 && !showForm && (
-        <div className="card text-center py-12">
-          <div className="font-serif text-xl text-ink-100 mb-2">
-            No habits yet.
-          </div>
-          <p className="text-sm text-ink-300 mb-4 max-w-sm mx-auto">
+        <div className="sheet sheet-bare border-dashed text-center py-10">
+          <div className="t-h2 mb-2">No habits yet.</div>
+          <p className="text-[14.5px] text-ink-300 mb-5 max-w-[40ch] mx-auto">
             Habits compound. Start with one. The smallest version of it,
             consistently, beats the perfect version, occasionally.
           </p>
           <button
             type="button"
             onClick={() => setShowForm(true)}
-            className="px-4 py-2 rounded-lg bg-accent-green/15 text-accent-green border border-accent-green/30 text-sm hover:bg-accent-green/25 transition"
+            className="btn"
           >
-            + Start a habit
+            Start a habit
           </button>
         </div>
       )}
@@ -103,55 +101,62 @@ export function HabitsClient({ habits }: { habits: Habit[] }) {
         const todayDone = h.last7Days[h.last7Days.length - 1].done;
         const streakCount = h.last7Days.filter((d) => d.done).length;
         return (
-          <div key={h.id} className="card">
-            <div className="card-glow" />
+          <div key={h.id} className="sheet">
             <div className="flex items-center justify-between gap-4 mb-4">
               <div className="flex-1 min-w-0">
-                <div className="font-serif text-lg text-ink-100 truncate">
+                <div
+                  className="text-[17px] leading-[1.2] truncate"
+                  style={{ fontVariationSettings: "'wdth' 100, 'wght' 680" }}
+                >
                   {h.name}
                 </div>
-                <div className="text-[11px] text-ink-400 lbl mt-0.5">
-                  {h.cadence} · {streakCount} of last 7
+                <div className="lbl mt-1">
+                  {h.cadence}, {streakCount} of the last 7
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => toggleToday(h.id)}
                 disabled={toggling === h.id}
-                className={`shrink-0 px-4 py-2 rounded-lg text-sm transition border ${
-                  todayDone
-                    ? "bg-accent-green/15 text-accent-green border-accent-green/30"
-                    : "border-ink-600 text-ink-200 hover:border-ink-50"
-                } disabled:opacity-50`}
+                aria-pressed={todayDone}
+                className={`btn btn-sm shrink-0 ${
+                  todayDone ? "btn-spot" : "btn-ghost"
+                }`}
               >
                 {toggling === h.id
-                  ? "…"
+                  ? "Saving"
                   : todayDone
-                    ? "✓ Done today"
+                    ? "Done today"
                     : "Mark done"}
               </button>
             </div>
+
+            {/* Seven hard cells, oldest first. Today takes the spot ink. */}
             <div className="flex gap-1.5">
               {h.last7Days.map((d, i) => {
                 const isToday = i === h.last7Days.length - 1;
                 return (
                   <div
                     key={d.date}
-                    className="flex flex-col items-center gap-1 flex-1"
+                    className="flex flex-col items-center gap-1.5 flex-1"
+                    title={`${d.date}${d.done ? ", done" : ""}`}
                   >
                     <div
-                      className={`w-full h-9 rounded-md transition ${
+                      className={`w-full h-8 border-[1.5px] ${
                         d.done
-                          ? "bg-accent-green/40"
+                          ? isToday
+                            ? "bg-accent-spot border-accent-spot"
+                            : "bg-ink-50 border-ink-50"
                           : isToday
-                            ? "bg-ink-700 border border-accent-green/30"
-                            : "bg-ink-700"
+                            ? "bg-ink-700 border-accent-spot"
+                            : "bg-ink-700 border-ink-500"
                       }`}
                     />
                     <div
-                      className={`text-[10px] ${
-                        isToday ? "text-accent-green" : "text-ink-400"
+                      className={`text-[10.5px] ${
+                        isToday ? "text-accent-spot" : "text-ink-400"
                       }`}
+                      style={{ fontVariationSettings: "'wght' 640" }}
                     >
                       {d.label}
                     </div>
@@ -164,41 +169,38 @@ export function HabitsClient({ habits }: { habits: Habit[] }) {
       })}
 
       {showForm ? (
-        <div className="card">
-          <div className="card-glow" />
-          <div className="font-serif text-base text-ink-100 mb-4">
-            New habit
+        <div className="sheet sheet-hi">
+          <div className="tab-row">
+            <span className="tab">New habit</span>
+            <span className="fill" />
           </div>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. Read 20 pages"
+            placeholder="read twenty pages"
             maxLength={80}
             autoFocus
-            className="w-full bg-ink-900 border border-ink-600 rounded-lg px-3 py-2.5 text-sm focus:border-accent-green focus:outline-none mb-4"
+            className="inp mb-4"
           />
-          <div className="lbl mb-2">
-            Cadence
-          </div>
-          <div className="flex gap-2 mb-5">
+          <div className="lbl mb-2">Cadence</div>
+          <div className="flex flex-wrap gap-1.5 mb-5">
             {(["daily", "weekdays", "weekly"] as const).map((c) => (
               <button
                 key={c}
                 type="button"
                 onClick={() => setCadence(c)}
-                className={`px-3 py-1.5 rounded-full text-xs border transition ${
-                  cadence === c
-                    ? "border-accent-violet bg-accent-violet/10 text-accent-violet"
-                    : "border-ink-600 text-ink-300 hover:border-ink-50"
-                }`}
+                aria-pressed={cadence === c}
+                className="chip"
               >
                 {c}
               </button>
             ))}
           </div>
           {error && (
-            <div className="text-xs text-accent-rose mb-3">{error}</div>
+            <div className="alert mb-3" role="alert">
+              {error}
+            </div>
           )}
           <div className="flex justify-end gap-2">
             <button
@@ -208,7 +210,7 @@ export function HabitsClient({ habits }: { habits: Habit[] }) {
                 setName("");
                 setError(null);
               }}
-              className="text-sm text-ink-300 hover:text-ink-100 transition px-3 py-1.5"
+              className="btn btn-sm btn-ghost"
             >
               Cancel
             </button>
@@ -216,9 +218,9 @@ export function HabitsClient({ habits }: { habits: Habit[] }) {
               type="button"
               onClick={createHabit}
               disabled={submitting || name.trim().length === 0}
-              className="px-4 py-1.5 rounded-lg bg-accent-green/15 text-accent-green border border-accent-green/30 text-sm hover:bg-accent-green/25 disabled:opacity-30 transition"
+              className="btn btn-sm"
             >
-              {submitting ? "Saving…" : "Add habit"}
+              {submitting ? "Saving" : "Add habit"}
             </button>
           </div>
         </div>
@@ -227,15 +229,18 @@ export function HabitsClient({ habits }: { habits: Habit[] }) {
           <button
             type="button"
             onClick={() => setShowForm(true)}
-            className="w-full py-3 text-sm text-ink-300 hover:text-ink-100 transition border border-dashed border-ink-600 rounded-xl hover:border-ink-50"
+            className="sheet sheet-bare border-dashed w-full py-3 text-[14px] text-ink-300 hover:text-ink-50 hover:border-ink-50"
+            style={{ fontVariationSettings: "'wght' 640" }}
           >
-            + Add habit
+            Add a habit
           </button>
         )
       )}
 
       {error && !showForm && (
-        <div className="text-xs text-accent-rose">{error}</div>
+        <div className="alert" role="alert">
+          {error}
+        </div>
       )}
     </div>
   );

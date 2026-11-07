@@ -14,19 +14,13 @@ type Quest = {
   status: "active" | "paused" | "completed" | "abandoned";
 };
 
-const DOMAIN_COLORS = {
-  work: {
-    accent: "text-accent-violet",
-    bg: "bg-accent-violet/10",
-    border: "border-accent-violet/30",
-    bar: "from-accent-violet to-accent-sky",
-  },
-  life: {
-    accent: "text-accent-rose",
-    bg: "bg-accent-rose/10",
-    border: "border-accent-rose/30",
-    bar: "from-accent-rose to-accent-gold",
-  },
+/**
+ * One riso ink per domain, the same two the Today card uses, so a quest's
+ * colour means the same thing everywhere it appears.
+ */
+const DOMAIN_INK = {
+  work: { tab: "tab tab-violet", bar: "bg-accent-violet" },
+  life: { tab: "tab tab-rose", bar: "bg-accent-rose" },
 } as const;
 
 export function QuestsClient({
@@ -69,19 +63,21 @@ function Column({
   currentQuarter: string;
 }) {
   const [showForm, setShowForm] = useState(false);
-  const colors = DOMAIN_COLORS[domain];
+  const ink = DOMAIN_INK[domain];
 
   const main = quests.filter((q) => q.type === "main");
   const side = quests.filter((q) => q.type === "side");
 
   return (
     <div>
-      <div
-        className={`text-[11px] lbl mb-3 ${colors.accent}`}
-      >
-        {label}
+      <div className="tab-row">
+        <span className={ink.tab}>{label}</span>
+        <span className="fill" />
+        <span className="text-[11.5px] text-ink-400 tabular-nums">
+          {quests.length} {quests.length === 1 ? "quest" : "quests"}
+        </span>
       </div>
-      <div className="space-y-3">
+      <div className="space-y-3.5">
         {main.map((q) => (
           <QuestCard key={q.id} quest={q} domain={domain} prominent />
         ))}
@@ -100,9 +96,10 @@ function Column({
           <button
             type="button"
             onClick={() => setShowForm(true)}
-            className="w-full py-3 text-sm text-ink-300 hover:text-ink-100 transition border border-dashed border-ink-600 rounded-xl hover:border-ink-50"
+            className="sheet sheet-bare border-dashed w-full py-3 text-[14px] text-ink-300 hover:text-ink-50 hover:border-ink-50"
+            style={{ fontVariationSettings: "'wght' 640" }}
           >
-            + Add {domain} quest
+            Add a {domain} quest
           </button>
         )}
       </div>
@@ -123,7 +120,7 @@ function QuestCard({
   const [progress, setProgress] = useState(quest.progress);
   const [updating, setUpdating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const colors = DOMAIN_COLORS[domain];
+  const ink = DOMAIN_INK[domain];
 
   async function patchQuest(patch: {
     progress?: number;
@@ -160,51 +157,42 @@ function QuestCard({
   const isComplete = quest.status === "completed";
   const isAbandoned = quest.status === "abandoned";
   const isPaused = quest.status === "paused";
+  const locked = updating || isComplete || isAbandoned;
 
   return (
-    <div className={`card ${prominent ? "" : "py-4"}`}>
-      <div className="card-glow" />
-      <div className="flex items-start justify-between gap-3 mb-2">
+    <div className={`sheet ${prominent ? "sheet-hi" : "py-4"}`}>
+      <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <span
-              className={`text-[10px] lbl px-1.5 py-0.5 rounded ${colors.bg} ${colors.accent}`}
-            >
-              {quest.type}
-            </span>
-            {isComplete && (
-              <span className="text-[10px] text-accent-green">✓ done</span>
-            )}
-            {isAbandoned && (
-              <span className="text-[10px] text-ink-400 line-through">
-                abandoned
-              </span>
-            )}
-            {isPaused && (
-              <span className="text-[10px] text-accent-gold">paused</span>
-            )}
+          <div className="lbl mb-1.5 flex items-center gap-2 flex-wrap">
+            <span>{quest.type === "main" ? "Main quest" : "Side quest"}</span>
+            {isComplete && <span className="text-accent-green">done</span>}
+            {isAbandoned && <span className="line-through">abandoned</span>}
+            {isPaused && <span className="text-accent-gold">paused</span>}
           </div>
           <div
-            className={`font-serif ${
-              prominent ? "text-lg" : "text-base"
-            } text-ink-100 leading-snug ${
-              isAbandoned ? "line-through opacity-60" : ""
-            }`}
+            className={`leading-[1.2] ${
+              prominent ? "text-[18px]" : "text-[15.5px]"
+            } ${isAbandoned ? "line-through text-ink-400" : ""}`}
+            style={{ fontVariationSettings: "'wdth' 100, 'wght' 680" }}
           >
             {quest.title}
           </div>
           {quest.description && prominent && (
-            <p className="text-xs text-ink-400 mt-1.5 leading-relaxed">
+            <p className="text-[13px] text-ink-300 mt-1.5 leading-[1.45]">
               {quest.description}
             </p>
           )}
         </div>
-        <span className="text-xs text-ink-400 tabular-nums shrink-0">
+        <span className="t-num text-[17px] text-ink-300 shrink-0">
           {progress}%
         </span>
       </div>
 
-      <div className="mt-3">
+      {/* The slider is the write control, drawn as a plotted bar. */}
+      <div className="range-wrap mt-3">
+        <span className="plot">
+          <span className={ink.bar} style={{ width: `${progress}%` }} />
+        </span>
         <input
           type="range"
           min={0}
@@ -213,27 +201,20 @@ function QuestCard({
           onChange={(e) => setProgress(Number(e.target.value))}
           onMouseUp={commitProgress}
           onTouchEnd={commitProgress}
-          disabled={updating || isComplete || isAbandoned}
-          className="w-full accent-accent-green"
+          disabled={locked}
+          aria-label={`Progress on ${quest.title}`}
+          className="range"
         />
-        <div className="h-1 bg-ink-700 rounded-full overflow-hidden -mt-1">
-          <div
-            className={`h-full bg-gradient-to-r ${colors.bar} rounded-full transition-all`}
-            style={{ width: `${progress}%` }}
-          />
-        </div>
       </div>
 
-      <div className="flex items-center justify-end gap-2 mt-3">
+      <div className="flex items-center justify-end gap-1.5 mt-2.5">
         {!isComplete && !isAbandoned && (
           <>
             <button
               type="button"
-              onClick={() =>
-                patchQuest({ status: "completed", progress: 100 })
-              }
+              onClick={() => patchQuest({ status: "completed", progress: 100 })}
               disabled={updating}
-              className="text-[11px] text-accent-green hover:text-accent-green/80 transition disabled:opacity-50"
+              className="btn btn-sm btn-ghost"
             >
               Mark done
             </button>
@@ -245,7 +226,7 @@ function QuestCard({
                 })
               }
               disabled={updating}
-              className="text-[11px] text-ink-400 hover:text-ink-200 transition disabled:opacity-50"
+              className="btn btn-sm btn-ghost"
             >
               {isPaused ? "Resume" : "Pause"}
             </button>
@@ -255,14 +236,16 @@ function QuestCard({
           type="button"
           onClick={() => patchQuest({ archived: true })}
           disabled={updating}
-          className="text-[11px] text-ink-400 hover:text-accent-rose transition disabled:opacity-50"
+          className="btn btn-sm btn-ghost text-ink-400"
         >
           Archive
         </button>
       </div>
 
       {error && (
-        <div className="text-xs text-accent-rose mt-2">{error}</div>
+        <div className="alert mt-3" role="alert">
+          {error}
+        </div>
       )}
     </div>
   );
@@ -320,10 +303,10 @@ function NewQuestForm({
   }
 
   return (
-    <div className="card">
-      <div className="card-glow" />
-      <div className="font-serif text-base text-ink-100 mb-3">
-        New {domain} quest
+    <div className="sheet sheet-hi">
+      <div className="tab-row">
+        <span className="tab">New {domain} quest</span>
+        <span className="fill" />
       </div>
       <input
         type="text"
@@ -332,44 +315,43 @@ function NewQuestForm({
         placeholder="What's the goal?"
         maxLength={200}
         autoFocus
-        className="w-full bg-ink-900 border border-ink-600 rounded-lg px-3 py-2.5 text-sm focus:border-accent-green focus:outline-none mb-3"
+        className="inp mb-3"
       />
       <textarea
         value={description}
         onChange={(e) => setDescription(e.target.value)}
-        placeholder="Why does it matter? (optional)"
+        placeholder="Why does it matter? Optional."
         rows={2}
         maxLength={1000}
-        className="w-full bg-ink-900 border border-ink-600 rounded-lg px-3 py-2 text-sm focus:border-accent-green focus:outline-none mb-4 resize-none"
+        className="ta mb-4"
       />
-      <div className="lbl mb-2">
-        Type
-      </div>
-      <div className="flex gap-2 mb-5">
+      <div className="lbl mb-2">Type</div>
+      <div className="flex gap-1.5 mb-5">
         {(["main", "side"] as const).map((t) => (
           <button
             key={t}
             type="button"
             onClick={() => setType(t)}
-            className={`px-3 py-1.5 rounded-full text-xs border transition ${
-              type === t
-                ? "border-accent-violet bg-accent-violet/10 text-accent-violet"
-                : "border-ink-600 text-ink-300 hover:border-ink-50"
-            }`}
+            aria-pressed={type === t}
+            className="chip"
           >
             {t}
             {t === "main" && existingMain && (
-              <span className="ml-1 text-ink-400">(2nd)</span>
+              <span className="opacity-60">(a second)</span>
             )}
           </button>
         ))}
       </div>
-      {error && <div className="text-xs text-accent-rose mb-3">{error}</div>}
+      {error && (
+        <div className="alert mb-3" role="alert">
+          {error}
+        </div>
+      )}
       <div className="flex justify-end gap-2">
         <button
           type="button"
           onClick={onCancel}
-          className="text-sm text-ink-300 hover:text-ink-100 transition px-3 py-1.5"
+          className="btn btn-sm btn-ghost"
         >
           Cancel
         </button>
@@ -377,9 +359,9 @@ function NewQuestForm({
           type="button"
           onClick={save}
           disabled={submitting || title.trim().length === 0}
-          className="px-4 py-1.5 rounded-lg bg-accent-green/15 text-accent-green border border-accent-green/30 text-sm hover:bg-accent-green/25 disabled:opacity-30 transition"
+          className="btn btn-sm"
         >
-          {submitting ? "Saving…" : "Add quest"}
+          {submitting ? "Saving" : "Add quest"}
         </button>
       </div>
     </div>
