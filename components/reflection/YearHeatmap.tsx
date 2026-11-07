@@ -1,83 +1,162 @@
 import type { HeatmapCell } from "@/lib/reflection/auto-detect";
-import { weekdayOf } from "@/lib/time/day";
+import { formatDay, weekdayOf } from "@/lib/time/day";
 
 /**
- * 365-day grid. Columns are weeks (oldest left, newest right), rows are
- * day-of-week (Sun top, Sat bottom).
+ * The year as a grid. Columns are weeks (oldest left, newest right),
+ * rows are day-of-week (Mon top, Sun bottom), months labelled along the
+ * top where they begin.
  *
- * Each cell is inked by check-in state:
- *   - morning only             the gold ink
- *   - evening only             the violet ink
- *   - both morning + evening   the two overprinted, which on a riso
- *                              makes a third colour nobody mixed, with
- *                              the second pass landing a hair off
- *   - neither                  an empty cell
+ * The dead months before the first check-in are cropped: a record that
+ * starts on 25 September prints from the week of 25 September, with a
+ * line saying so, rather than nine months of empty cells on its left.
+ *
+ * Each cell is inked by check-in state, and each ink carries its own
+ * hatch so the colour is never the only cue:
+ *   - morning only     gold, single hatch
+ *   - evening only     violet, cross-hatched
+ *   - both             the two overprinted solid, the second pass a
+ *                      pixel off register
+ *   - neither          an empty ruled cell
  */
 export function YearHeatmap({ cells }: { cells: HeatmapCell[] }) {
-  // Group into weeks. Each cell knows its weekday (0=Sun..6=Sat).
-  // We pad the start so the first week is a complete column.
-  const weeks: (HeatmapCell | null)[][] = [];
-  let currentWeek: (HeatmapCell | null)[] = [];
-  let firstDayWeekday = -1;
+  const firstIdx = cells.findIndex((c) => c.morning || c.evening);
+  const hasAny = firstIdx >= 0;
 
-  for (const cell of cells) {
-    const dow = weekdayOf(cell.date);
-    if (firstDayWeekday < 0) {
-      firstDayWeekday = dow;
-      // Pad earlier days of the same week with nulls
-      for (let i = 0; i < dow; i++) currentWeek.push(null);
-    }
-    currentWeek.push(cell);
-    if (currentWeek.length === 7) {
-      weeks.push(currentWeek);
-      currentWeek = [];
+  // Crop to the week containing the first observation. The row order is
+  // Monday first, so the week starts on the Monday on or before it.
+  let start = hasAny ? firstIdx : 0;
+  if (hasAny) {
+    const dow = (weekdayOf(cells[firstIdx].date) + 6) % 7; // 0 = Mon
+    start = Math.max(0, firstIdx - dow);
+  }
+  const shown = cells.slice(start);
+  const since = hasAny ? cells[firstIdx].date : null;
+
+  // Group into week columns, padding the first column up to its Monday.
+  const weeks: (HeatmapCell | null)[][] = [];
+  let week: (HeatmapCell | null)[] = [];
+  for (const [i, cell] of shown.entries()) {
+    const dow = (weekdayOf(cell.date) + 6) % 7;
+    if (i === 0) for (let k = 0; k < dow; k++) week.push(null);
+    week.push(cell);
+    if (week.length === 7) {
+      weeks.push(week);
+      week = [];
     }
   }
-  // Trailing partial week
-  if (currentWeek.length > 0) {
-    while (currentWeek.length < 7) currentWeek.push(null);
-    weeks.push(currentWeek);
+  if (week.length > 0) {
+    while (week.length < 7) week.push(null);
+    weeks.push(week);
   }
+
+  // A month label on the first column whose first real day starts a new
+  // month, so the labels sit where the months begin.
+  const labels: (string | null)[] = weeks.map((w, wi) => {
+    const firstReal = w.find((c): c is HeatmapCell => c !== null);
+    if (!firstReal) return null;
+    const month = firstReal.date.slice(0, 7);
+    if (wi === 0) return formatDay(firstReal.date, "MMM");
+    const prev = weeks[wi - 1].find((c): c is HeatmapCell => c !== null);
+    if (!prev) return null;
+    return prev.date.slice(0, 7) === month
+      ? null
+      : formatDay(firstReal.date, "MMM");
+  });
 
   function inkFor(cell: HeatmapCell | null): string {
-    if (!cell) return "bg-transparent";
-    if (cell.morning && cell.evening) return "overprint";
-    if (cell.morning) return "bg-accent-gold";
-    if (cell.evening) return "bg-accent-violet";
-    return "bg-ink-600";
+    if (!cell) return "ycell ycell-off";
+    if (cell.morning && cell.evening) return "ycell ycell-both";
+    if (cell.morning) return "ycell ycell-am";
+    if (cell.evening) return "ycell ycell-pm";
+    return "ycell";
   }
+
+  const counts = {
+    both: cells.filter((c) => c.morning && c.evening).length,
+    am: cells.filter((c) => c.morning && !c.evening).length,
+    pm: cells.filter((c) => !c.morning && c.evening).length,
+  };
 
   return (
     <div className="sheet overflow-x-auto">
-      <div
-        className="inline-grid grid-flow-col gap-[3px]"
-        style={{ gridTemplateRows: "repeat(7, minmax(0, 1fr))" }}
-      >
-        {weeks.map((week, wi) =>
-          week.map((cell, di) => (
+      {!hasAny ? (
+        <p className="text-[14.5px] text-ink-300 m-0">
+          No check-ins in the last year yet. The first morning starts the
+          grid.
+        </p>
+      ) : (
+        <>
+          <div className="inline-flex flex-col gap-1">
+            {/* month labels across the top, one per week column */}
             <div
-              key={`${wi}-${di}`}
-              title={cell ? cell.date : ""}
-              className={`w-2.5 h-2.5 ${inkFor(cell)}`}
-            />
-          )),
-        )}
-      </div>
-      <div className="flex items-center gap-4 text-[11px] text-ink-400 mt-4">
-        <Legend swatch="bg-accent-gold" label="Morning" />
-        <Legend swatch="bg-accent-violet" label="Evening" />
-        <Legend swatch="overprint" label="Both" />
-        <Legend swatch="bg-ink-600" label="Neither" />
-      </div>
+              className="grid gap-[3px]"
+              style={{
+                gridTemplateColumns: `repeat(${weeks.length}, 11px)`,
+              }}
+            >
+              {labels.map((l, i) => (
+                <span
+                  key={i}
+                  className="text-[10.5px] text-ink-400 whitespace-nowrap leading-none h-3"
+                  style={{ fontVariationSettings: "'wght' 660" }}
+                >
+                  {l ?? ""}
+                </span>
+              ))}
+            </div>
+            <div
+              className="grid gap-[3px]"
+              style={{
+                gridTemplateRows: "repeat(7, 11px)",
+                gridAutoFlow: "column",
+                gridAutoColumns: "11px",
+              }}
+            >
+              {weeks.map((w, wi) =>
+                w.map((cell, di) => (
+                  <span
+                    key={`${wi}-${di}`}
+                    title={
+                      cell
+                        ? `${formatDay(cell.date, "EEE d MMM")}: ${
+                            cell.morning && cell.evening
+                              ? "full day"
+                              : cell.morning
+                                ? "morning"
+                                : cell.evening
+                                  ? "evening"
+                                  : "nothing logged"
+                          }`
+                        : ""
+                    }
+                    className={inkFor(cell)}
+                  />
+                )),
+              )}
+            </div>
+          </div>
+          <div className="flex items-center gap-x-4 gap-y-2 flex-wrap text-[11.5px] text-ink-300 mt-4">
+            <Legend swatch="ycell ycell-am" label={`Morning only, ${counts.am}`} />
+            <Legend swatch="ycell ycell-pm" label={`Evening only, ${counts.pm}`} />
+            <Legend swatch="ycell ycell-both" label={`Both, ${counts.both}`} />
+            <Legend swatch="ycell" label="Nothing" />
+            {since && (
+              <span className="ml-auto tabular-nums">
+                since {formatDay(since, "d MMM")}
+              </span>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }
 
 function Legend({ swatch, label }: { swatch: string; label: string }) {
   return (
-    <div className="flex items-center gap-1.5">
-      <span className={`w-2.5 h-2.5 ${swatch}`} />
+    <span className="flex items-center gap-1.5">
+      <span className={`${swatch} shrink-0`} />
       <span>{label}</span>
-    </div>
+    </span>
   );
 }
