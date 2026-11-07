@@ -14,7 +14,9 @@ type NavGroup = { label: string; items: NavItem[] };
  * read back, and everything else.
  *
  * /protocols has no index route, only /protocols/[slug], so it is reached
- * from Today and from Insights rather than from here.
+ * from Identity rather than from here. Discipline folded into Insights,
+ * and Future and Ideal week into the Compass sheet; their routes still
+ * answer, as redirects.
  */
 const NAV: NavGroup[] = [
   {
@@ -25,7 +27,6 @@ const NAV: NavGroup[] = [
       { label: "Evening", href: "/evening" },
       { label: "Focus", href: "/focus" },
       { label: "Habits", href: "/habits" },
-      { label: "Discipline", href: "/discipline" },
     ],
   },
   {
@@ -34,8 +35,6 @@ const NAV: NavGroup[] = [
       { label: "Quests", href: "/quests" },
       { label: "Compass", href: "/compass" },
       { label: "Identity", href: "/identity" },
-      { label: "Future", href: "/future" },
-      { label: "Ideal week", href: "/week" },
     ],
   },
   {
@@ -119,8 +118,8 @@ export function Sidebar({
           {NAV.map((group) => (
             <div key={group.label} className="mb-3">
               <div
-                className="text-[11px] text-ink-400 px-[18px] pb-1.5"
-                style={{ fontVariationSettings: "'wdth' 100, 'wght' 640" }}
+                className="text-[11.5px] text-ink-300 px-[18px] pb-1.5"
+                style={{ fontVariationSettings: "'wdth' 100, 'wght' 660" }}
               >
                 {group.label}
               </div>
@@ -152,7 +151,7 @@ export function Sidebar({
                 >
                   {user.name}
                 </span>
-                <span className="block text-[11px] text-ink-400 group-hover:text-accent-spot">
+                <span className="block text-[11.5px] text-ink-300 group-hover:underline decoration-accent-spot decoration-2">
                   Switch profile
                 </span>
               </span>
@@ -170,7 +169,7 @@ export function Sidebar({
 
 function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
   // Exact match, or a match on a path segment, so /journal/past keeps
-  // Journal lit but /weekly-review does not light Ideal week (/week). The
+  // Journal lit but /weekly-review does not light a /week route. The
   // old component had this pinned to false, so nothing in the rail has
   // ever shown where you are.
   const active =

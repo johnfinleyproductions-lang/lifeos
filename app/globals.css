@@ -31,10 +31,13 @@
     --surface-2: 231 232 226; /* panels */
     --surface-3: 242 243 238; /* input surfaces, the hero */
 
-    /* text, strongest to faintest */
+    /* text, strongest to faintest. The faintest clears 4.5:1 on the page
+       and the panels at 11.5px; 110 114 106 fell to 3.4:1 on the page.
+       It is 3.9:1 on the rail stock, so the rail sets its small type in
+       --text-2 rather than this. */
     --text-1: 0 0 0;
     --text-2: 71 74 68;
-    --text-3: 110 114 106;
+    --text-3: 90 92 86;
 
     --knock: 231 232 226; /* type knocked out of a filled block */
 
@@ -70,7 +73,7 @@
 
     --text-1: 215 217 209;
     --text-2: 156 160 150;
-    --text-3: 118 122 113;
+    --text-3: 142 146 137; /* 4.55:1 on the raised panel, the wizard card */
 
     --knock: 18 21 18;
 
@@ -364,6 +367,8 @@
   .tab-spot {
     background: rgb(var(--spot));
     color: #fff;
+    box-shadow: inset 0 0 0 1.5px rgb(var(--text-1));
+    text-shadow: 0 0 1px rgb(0 0 0 / 0.35);
   }
   /* the domain inks, for quests */
   .tab-violet {
@@ -501,10 +506,15 @@
     box-shadow: none;
     transform: none;
   }
+  /* White on the spot orange is 3.2:1, under the floor for 14px type,
+     so the spot button carries an ink keyline: the type sits on orange
+     inside a drawn edge, and the edge is what makes it legible. */
   .btn-spot {
     background: rgb(var(--spot));
-    border-color: rgb(var(--spot));
+    border-color: rgb(var(--text-1));
     color: #fff;
+    font-variation-settings: "wdth" 96, "wght" 760;
+    text-shadow: 0 0 1px rgb(0 0 0 / 0.35);
   }
   .btn-spot:hover {
     box-shadow: 3px 3px 0 rgb(var(--text-1));
@@ -586,10 +596,12 @@
     cursor: not-allowed;
   }
 
-  /* An inline notice in the spot ink: save failures, mic errors. */
+  /* An inline notice: save failures, mic errors. The rule is spot; the
+     type is ink, because 13.5px orange on stock is under 3:1. */
   .alert {
     border: 1.5px solid rgb(var(--spot));
-    color: rgb(var(--spot));
+    box-shadow: 3px 3px 0 rgb(var(--spot));
+    color: rgb(var(--text-1));
     padding: 10px 12px;
     font-size: 13.5px;
     line-height: 1.4;
@@ -754,7 +766,13 @@
     color: rgb(var(--text-3));
     font-variant-numeric: tabular-nums;
   }
-  .wiz-count.over { color: rgb(var(--spot)); }
+  .wiz-count.over {
+    color: rgb(var(--text-1));
+    font-variation-settings: "wght" 700;
+    text-decoration: underline;
+    text-decoration-color: rgb(var(--spot));
+    text-decoration-thickness: 2px;
+  }
 
   /* A 1–5 pick, as five hard keys rather than a slider. */
   .pick {
@@ -772,8 +790,10 @@
   }
   .pick button[aria-pressed="true"] {
     background: rgb(var(--spot));
-    border-color: rgb(var(--spot));
+    border-color: rgb(var(--text-1));
     color: #fff;
+    font-variation-settings: "wght" 760;
+    text-shadow: 0 0 1px rgb(0 0 0 / 0.35);
   }
 
   /* 6am from bed: on a phone the primary action sits under the thumb. */
@@ -849,9 +869,13 @@
   }
 
   /* ---------- the collection ---------- */
-  /* A specimen not yet recorded prints in one faint pass, outline only.
-     A recorded one prints in ink with the spot under-pass like every
-     other plate. New today takes the spot ink on its date line. */
+  /* A recorded specimen prints in ink with the spot under-pass like
+     every other plate. One not yet recorded is an empty plate frame: a
+     ruled square where the drawing will go, and no caption, the way a
+     guide leaves the plate blank for a species the author has not seen.
+     Nothing on the frame says what it is for or how far off it is.
+     New today takes the spot ink as an underpass beneath its date line
+     rather than as the type itself, since 11.5px orange is under 3:1. */
   .specimen {
     display: grid;
     grid-template-columns: 44px minmax(0, 1fr);
@@ -866,13 +890,6 @@
   .specimen-plate {
     grid-row: span 3;
     margin-top: -3px;
-  }
-  .specimen[data-unseen] .specimen-plate {
-    color: rgb(var(--text-3));
-    opacity: 0.55;
-  }
-  .specimen[data-unseen] .specimen-name {
-    color: rgb(var(--text-2));
   }
   .specimen-name {
     font-size: 15px;
@@ -893,7 +910,178 @@
     margin-top: 5px;
   }
   .specimen[data-today] .specimen-obs {
-    color: rgb(var(--spot));
+    color: rgb(var(--text-1));
+    font-variation-settings: "wdth" 100, "wght" 720;
+  }
+  .specimen[data-today] .specimen-obs > span {
+    background: linear-gradient(rgb(var(--spot) / 0.8), rgb(var(--spot) / 0.8))
+      no-repeat 0 92% / 100% 4px;
+    padding: 0 2px 1px;
+    margin: 0 -2px;
+  }
+  /* the empty plate frame: a ruled square with the plate's corner ticks */
+  .specimen-empty {
+    display: block;
+    width: 40px;
+    height: 40px;
+    border: 1px solid rgb(var(--line));
+    position: relative;
+    opacity: 0.85;
+  }
+  .specimen-empty::before,
+  .specimen-empty::after {
+    content: "";
+    position: absolute;
+    inset: 4px;
+    border: 1px dashed rgb(var(--line));
+    pointer-events: none;
+  }
+  .specimen-empty::after {
+    inset: 0;
+    border: 0;
+    background: rgb(var(--line));
+    -webkit-mask-image: var(--tile-dot);
+    mask-image: var(--tile-dot);
+    -webkit-mask-size: 11px 11px;
+    mask-size: 11px 11px;
+    opacity: 0.45;
+  }
+  .specimen[data-unseen] {
+    align-items: center;
+  }
+  .specimen[data-unseen] .specimen-plate {
+    grid-row: span 1;
+    margin-top: 0;
+  }
+  .specimen-blank {
+    display: block;
+    height: 1px;
+    background: rgb(var(--line-soft));
+    width: 48%;
+  }
+
+  /* ---------- the year grid ---------- */
+  /* Three inks for the days of the year, each carrying its own hatch so
+     the cue is not only the colour: morning-only is gold with a single
+     hatch, evening-only is violet cross-hatched, a full day is the two
+     overprinted solid. A deuteranope reads the line direction where the
+     hue fails. */
+  .ycell {
+    width: 11px;
+    height: 11px;
+    position: relative;
+    border: 1px solid rgb(var(--line-soft));
+  }
+  .ycell-am,
+  .ycell-pm,
+  .ycell-both {
+    border-color: currentColor;
+  }
+  .ycell-am {
+    color: rgb(var(--gold));
+  }
+  .ycell-pm {
+    color: rgb(var(--violet));
+  }
+  .ycell-am::before,
+  .ycell-pm::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: currentColor;
+    -webkit-mask-repeat: repeat;
+    mask-repeat: repeat;
+    -webkit-mask-size: 4px 5.2px;
+    mask-size: 4px 5.2px;
+  }
+  .ycell-am::before {
+    -webkit-mask-image: var(--tile-hatch);
+    mask-image: var(--tile-hatch);
+  }
+  .ycell-pm::before {
+    -webkit-mask-image: var(--tile-cross);
+    mask-image: var(--tile-cross);
+  }
+  .ycell-both {
+    background: rgb(var(--gold));
+    color: rgb(var(--violet));
+  }
+  .ycell-both::after {
+    content: "";
+    position: absolute;
+    inset: 1px -1px -1px 1px;
+    background: rgb(var(--violet));
+    mix-blend-mode: multiply;
+  }
+  [data-theme="night"] .ycell-both::after {
+    mix-blend-mode: screen;
+  }
+  .ycell-off {
+    border-color: transparent;
+  }
+
+  /* ---------- the tab strip ---------- */
+  /* A sheet with tabs cut into its top edge. The chosen tab is filled
+     in ink and sits flush on the sheet; the others are outlined and
+     stand a hair back. One device for the compass sheet and the
+     looking-back windows. */
+  .tabstrip {
+    display: flex;
+    gap: 4px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    position: relative;
+    z-index: 1;
+  }
+  .tabstrip a,
+  .tabstrip button {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    border: 1.5px solid rgb(var(--text-1));
+    border-bottom: 0;
+    background: rgb(var(--surface-1));
+    color: rgb(var(--text-1));
+    font-size: 13px;
+    line-height: 1;
+    padding: 9px 13px 10px;
+    cursor: pointer;
+    text-decoration: none;
+    font-variation-settings: "wdth" 96, "wght" 640;
+    margin-bottom: -1.5px;
+    position: relative;
+  }
+  .tabstrip a:hover,
+  .tabstrip button:hover {
+    background: rgb(var(--surface-3));
+  }
+  .tabstrip [aria-selected="true"],
+  .tabstrip [aria-current="page"] {
+    background: rgb(var(--text-1));
+    color: rgb(var(--knock));
+    font-variation-settings: "wdth" 96, "wght" 720;
+    padding-top: 11px;
+  }
+  .tabstrip + .sheet {
+    position: relative;
+    z-index: 0;
+  }
+
+  /* A live stamp: the running focus block on Today. The spot ink here is
+     the one meaning it has, now, and it breathes in two frames. */
+  @keyframes live {
+    from { opacity: 1; }
+    to { opacity: 0.72; }
+  }
+  .stamp-live {
+    animation: live 1.4s steps(2) infinite alternate;
+  }
+  /* The base reduced-motion rule shortens durations rather than
+     stopping loops, which would turn this one into a flicker. */
+  @media (prefers-reduced-motion: reduce) {
+    .stamp-live {
+      animation: none;
+    }
   }
 
   /* ---------- motion: ink, paper, mechanism. All stepped. ---------- */
