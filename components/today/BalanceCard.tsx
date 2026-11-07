@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getAuthContext } from "@/lib/auth/server-helpers";
 import { getLatestBalance } from "@/lib/reflection/auto-detect";
 import { BALANCE_DIMENSIONS } from "@/lib/reflection/balance";
+import { Watermark } from "@/components/field/Watermark";
 
 /**
  * The most recent weekly review's balance scores. Empty until the first
@@ -13,7 +14,8 @@ export async function BalanceCard() {
   const balance = user ? await getLatestBalance(user.id) : null;
 
   return (
-    <div className="sheet">
+    <div className={balance ? "sheet" : "sheet relative"}>
+      {!balance && <Watermark name="shell" size={130} />}
       <div className="tab-row">
         <span className="tab">Balance</span>
         <span className="fill" />

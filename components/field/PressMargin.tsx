@@ -6,6 +6,8 @@
  * Sits at the foot of every page. Decorative, so it is hidden from
  * screen readers entirely.
  */
+import { Tailpiece } from "./Tailpiece";
+
 export function PressMargin({ sheet }: { sheet?: number }) {
   const inks = [
     ["--spot", "fluorescent orange"],
@@ -17,9 +19,13 @@ export function PressMargin({ sheet }: { sheet?: number }) {
   ] as const;
 
   return (
+    <div aria-hidden="true" className="select-none">
+      {/* the tail-piece closes the sheet before the trim */}
+      <div className="mt-12 mb-5 flex justify-center text-ink-300">
+        <Tailpiece />
+      </div>
     <div
-      aria-hidden="true"
-      className="mt-12 pt-4 border-t border-ink-600 flex items-center gap-4 text-ink-400 select-none"
+      className="pt-4 border-t border-ink-600 flex items-center gap-4 text-ink-400"
     >
       <svg width="13" height="13" viewBox="0 0 13 13" className="shrink-0">
         <circle
@@ -56,6 +62,7 @@ export function PressMargin({ sheet }: { sheet?: number }) {
       <span className="flex-1 border-b border-dotted border-ink-600" />
 
       <span className="text-[10.5px]">two passes, grey stock</span>
+    </div>
     </div>
   );
 }

@@ -7,8 +7,11 @@ import type { InsightsData } from "@/lib/insights/queries";
  * 2. Focus minutes per day, height is minutes against the window's max
  * 3. Habit grid, habits by days, a filled cell per completion
  *
- * Everything is a flat fill with square ends. Days with nothing logged
- * print as a faint stub so the axis still reads as thirty days.
+ * Every mark is an engraved one: an outline in the series ink with a
+ * hatched pass inside it. The rating chart cross-hatches, the heavier
+ * reading; focus hatches once, and a day under half an hour gets only
+ * the stipple. Days with nothing logged print as a faint stub so the
+ * axis still reads as thirty days.
  */
 export function Trends({ data }: { data: InsightsData }) {
   return (
@@ -38,10 +41,10 @@ function DayRatingChart({ data }: { data: InsightsData }) {
   const maxRating = 5;
   const inkFor = (r: number | null): string => {
     if (r === null) return "bg-ink-600";
-    if (r >= 4) return "bg-accent-green";
-    if (r >= 3) return "bg-accent-sky";
-    if (r >= 2) return "bg-accent-gold";
-    return "bg-accent-rose";
+    if (r >= 4) return "hx-x text-accent-green";
+    if (r >= 3) return "hx-x text-accent-sky";
+    if (r >= 2) return "hx text-accent-gold";
+    return "hx-dot text-accent-rose";
   };
 
   return (
@@ -54,7 +57,7 @@ function DayRatingChart({ data }: { data: InsightsData }) {
         </span>
       </div>
       <div className="sheet">
-        <div className="flex items-end gap-[3px] h-32 border-b-[1.5px] border-ink-50">
+        <div className="flex items-end gap-[2px] sm:gap-[3px] h-32 border-b-[1.5px] border-ink-50">
           {data.dayPoints.map((p) => {
             const h =
               p.eveningRating !== null
@@ -92,7 +95,7 @@ function FocusChart({ data }: { data: InsightsData }) {
         </span>
       </div>
       <div className="sheet">
-        <div className="flex items-end gap-[3px] h-24 border-b-[1.5px] border-ink-50">
+        <div className="flex items-end gap-[2px] sm:gap-[3px] h-24 border-b-[1.5px] border-ink-50">
           {data.dayPoints.map((p) => {
             const h = `${Math.max(3, (p.focusMinutes / maxMinutes) * 100)}%`;
             return (
@@ -103,9 +106,9 @@ function FocusChart({ data }: { data: InsightsData }) {
                 } min`}
                 className={`flex-1 ${
                   p.focusMinutes >= 30
-                    ? "bg-accent-sky"
+                    ? "hx text-accent-sky"
                     : p.focusMinutes > 0
-                      ? "bg-accent-sky/45"
+                      ? "hx-dot text-accent-sky"
                       : "bg-ink-600"
                 }`}
                 style={{ height: h }}
@@ -149,7 +152,9 @@ function HabitHeatmap({ data }: { data: InsightsData }) {
                         done ? "done" : "missed"
                       }`}
                       className={`flex-1 h-4 ${
-                        done ? "bg-ink-50" : "bg-ink-600"
+                        done
+                          ? "hx hx-fine text-ink-50"
+                          : "border border-ink-600"
                       }`}
                     />
                   );

@@ -103,7 +103,7 @@ export function FocusClient({
             <span className="tab tab-spot">In focus</span>
             <span className="fill" />
           </div>
-          <div className="sheet sheet-hi shadow-mis text-center py-9">
+          <div className="sheet sheet-hi sheet-cut shadow-mis text-center py-9">
             <div
               className="t-num text-[clamp(56px,9vw,96px)] leading-none tracking-[-0.03em]"
               style={{ fontVariationSettings: "'wdth' 84, 'wght' 800" }}

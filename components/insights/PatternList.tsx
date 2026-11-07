@@ -1,4 +1,5 @@
 import type { Pattern } from "@/lib/insights/patterns";
+import { Watermark } from "@/components/field/Watermark";
 
 /**
  * The detected patterns as numbered entries in a single sheet. The data
@@ -17,7 +18,8 @@ export function PatternList({ patterns }: { patterns: Pattern[] }) {
       </div>
 
       {patterns.length === 0 ? (
-        <div className="sheet sheet-bare border-dashed text-center py-8">
+        <div className="sheet sheet-bare sheet-cut text-center py-8 relative">
+          <Watermark name="constellation" />
           <p className="text-[14.5px] text-ink-300 m-0 mx-auto max-w-[44ch]">
             Not enough data yet to spot patterns. Check back after a few more
             check-ins, journal entries, or focus sessions.

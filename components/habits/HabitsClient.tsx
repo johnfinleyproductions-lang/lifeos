@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Watermark } from "@/components/field/Watermark";
 
 type DayState = {
   date: string;
@@ -81,7 +82,8 @@ export function HabitsClient({ habits }: { habits: Habit[] }) {
   return (
     <div className="space-y-3.5">
       {habits.length === 0 && !showForm && (
-        <div className="sheet sheet-bare border-dashed text-center py-10">
+        <div className="sheet sheet-bare sheet-cut text-center py-10 relative">
+          <Watermark name="sprout" />
           <div className="t-h2 mb-2">No habits yet.</div>
           <p className="text-[14.5px] text-ink-300 mb-5 max-w-[40ch] mx-auto">
             Habits compound. Start with one. The smallest version of it,
@@ -131,7 +133,7 @@ export function HabitsClient({ habits }: { habits: Habit[] }) {
               </button>
             </div>
 
-            {/* Seven hard cells, oldest first. Today takes the spot ink. */}
+            {/* Seven cells, oldest first, cross-hatched when struck. Today takes the spot ink. */}
             <div className="flex gap-1.5">
               {h.last7Days.map((d, i) => {
                 const isToday = i === h.last7Days.length - 1;
@@ -142,14 +144,14 @@ export function HabitsClient({ habits }: { habits: Habit[] }) {
                     title={`${d.date}${d.done ? ", done" : ""}`}
                   >
                     <div
-                      className={`w-full h-8 border-[1.5px] ${
+                      className={`w-full h-8 ${
                         d.done
                           ? isToday
-                            ? "bg-accent-spot border-accent-spot"
-                            : "bg-ink-50 border-ink-50"
+                            ? "hx-x text-accent-spot"
+                            : "hx-x text-ink-50"
                           : isToday
-                            ? "bg-ink-700 border-accent-spot"
-                            : "bg-ink-700 border-ink-500"
+                            ? "border-[1.5px] bg-ink-700 border-accent-spot"
+                            : "border-[1.5px] bg-ink-700 border-ink-500"
                       }`}
                     />
                     <div

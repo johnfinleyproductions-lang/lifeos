@@ -1,3 +1,4 @@
+import { Watermark } from "@/components/field/Watermark";
 import Link from "next/link";
 import { format } from "date-fns";
 import { and, desc, eq } from "drizzle-orm";
@@ -68,7 +69,7 @@ export default async function IdentityPage() {
               Revise
             </Link>
           </div>
-          <div className="sheet sheet-hi shadow-mis px-[26px] py-6">
+          <div className="sheet sheet-hi sheet-cut shadow-mis px-[26px] py-6">
             <p className="font-serif text-[clamp(21px,2.6vw,30px)] leading-[1.22] tracking-[-0.01em] m-0 max-w-[32ch] text-balance">
               <span className="text-accent-spot">&ldquo;</span>
               {identityStatement}
@@ -87,7 +88,8 @@ export default async function IdentityPage() {
         subtitle="Evidence of who you're becoming. Grows on its own from Daily Confidence runs."
       >
         {confidenceEntries.length === 0 ? (
-          <div className="sheet sheet-bare border-dashed text-center py-8">
+          <div className="sheet sheet-bare sheet-cut text-center py-8 relative">
+            <Watermark name="feather" size={140} />
             <p className="text-[14.5px] text-ink-300 m-0">No entries yet.</p>
             <p className="text-[12.5px] text-ink-400 mt-1 mb-0">
               Run the Daily Confidence protocol to start collecting.

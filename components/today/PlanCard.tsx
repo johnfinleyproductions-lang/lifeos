@@ -21,7 +21,7 @@ export async function PlanCard() {
           <span className="tab">The three</span>
           <span className="fill" />
         </div>
-        <div className="sheet sheet-bare border-dashed text-center py-7">
+        <div className="sheet sheet-bare sheet-cut text-center py-7">
           <p className="t-read text-ink-300 m-0 mx-auto max-w-[34ch]">
             Set at the morning manifesto. Two is allowed; three is the most
             that has ever actually landed.

@@ -10,3 +10,4 @@ out/
 .turbo
 next-env.d.ts
 drizzle/.snapshots/
+*.tsbuildinfo
