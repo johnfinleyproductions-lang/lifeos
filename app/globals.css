@@ -438,6 +438,25 @@
     border-style: dashed;
   }
 
+  /* Two inks printed on the same cell: gold under, violet over, the top
+     pass a pixel off register. Multiply by day makes the overlap the
+     dark third colour a riso gives you for free; screen does the same
+     job on the night stock. */
+  .overprint {
+    position: relative;
+    background: rgb(var(--gold));
+  }
+  .overprint::after {
+    content: "";
+    position: absolute;
+    inset: 1px -1px -1px 1px;
+    background: rgb(var(--violet));
+    mix-blend-mode: multiply;
+  }
+  [data-theme="night"] .overprint::after {
+    mix-blend-mode: screen;
+  }
+
   /* A plate printed large and faint behind an empty state. */
   .wm {
     opacity: 0.14;
