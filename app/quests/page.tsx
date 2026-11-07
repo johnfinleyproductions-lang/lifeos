@@ -70,8 +70,10 @@ export default async function QuestsPage() {
       <div className="tab-row mb-6">
         <span className="tab">{progress.quarter}</span>
         <span className="fill" />
+        {/* The phase word ("Grind", "Sprint") went: it was never explained
+            to the reader and the day count says where the quarter is. */}
         <span className="text-[11.5px] text-ink-400 tabular-nums">
-          Day {progress.day} of {progress.totalDays}, {progress.phase}
+          Day {progress.day} of {progress.totalDays}
           {marks && summits > 0 && (
             <>
               , {summits} {summits === 1 ? "summit" : "summits"} so far

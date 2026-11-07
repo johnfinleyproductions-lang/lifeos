@@ -12,6 +12,7 @@ import {
   lifeosQuests,
 } from "@/lib/db/schema/lifeos";
 import { PROTOCOLS } from "@/lib/protocols/definitions";
+import { KEPT_PROTOCOL_SET } from "@/app/protocols/kept";
 import { CATALOGUE, type Specimen } from "./catalogue";
 
 /**
@@ -172,16 +173,19 @@ export const getCollection = cache(
     const reviews = runs
       .filter((r) => r.slug === "weekly_review")
       .map((r) => day(r.date));
+    // A run of any protocol counts, retired ones included: it happened.
+    // The full set is the six that can still be run.
     const protocolSlugs = new Set(PROTOCOLS.map((p) => p.slug));
     const protocolRuns = runs
       .filter((r) => protocolSlugs.has(r.slug))
       .map((r) => ({ slug: r.slug, date: day(r.date) }));
     const firstBySlug = new Map<string, string>();
     for (const r of protocolRuns) {
+      if (!KEPT_PROTOCOL_SET.has(r.slug)) continue;
       if (!firstBySlug.has(r.slug)) firstBySlug.set(r.slug, r.date);
     }
     const fullSet =
-      firstBySlug.size === protocolSlugs.size
+      firstBySlug.size === KEPT_PROTOCOL_SET.size
         ? [...firstBySlug.values()].sort().at(-1) ?? null
         : null;
     const filed = confidence.map((c) => day(c.createdAt));
@@ -195,7 +199,8 @@ export const getCollection = cache(
       morning: { firstObs: first(mornings), count: mornings.length },
       evening: { firstObs: first(evenings), count: evenings.length },
       fullday: { firstObs: first(fullDays), count: fullDays.length },
-      alive: { firstObs: first(alive), count: alive.length },
+      // no tally: rating a day five is a judgement, not a quantity
+      alive: { firstObs: first(alive), count: null },
       "thirty-fulldays": { firstObs: nth(fullDays, 30), count: null },
 
       pressing: { firstObs: first(pressings), count: pressings.length },

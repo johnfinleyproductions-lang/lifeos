@@ -19,6 +19,13 @@
  * `countNoun` marks the specimens that keep counting after the first,
  * as a singular and a plural. The milestones (a hundred pressings, ten
  * hours) are one-time and carry only their date.
+ *
+ * A tally is kept only where the thing counted is a neutral quantity:
+ * a pressing, an evening logged, an hour in the hide. Where the trigger
+ * is a judgement, the tally goes. "A day marked alive" is earned by
+ * rating an evening five of five, and a running count of fives would
+ * turn the evening's "rate it from where you sit" into a score to
+ * chase. It keeps its first date and nothing else.
  */
 
 export type SpecimenFamily =
@@ -87,7 +94,7 @@ export const CATALOGUE: Specimen[] = [
     name: "A day marked alive",
     mark: "An evening rated five of five.",
     plate: "bloom",
-    countNoun: ["so far", "so far"],
+    // no countNoun: the trigger is an opinion, so there is no tally
   },
   {
     key: "thirty-fulldays",
@@ -183,7 +190,7 @@ export const CATALOGUE: Specimen[] = [
     key: "protocol",
     family: "reflection",
     name: "Protocol run",
-    mark: "Any of the nine protocols, run once.",
+    mark: "Any of the six protocols, run once.",
     plate: "keys",
     countNoun: ["run", "runs"],
   },
@@ -191,7 +198,7 @@ export const CATALOGUE: Specimen[] = [
     key: "full-set",
     family: "reflection",
     name: "The full set",
-    mark: "All nine protocols run at least once.",
+    mark: "All six protocols run at least once.",
     plate: "cabinet",
   },
   {
