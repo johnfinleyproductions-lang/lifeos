@@ -63,17 +63,19 @@ export async function QuestsCard() {
         </span>
       </div>
 
-      <p className="stat-f mt-0 mb-3.5">
-        Day {progress.day} of {progress.totalDays}, {left}{" "}
-        {left === 1 ? "day" : "days"} left
-      </p>
-
       {allActive.length === 0 ? (
         <p className="t-read text-ink-300 m-0">
           Nothing set for this quarter yet. One or two is the right number.
         </p>
       ) : (
         <div className="flex flex-col gap-3">
+          {/* The countdown only prints once there is something it is
+              counting toward. On an empty card it was a clock with no
+              appointment. */}
+          <p className="stat-f mt-0 mb-0.5">
+            Day {progress.day} of {progress.totalDays}, {left}{" "}
+            {left === 1 ? "day" : "days"} left
+          </p>
           {main.map((q) => (
             <div key={q.id}>
               <div className="flex items-start justify-between gap-3 mb-1.5">

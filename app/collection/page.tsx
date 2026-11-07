@@ -9,7 +9,8 @@ import { PageStamp } from "@/components/PageStamp";
  *
  * Read-only, and derived on each visit from the tables the rest of the
  * app already writes. There is nothing to earn here that is not already
- * in the log, and nothing here can be lost.
+ * in the log, and nothing here can be lost. It is a life list, not a
+ * checklist: nothing on the page counts what is left.
  */
 export default async function CollectionPage() {
   const { user } = await requireUserContext();
@@ -25,16 +26,8 @@ export default async function CollectionPage() {
         subtitle="Every first, pressed and dated. A record of what has already happened, not a list of what to do."
       />
 
-      <div className="tab-row mb-6">
-        <span className="tab">Specimens</span>
-        <span className="fill" />
-        <span className="text-[11.5px] text-ink-400 tabular-nums">
-          {collection.recorded} of {collection.total} recorded
-        </span>
-      </div>
-
       {!marks && (
-        <p className="text-[12.5px] text-ink-400 -mt-3 mb-5">
+        <p className="text-[12.5px] text-ink-400 -mt-2 mb-5">
           Field marks are hidden elsewhere in the app. This page keeps the
           record either way.
         </p>

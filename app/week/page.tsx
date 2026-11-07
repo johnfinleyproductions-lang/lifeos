@@ -1,36 +1,11 @@
-import { eq } from "drizzle-orm";
-import { db } from "@/lib/db";
-import { lifeosCompass } from "@/lib/db/schema/lifeos";
-import { requireUserContext } from "@/lib/auth/server-helpers";
-import { WeekEditor } from "@/components/compass/WeekEditor";
-import { PageStamp } from "@/components/PageStamp";
-import { idealWeekSchema, type IdealWeek } from "@/lib/compass/schema";
+import { redirect } from "next/navigation";
 
-export default async function WeekPage() {
-  const { user } = await requireUserContext();
-
-  const [row] = await db
-    .select({ idealWeek: lifeosCompass.idealWeek })
-    .from(lifeosCompass)
-    .where(eq(lifeosCompass.userId, user.id))
-    .limit(1);
-
-  const parsed =
-    row?.idealWeek != null
-      ? idealWeekSchema.safeParse(row.idealWeek)
-      : null;
-  const initial: IdealWeek = parsed && parsed.success ? parsed.data : {};
-
-  return (
-    <div className="max-w-5xl mx-auto">
-      <PageStamp
-        title="Ideal week"
-        subtitle="The rhythm you want: anchors, blocks, rituals. Not a schedule."
-        backHref="/compass"
-        backLabel="Compass"
-      />
-
-      <WeekEditor initial={initial} />
-    </div>
-  );
+/**
+ * The ideal week is retired. It was seven textareas that nothing in the
+ * app ever read back, and the review's lean and the owner's was to drop
+ * it rather than find it a reader. Anything saved stays in the
+ * compass row's ideal_week column.
+ */
+export default function WeekPage() {
+  redirect("/compass");
 }

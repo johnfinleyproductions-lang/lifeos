@@ -1,23 +1,32 @@
 import { formatDay } from "@/lib/time/day";
 import type { InsightsData } from "@/lib/insights/queries";
+import { phraseTally } from "@/lib/insights/habit-denominator";
 
 /**
- * Three plotted sheets:
+ * The plotted sheets for a 7- or 30-day window:
  * 1. Day rating, one bar per day, height is the evening rating
  * 2. Focus minutes per day, height is minutes against the window's max
  * 3. Habit grid, habits by days, a filled cell per completion
+ *
+ * A chart with nothing to plot is not printed. The old page drew two
+ * empty axes under the words "not enough data yet"; an axis with no
+ * marks on it says nothing a sentence does not say better.
  *
  * Every mark is an engraved one: an outline in the series ink with a
  * hatched pass inside it. The rating chart cross-hatches, the heavier
  * reading; focus hatches once, and a day under half an hour gets only
  * the stipple. Days with nothing logged print as a faint stub so the
- * axis still reads as thirty days.
+ * axis still reads as the whole window.
  */
 export function Trends({ data }: { data: InsightsData }) {
+  const anyRating = data.dayPoints.some((p) => p.eveningRating !== null);
+  const anyFocus = data.dayPoints.some((p) => p.focusMinutes > 0);
+  if (!anyRating && !anyFocus && data.habits.length === 0) return null;
+
   return (
     <div className="space-y-6">
-      <DayRatingChart data={data} />
-      <FocusChart data={data} />
+      {anyRating && <DayRatingChart data={data} />}
+      {anyFocus && <FocusChart data={data} />}
       {data.habits.length > 0 && <HabitHeatmap data={data} />}
     </div>
   );
@@ -119,6 +128,13 @@ function FocusChart({ data }: { data: InsightsData }) {
   );
 }
 
+/**
+ * Habits by days. A cell is only ruled on a day the habit was due: a
+ * weekdays habit has no cell on a Saturday, a weekly habit's cells are
+ * faint on days it was not pressed, and no cell is drawn before the
+ * habit existed. The old grid ruled every day for every habit and
+ * called each empty one "missed".
+ */
 function HabitHeatmap({ data }: { data: InsightsData }) {
   return (
     <section>
@@ -134,31 +150,41 @@ function HabitHeatmap({ data }: { data: InsightsData }) {
           {data.habits.map((h) => (
             <div key={h.id} className="flex items-center gap-3">
               <div
-                className="w-32 text-[12.5px] truncate shrink-0"
+                className="w-32 shrink-0"
                 style={{ fontVariationSettings: "'wght' 620" }}
               >
-                {h.name}
+                <div className="text-[12.5px] truncate">{h.name}</div>
+                <div className="text-[10.5px] text-ink-400 leading-none">
+                  {h.cadence}
+                </div>
               </div>
               <div className="flex-1 flex gap-[2px]">
-                {data.days.map((d) => {
-                  const done = h.completions.has(d);
+                {h.tally.cells.map((c) => {
+                  const cls = !c.existed
+                    ? "opacity-0"
+                    : c.done
+                      ? "hx hx-fine text-ink-50"
+                      : c.due && h.tally.unit === "days"
+                        ? "border border-ink-600"
+                        : "border border-ink-600 opacity-40";
+                  const title = !c.existed
+                    ? `${formatDay(c.date, "MMM d")}: before this habit`
+                    : c.done
+                      ? `${formatDay(c.date, "MMM d")}: pressed`
+                      : c.due && h.tally.unit === "days"
+                        ? `${formatDay(c.date, "MMM d")}: due, not pressed`
+                        : `${formatDay(c.date, "MMM d")}: not due`;
                   return (
                     <div
-                      key={d}
-                      title={`${formatDay(d, "MMM d")}: ${
-                        done ? "done" : "missed"
-                      }`}
-                      className={`flex-1 h-4 ${
-                        done
-                          ? "hx hx-fine text-ink-50"
-                          : "border border-ink-600"
-                      }`}
+                      key={c.date}
+                      title={title}
+                      className={`flex-1 h-4 ${cls}`}
                     />
                   );
                 })}
               </div>
-              <div className="w-12 text-right text-[11.5px] text-ink-400 tabular-nums shrink-0">
-                {h.completions.size}/{data.windowDays}
+              <div className="w-24 text-right text-[11.5px] text-ink-400 tabular-nums shrink-0">
+                {phraseTally(h.tally, data.windowDays)}
               </div>
             </div>
           ))}

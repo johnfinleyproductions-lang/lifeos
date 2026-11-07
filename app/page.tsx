@@ -8,7 +8,11 @@ import { QuestsCard } from "@/components/today/QuestsCard";
 import { BalanceCard } from "@/components/today/BalanceCard";
 import { PlanCard } from "@/components/today/PlanCard";
 import { FocusHabitsCard } from "@/components/today/FocusHabitsCard";
-import { EveningSummaryCard } from "@/components/today/EveningSummaryCard";
+import { FocusLive } from "@/components/today/FocusLive";
+import {
+  EveningSummaryCard,
+  TomorrowSeed,
+} from "@/components/today/EveningSummaryCard";
 import { CollectionNote } from "@/components/today/CollectionNote";
 
 function greetingFor(h: number) {
@@ -19,13 +23,52 @@ function greetingFor(h: number) {
   return "Late night";
 }
 
+/**
+ * Today, in three states. The page used to print the same sheet at 6am
+ * and 9pm; now what leads depends on where the day has got to.
+ *
+ *   before the manifesto   the sun plate and the one orange action
+ *   day open               the three lead at full size with working
+ *                          boxes; the manifesto is one italic line under
+ *                          them; a running focus block shows as a live
+ *                          orange stamp
+ *   day closed             the closed-day card leads, the three read
+ *                          struck underneath, and one ink line points
+ *                          forward
+ *
+ * The hour sets the greeting and, in the evening, lifts the close-the-
+ * day row up under the three; it never changes what the day's record
+ * says.
+ */
 export default async function TodayPage() {
   const { user } = await getAuthContext();
-  const eveningDone = user
-    ? (await getTodayCheckin(user.id)).evening !== null
-    : false;
+  const checkin = user
+    ? await getTodayCheckin(user.id)
+    : { morning: null, evening: null };
+  const morningDone = checkin.morning !== null;
+  const eveningDone = checkin.evening !== null;
   const now = localParts();
   const today = todayKey();
+  const eveningHours = now.hour >= 17 || now.hour < 4;
+
+  const state: "before" | "open" | "closed" = eveningDone
+    ? "closed"
+    : morningDone
+      ? "open"
+      : "before";
+
+  const closeRow = user && state === "open" && (
+    <div className="sheet sheet-bare flex items-center justify-between gap-4 flex-wrap">
+      <span className="t-read text-ink-300 m-0">
+        {eveningHours
+          ? "The day is winding down. The shutdown takes about four minutes."
+          : "The day is still open. The shutdown takes about four minutes."}
+      </span>
+      <Link href="/evening" className="btn btn-spot shrink-0">
+        Close the day
+      </Link>
+    </div>
+  );
 
   return (
     <div className="max-w-[1080px] mx-auto">
@@ -87,17 +130,34 @@ export default async function TodayPage() {
         </div>
       )}
 
-      {/* The manifesto is the largest thing on the page. Everything else
-          stays quiet around it. */}
       <div className="grid grid-cols-1 lg:grid-cols-[1.55fr_1fr] gap-5 items-start">
-        <div>
-          <ManifestoCard />
-          <div className="mt-5">
-            <PlanCard />
-          </div>
-          <div className="mt-5">
-            <EveningSummaryCard />
-          </div>
+        <div className="flex flex-col gap-5">
+          {state === "before" && (
+            <>
+              <ManifestoCard mode="hero" />
+              <FocusLive />
+              <PlanCard />
+            </>
+          )}
+
+          {state === "open" && (
+            <>
+              <FocusLive />
+              <PlanCard variant="lead" />
+              <ManifestoCard mode="line" />
+              {eveningHours && closeRow}
+            </>
+          )}
+
+          {state === "closed" && (
+            <>
+              <EveningSummaryCard />
+              <FocusLive />
+              <PlanCard variant="closed" />
+              <ManifestoCard mode="line" />
+              <TomorrowSeed />
+            </>
+          )}
         </div>
 
         <div className="flex flex-col gap-3.5">
@@ -113,16 +173,7 @@ export default async function TodayPage() {
         </div>
       )}
 
-      {!eveningDone && user && (
-        <div className="sheet sheet-bare mt-5 flex items-center justify-between gap-4">
-          <span className="t-read text-ink-300 m-0">
-            The day is still open. The shutdown takes about four minutes.
-          </span>
-          <Link href="/evening" className="btn btn-spot shrink-0">
-            Close the day
-          </Link>
-        </div>
-      )}
+      {state === "open" && !eveningHours && <div className="mt-5">{closeRow}</div>}
     </div>
   );
 }

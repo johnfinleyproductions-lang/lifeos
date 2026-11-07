@@ -21,10 +21,15 @@ const RATING_LABELS: Record<number, string> = {
  * Renders only when today's evening shutdown has been completed. Returns
  * null otherwise so the page layout collapses naturally.
  *
- * Once the day is closed the sheet takes a date stamp, the way a logbook
- * page does when the entry is done, and the stamp carries a running
- * count: which closed day of the year this is. The count only ever goes
- * up. A day that was not closed is not counted and not mentioned.
+ * Once the day is closed this card leads the page. The sheet takes a
+ * date stamp, the way a logbook page does when the entry is done, and
+ * the stamp carries a running count: which closed day of the year this
+ * is. The count only ever goes up. A day that was not closed is not
+ * counted and not mentioned.
+ *
+ * The seed for tomorrow is not in the card. It prints as its own quiet
+ * line under the three (see TomorrowSeed), because it is the one thing
+ * on a closed day that points forward.
  */
 export async function EveningSummaryCard() {
   const { user } = await getAuthContext();
@@ -92,10 +97,9 @@ export async function EveningSummaryCard() {
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <SummaryField label="Win" body={evening.win} />
           <SummaryField label="Carrying forward" body={evening.lesson} />
-          <SummaryField label="Tomorrow's seed" body={evening.tomorrowSeed} />
         </div>
 
         {(evening.reframe || evening.release) && (
@@ -110,6 +114,25 @@ export async function EveningSummaryCard() {
         )}
       </div>
     </section>
+  );
+}
+
+/**
+ * One ink line that points forward. The only part of a closed day that
+ * is about tomorrow, so it sits last and on its own.
+ */
+export async function TomorrowSeed() {
+  const { user } = await getAuthContext();
+  if (!user) return null;
+  const { evening } = await getTodayCheckin(user.id);
+  if (!evening) return null;
+  return (
+    <p className="flex items-baseline gap-3 m-0 pt-4 border-t-[1.5px] border-ink-50">
+      <span className="lbl shrink-0">Tomorrow&apos;s seed</span>
+      <span className="font-serif text-[17px] leading-[1.45]">
+        {evening.tomorrowSeed}
+      </span>
+    </p>
   );
 }
 

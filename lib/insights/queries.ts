@@ -17,6 +17,9 @@ import {
 } from "@/lib/db/schema/lifeos";
 import { morningManifestoSchema } from "@/lib/manifesto/schema";
 import { eveningShutdownSchema } from "@/lib/manifesto/evening-schema";
+import { tallyHabit, type HabitTally } from "./habit-denominator";
+
+export type InsightsWindow = 7 | 30 | 365;
 
 export type DayPoint = {
   date: string;
@@ -30,7 +33,12 @@ export type DayPoint = {
 export type HabitWithCompletions = {
   id: string;
   name: string;
+  cadence: string;
+  /** the household day the habit was created */
+  createdOn: string;
   completions: Set<string>;
+  /** possible and kept by cadence and creation date; see habit-denominator */
+  tally: HabitTally;
 };
 
 export type InsightsData = {
@@ -45,13 +53,25 @@ export type InsightsData = {
   decisionCount: number;
   morningCheckins: number;
   eveningCheckins: number;
+  /**
+   * Days from the first check-in inside the window to its end. The
+   * honest denominator for "mornings" and "evenings": a record that
+   * began three days ago reads 3 of 3, not 3 of 30, and a year window
+   * is measured from the day the record started rather than from a
+   * date before the app existed.
+   */
+  activeDays: number;
+  /** the first day in the window with a check-in, or null */
+  activeSince: string | null;
 };
 
 /**
  * Aggregate the user's last N days of LifeOS data for the Insights view.
  *
  * Pulls from check-ins, habits + completions, focus sessions, and journal
- * decisions. All scoped to the user_id (current profile).
+ * decisions. All scoped to the user_id (current profile). The journal
+ * is read for one number only, the count of decision-tagged entries;
+ * no entry text leaves this function.
  *
  * Wrapped in React.cache so the page + each visualization can re-call it
  * without doubling the DB load.
@@ -176,11 +196,17 @@ export const getInsights = cache(
       completionsByHabit.get(c.habitId)!.add(c.completionDate);
     }
 
-    const habits: HabitWithCompletions[] = habitRows.map((h) => ({
-      id: h.id,
-      name: h.name,
-      completions: completionsByHabit.get(h.id) ?? new Set(),
-    }));
+    const habits: HabitWithCompletions[] = habitRows.map((h) => {
+      const completions = completionsByHabit.get(h.id) ?? new Set<string>();
+      return {
+        id: h.id,
+        name: h.name,
+        cadence: h.cadence,
+        createdOn: dayKeyOf(h.createdAt),
+        completions,
+        tally: tallyHabit(days, h.cadence, h.createdAt, completions),
+      };
+    });
 
     const decisionRows = await db
       .select({ id: lifeosJournalEntries.id })
@@ -193,6 +219,10 @@ export const getInsights = cache(
         ),
       );
 
+    const firstActive = dayPoints.findIndex(
+      (p) => p.morningEnergy !== null || p.eveningRating !== null,
+    );
+
     return {
       windowDays,
       startDate,
@@ -200,6 +230,8 @@ export const getInsights = cache(
       days,
       dayPoints,
       habits,
+      activeDays: firstActive >= 0 ? dayPoints.length - firstActive : 0,
+      activeSince: firstActive >= 0 ? dayPoints[firstActive].date : null,
       totalFocusMinutes: focusRows.reduce(
         (s, f) => s + (f.durationMinutes ?? 0),
         0,

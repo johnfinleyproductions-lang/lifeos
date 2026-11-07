@@ -6,13 +6,16 @@ import { Watermark } from "@/components/field/Watermark";
 
 /**
  * The collection, laid out as a field guide lays out a family: a
- * heading per family, then each specimen with its plate, its name, its
- * field mark, and the line under it that says when it was first seen.
+ * heading per family, then each recorded specimen with its plate, its
+ * name, its field mark, and the line under it that says when it was
+ * first seen.
  *
- * A specimen not yet recorded still gets its page. That is what a field
- * guide is: the whole list, with the ones you have seen ticked. It
- * prints in one faint pass with no date, and nothing on it says how far
- * off it is.
+ * A specimen not yet recorded is an empty plate frame and nothing
+ * else: no name, no field mark, no threshold, no "not yet". A guide
+ * shows the plate, not a caption for what you have not seen. There is
+ * no count of how many are recorded, here or per family. The frames
+ * say there is more to the list; the list says nothing about how far
+ * you are down it.
  */
 export function CollectionSheet({ collection }: { collection: Collection }) {
   return (
@@ -37,15 +40,12 @@ function Families({ collection }: { collection: Collection }) {
     <div className="space-y-7">
       {FAMILIES.map((f) => {
         const members = collection.specimens.filter((s) => s.family === f.key);
-        const seen = members.filter((s) => s.firstObs !== null).length;
         return (
           <section key={f.key}>
             <div className="tab-row">
               <span className="tab">{f.label}</span>
               <span className="fill" />
-              <span className="text-[11.5px] text-ink-400 tabular-nums">
-                {seen} of {members.length}
-              </span>
+              <span className="text-[11.5px] text-ink-400 hidden sm:inline">{f.note}</span>
             </div>
             <div className="sheet py-1 md:grid md:grid-cols-2 md:gap-x-8">
               {members.map((s) => (
@@ -61,30 +61,34 @@ function Families({ collection }: { collection: Collection }) {
 
 function SpecimenRow({ s }: { s: Recorded }) {
   const seen = s.firstObs !== null;
+
+  if (!seen) {
+    return (
+      <div className="specimen" data-unseen="" aria-label="An empty plate">
+        <span className="specimen-plate">
+          <span className="specimen-empty" aria-hidden="true" />
+        </span>
+        <span className="specimen-blank" aria-hidden="true" />
+      </div>
+    );
+  }
+
   return (
-    <div
-      className="specimen"
-      data-unseen={seen ? undefined : ""}
-      data-today={s.today ? "" : undefined}
-    >
+    <div className="specimen" data-today={s.today ? "" : undefined}>
       <span className="specimen-plate text-ink-50">
-        <Plate name={s.plate} size={40} under={seen ? "var(--spot)" : null} />
+        <Plate name={s.plate} size={40} />
       </span>
       <div className="specimen-name">{s.name}</div>
       <div className="specimen-mark">{s.mark}</div>
       <div className="specimen-obs">
-        {seen ? (
+        <span>
+          first obs. {s.today ? "today" : formatDay(s.firstObs!, "d MMM yyyy")}
+        </span>
+        {s.count !== null && s.countNoun && s.count > 0 && (
           <>
-            first obs. {s.today ? "today" : formatDay(s.firstObs!, "d MMM yyyy")}
-            {s.count !== null && s.countNoun && s.count > 0 && (
-              <>
-                {", "}
-                {s.count} {s.count === 1 ? s.countNoun[0] : s.countNoun[1]}
-              </>
-            )}
+            {", "}
+            {s.count} {s.count === 1 ? s.countNoun[0] : s.countNoun[1]}
           </>
-        ) : (
-          "not yet recorded"
         )}
       </div>
     </div>
