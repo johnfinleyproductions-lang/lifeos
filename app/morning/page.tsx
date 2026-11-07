@@ -34,18 +34,21 @@ export default async function MorningPage() {
     parsed && parsed.success ? parsed.data : null;
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <div className="mb-8 flex items-center justify-between">
-        <Link
-          href="/"
-          className="text-xs text-ink-400 hover:text-ink-100 transition"
-        >
-          ← Today
-        </Link>
-        <div className="text-xs text-ink-400 uppercase tracking-[0.18em]">
-          {format(new Date(), "EEEE · MMMM d")}
+    <div className="max-w-[1080px] mx-auto">
+      <header className="flex items-start justify-between gap-5 mb-6">
+        <div>
+          <div
+            className="text-xs text-ink-300"
+            style={{ fontVariationSettings: "'wdth' 100, 'wght' 620" }}
+          >
+            {format(new Date(), "EEEE, d MMMM")}
+          </div>
+          <h1 className="t-h1 mt-[7px]">Morning manifesto</h1>
         </div>
-      </div>
+        <Link href="/" className="btn btn-sm btn-ghost shrink-0">
+          Leave
+        </Link>
+      </header>
       <ManifestoWizard initial={initial} />
     </div>
   );

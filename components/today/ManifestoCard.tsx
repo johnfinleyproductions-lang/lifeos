@@ -2,54 +2,72 @@ import Link from "next/link";
 import { getAuthContext } from "@/lib/auth/server-helpers";
 import { getTodayCheckin } from "@/lib/checkin/today";
 
+function Gauge({ value, max = 5 }: { value: number; max?: number }) {
+  return (
+    <span className="gauge" role="img" aria-label={`${value} of ${max}`}>
+      {Array.from({ length: max }, (_, i) => (
+        <i key={i} className={i < value ? "on" : undefined} />
+      ))}
+    </span>
+  );
+}
+
 /**
- * Reads today's morning row if signed in. Otherwise shows the empty state.
+ * The hero of the day. Reads today's morning row if signed in, otherwise
+ * shows the invitation.
+ *
+ * The manifesto is set at display size in the serif, because it is the
+ * one sentence on this screen the user wrote themselves. It used to be a
+ * 24px line inside a labelled card, which made their own words smaller
+ * than the page chrome around them.
  */
 export async function ManifestoCard() {
   const { user } = await getAuthContext();
   const morning = user ? (await getTodayCheckin(user.id)).morning : null;
-  const hasManifesto = morning !== null;
 
   return (
-    <div className="card">
-      <div className="card-glow" />
-      <div className="flex items-start justify-between gap-6">
-        <div className="flex-1">
-          <div className="text-xs uppercase tracking-[0.18em] text-ink-400 mb-2">
-            Morning manifesto
+    <div className="sheet sheet-hi shadow-mis px-[30px] pt-[30px] pb-6">
+      {morning ? (
+        <>
+          <p className="font-serif font-normal text-[clamp(24px,3.4vw,41px)] leading-[1.16] tracking-[-0.012em] m-0 max-w-[30ch] text-balance fx-print">
+            <span className="text-accent-spot">&ldquo;</span>
+            {morning.manifesto}
+            <span className="text-accent-spot">&rdquo;</span>
+          </p>
+          <div className="flex items-center gap-4 flex-wrap mt-5 pt-4 border-t-[1.5px] border-ink-500">
+            <span
+              className="flex items-center gap-[7px] text-[12.5px] text-ink-300"
+              style={{ fontVariationSettings: "'wght' 600" }}
+            >
+              Energy <Gauge value={morning.energy} />
+            </span>
+            <span
+              className="text-[12.5px] text-ink-300"
+              style={{ fontVariationSettings: "'wght' 600" }}
+            >
+              {morning.priorities.length}{" "}
+              {morning.priorities.length === 1 ? "priority" : "priorities"} set
+            </span>
+            <Link href="/morning" className="btn btn-sm btn-ghost ml-auto">
+              Revise
+            </Link>
           </div>
-          {hasManifesto && morning ? (
-            <>
-              <p className="font-serif text-2xl text-ink-50 leading-snug">
-                {morning.manifesto}
-              </p>
-              <p className="text-sm text-ink-300 mt-2">
-                Energy {morning.energy}/5 · {morning.priorities.length}{" "}
-                {morning.priorities.length === 1 ? "priority" : "priorities"}{" "}
-                locked
-              </p>
-            </>
-          ) : (
-            <>
-              <p className="font-serif text-2xl text-ink-50 leading-snug">
-                The day hasn&apos;t started yet.
-              </p>
-              <p className="text-sm text-ink-300 mt-2">
-                Five quick prompts to set your intention. Takes about 90
-                seconds.
-              </p>
-            </>
-          )}
-        </div>
-        <div className="shrink-0">
-          <Link
-            href="/morning"
-            className="inline-block px-4 py-2 rounded-lg bg-accent-green/15 text-accent-green border border-accent-green/30 text-sm hover:bg-accent-green/25 transition"
-          >
-            {hasManifesto ? "Edit" : "Start"} →
-          </Link>
-        </div>
-      </div>
+        </>
+      ) : (
+        <>
+          <p className="font-serif italic text-[clamp(21px,3vw,30px)] leading-[1.25] text-ink-300 m-0 max-w-[26ch] fx-print">
+            The day has no manifesto yet.
+          </p>
+          <div className="flex items-center gap-4 mt-5 pt-4 border-t-[1.5px] border-ink-500">
+            <Link href="/morning" className="btn btn-spot">
+              Write this morning
+            </Link>
+            <span className="text-[12.5px] text-ink-300">
+              Six prompts, about ninety seconds
+            </span>
+          </div>
+        </>
+      )}
     </div>
   );
 }

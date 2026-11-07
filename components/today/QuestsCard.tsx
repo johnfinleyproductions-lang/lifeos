@@ -5,33 +5,33 @@ import { lifeosQuests } from "@/lib/db/schema/lifeos";
 import { getAuthContext } from "@/lib/auth/server-helpers";
 import { quarterProgress } from "@/lib/quests/quarter";
 
-const DOMAIN_ACCENT = {
-  work: "text-accent-violet",
-  life: "text-accent-rose",
+/** One riso ink per domain, so a quest's colour means the same thing everywhere. */
+const DOMAIN_INK = {
+  work: "var(--violet)",
+  life: "var(--rose)",
 } as const;
 
 export async function QuestsCard() {
   const { user } = await getAuthContext();
   const progress = quarterProgress();
+  const left = progress.totalDays - progress.day;
 
   if (!user) {
     return (
-      <div className="card">
-        <div className="card-glow" />
-        <div className="text-xs uppercase tracking-[0.18em] text-ink-400 mb-2">
-          Quarterly quests
+      <div className="sheet">
+        <div className="tab-row">
+          <span className="tab">Quests</span>
+          <span className="fill" />
+          <span className="text-[11.5px] text-ink-400">{progress.quarter}</span>
         </div>
-        <div className="font-serif text-lg text-ink-100 mb-1">
-          {progress.quarter} · Day {progress.day} / {progress.totalDays}
-        </div>
-        <p className="text-xs text-ink-400">
-          Sign in to set your quests for the quarter.
+        <p className="t-read text-ink-300 m-0">
+          Pick a profile to set your quests for the quarter.
         </p>
       </div>
     );
   }
 
-  // Show active main quests + a count of side ones, capped to 2 main rows
+  // Active main quests plus a count of the side ones, capped at two rows
   // so the card stays compact on Today.
   const allActive = await db
     .select()
@@ -49,59 +49,56 @@ export async function QuestsCard() {
   const sideCount = allActive.filter((q) => q.type === "side").length;
 
   return (
-    <Link
-      href="/quests"
-      className="card block hover:bg-white/[0.02] transition"
-    >
-      <div className="card-glow" />
-      <div className="text-xs uppercase tracking-[0.18em] text-ink-400 mb-2">
-        Quarterly quests
-      </div>
-      <div className="font-serif text-lg text-ink-100 mb-3">
-        {progress.quarter} · Day {progress.day} / {progress.totalDays}
-        <span className="text-xs text-ink-400 ml-2 font-sans">
-          {progress.phase}
+    <div className="sheet">
+      <div className="tab-row">
+        <span className="tab">Quests</span>
+        <span className="fill" />
+        <span className="text-[11.5px] text-ink-400 tabular-nums">
+          {progress.quarter}
         </span>
       </div>
 
+      <p className="stat-f mt-0 mb-3.5">
+        Day {progress.day} of {progress.totalDays}, {left}{" "}
+        {left === 1 ? "day" : "days"} left
+      </p>
+
       {allActive.length === 0 ? (
-        <p className="text-xs text-ink-400">
-          No quests yet. Set 1-2 things you want to ship this quarter.
+        <p className="t-read text-ink-300 m-0">
+          Nothing set for this quarter yet. One or two is the right number.
         </p>
       ) : (
-        <div className="space-y-3">
+        <div className="flex flex-col gap-3">
           {main.map((q) => (
             <div key={q.id}>
-              <div className="flex items-center justify-between text-xs mb-1">
-                <span
-                  className={`font-medium tracking-wider ${
-                    DOMAIN_ACCENT[q.domain as "work" | "life"]
-                  } uppercase`}
-                >
-                  {q.domain}
-                </span>
-                <span className="text-ink-400 tabular-nums">
+              <div className="flex items-start justify-between gap-3 mb-1.5">
+                <span className="text-[13.5px] leading-[1.3]">{q.title}</span>
+                <span className="text-[11.5px] text-ink-400 tabular-nums shrink-0">
                   {q.progress}%
                 </span>
               </div>
-              <div className="text-sm text-ink-100 mb-1.5 truncate">
-                {q.title}
-              </div>
-              <div className="h-1 bg-ink-700 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-accent-green to-accent-sky rounded-full transition-all"
-                  style={{ width: `${q.progress}%` }}
+              <div className="plot">
+                <span
+                  style={{
+                    width: `${q.progress}%`,
+                    background:
+                      DOMAIN_INK[q.domain as "work" | "life"] ?? "var(--spot)",
+                  }}
                 />
               </div>
             </div>
           ))}
           {sideCount > 0 && (
-            <div className="text-[11px] text-ink-400 pt-1">
-              + {sideCount} side {sideCount === 1 ? "quest" : "quests"}
-            </div>
+            <p className="text-[11.5px] text-ink-400 m-0">
+              and {sideCount} on the side
+            </p>
           )}
         </div>
       )}
-    </Link>
+
+      <Link href="/quests" className="btn btn-sm btn-ghost w-full mt-3.5">
+        Open quests
+      </Link>
+    </div>
   );
 }

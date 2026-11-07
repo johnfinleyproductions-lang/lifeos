@@ -2,65 +2,488 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  color-scheme: dark;
+/* LifeOS — risograph field log.
+ *
+ * Cool grey stock, true black ink, and one fluorescent orange that means
+ * exactly one thing: live, today, now. No rounded corners and no soft
+ * shadows anywhere; depth comes from hard offset misregistration.
+ *
+ * Day is the default. Night is a single data-theme flip on <html>, so no
+ * component in the app needs a `dark:` variant.
+ *
+ * Everything is scoped to :root today. If LifeOS is ever mounted inside
+ * Evergreen Core, move the two token blocks to [data-lifeos] and the host
+ * app's own styles are untouched.
+ */
+
+@layer base {
+  :root {
+    color-scheme: light;
+
+    /* surfaces, lightest ground to raised panel */
+    --surface-0: #c3c5bc; /* rail, tab bar */
+    --surface-1: #d5d6cf; /* page */
+    --surface-2: #e7e8e2; /* panels */
+    --surface-3: #f2f3ee; /* input surfaces, the hero */
+
+    /* text, strongest to faintest */
+    --text-1: #000000;
+    --text-2: #474a44;
+    --text-3: #6e726a;
+
+    --knock: #e7e8e2; /* type knocked out of a filled block */
+    --line: rgba(0, 0, 0, 0.26);
+    --line-soft: rgba(0, 0, 0, 0.12);
+
+    --spot: #ff5436; /* fluorescent orange */
+    --green: #00a95c;
+    --sky: #0067a8;
+    --violet: #6e55a8;
+    --rose: #ff48a0;
+    --gold: #d79d00;
+  }
+
+  [data-theme="night"] {
+    color-scheme: dark;
+
+    --surface-0: #0b0d0b;
+    --surface-1: #121512;
+    --surface-2: #1c201c;
+    --surface-3: #262b26;
+
+    --text-1: #d7d9d1;
+    --text-2: #9ca096;
+    --text-3: #767a71;
+
+    --knock: #121512;
+    --line: rgba(215, 217, 209, 0.3);
+    --line-soft: rgba(215, 217, 209, 0.13);
+
+    --spot: #ff6a4d;
+    --green: #3fcb83;
+    --sky: #4fa8de;
+    --violet: #9a82d8;
+    --rose: #ff74b8;
+    --gold: #e8b93b;
+  }
+
+  html,
+  body {
+    height: 100%;
+    background-color: var(--surface-1);
+    color: var(--text-1);
+  }
+
+  body {
+    font-family: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background: var(--spot);
+    color: #fff;
+  }
+
+  /* One focus ring for the whole app, legible on stock and on ink. */
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 2.5px solid var(--spot);
+    outline-offset: 2px;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--line);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--text-3);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-delay: 0ms !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
 }
 
-html,
-body {
-  height: 100%;
-  background-color: #0a0a0c;
-  color: #d8d8e6;
-  font-feature-settings: "ss01", "cv11";
-}
+@layer components {
+  /* ---------------------------------------------------------------
+     Compatibility layer.
+     `.card` and `.card-glow` appear 105 times across 28 components.
+     Redefining them here converts every page that has not been
+     restyled yet, rather than leaving those pages unstyled. The glow
+     was a radial gradient on hover, which is exactly what this system
+     rejects, so it becomes inert and the markup stays valid.
+     --------------------------------------------------------------- */
+  .card {
+    background: var(--surface-2);
+    border: 1.5px solid var(--text-1);
+    padding: 1.125rem;
+    position: relative;
+  }
+  .card-glow {
+    display: none;
+  }
 
-body {
-  font-family: var(--font-inter), system-ui, sans-serif;
-}
+  /* ---------- type ---------- */
+  .t-h1 {
+    font-variation-settings: "wdth" 100, "wght" 800;
+    font-size: clamp(25px, 3.1vw, 33px);
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+  }
+  .t-h2 {
+    font-variation-settings: "wdth" 100, "wght" 740;
+    font-size: 19px;
+    line-height: 1.12;
+  }
+  .t-read {
+    font-family: var(--font-newsreader), ui-serif, Georgia, serif;
+    font-size: 17px;
+    line-height: 1.62;
+    font-weight: 380;
+    font-optical-sizing: auto;
+  }
+  .t-num {
+    font-variant-numeric: tabular-nums;
+    font-variation-settings: "wdth" 100, "wght" 650;
+  }
 
-/* Subtle scrollbar that matches the dark palette */
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: #262633;
-  border-radius: 999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #3a3a4a;
-}
+  /* ---------- stat tile ---------- */
+  .stat-l {
+    font-size: 11.5px;
+    color: var(--text-3);
+    font-variation-settings: "wdth" 100, "wght" 660;
+  }
+  .stat-v {
+    font-variation-settings: "wdth" 88, "wght" 800;
+    font-variant-numeric: tabular-nums;
+    font-size: 30px;
+    line-height: 1.04;
+    letter-spacing: -0.025em;
+    margin-top: 7px;
+  }
+  .stat-v small {
+    font-size: 15px;
+    font-variation-settings: "wght" 700;
+    color: var(--text-2);
+    margin-left: 2px;
+  }
+  .stat-f {
+    font-size: 11.5px;
+    color: var(--text-2);
+    margin-top: 5px;
+  }
 
-/* Reusable card chrome — matches the prototype */
-.card {
-  background: linear-gradient(180deg, #16161d 0%, #101015 100%);
-  border: 1px solid rgba(255, 255, 255, 0.04);
-  border-radius: 1rem;
-  padding: 1.25rem;
-  position: relative;
-}
+  /* A plotted bar: flat fill, square ends, no gradient. */
+  .plot {
+    height: 7px;
+    background: var(--line-soft);
+  }
+  .plot > span {
+    display: block;
+    height: 100%;
+  }
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
 
-.card-glow {
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  background: radial-gradient(
-    600px circle at var(--mx, 50%) var(--my, 50%),
-    rgba(125, 211, 168, 0.05),
-    transparent 40%
-  );
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-.card:hover .card-glow {
-  opacity: 1;
-}
+  /* ---------- the print devices ---------- */
 
-/* Serif numerals look good in headings */
-.tabular-nums {
-  font-variant-numeric: tabular-nums;
+  /* A solid filled block with knocked-out sentence-case type. Replaces
+     the tracked-out caps label sitting above a hairline rule. */
+  .tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--text-1);
+    color: var(--knock);
+    font-variation-settings: "wdth" 92, "wght" 700;
+    font-size: 12.5px;
+    line-height: 1;
+    padding: 6px 11px 7px;
+  }
+  .tab-spot {
+    background: var(--spot);
+    color: #fff;
+  }
+  /* label, then a rule that runs out to the edge */
+  .tab-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .tab-row .fill {
+    flex: 1;
+    height: 2px;
+    background: var(--text-1);
+  }
+
+  .sheet {
+    background: var(--surface-2);
+    border: 1.5px solid var(--text-1);
+    padding: 18px;
+  }
+  .sheet-hi {
+    background: var(--surface-3);
+  }
+  .sheet-bare {
+    background: transparent;
+    border: 1.5px solid var(--line);
+  }
+
+  /* ---------- controls ---------- */
+  .btn {
+    font-variation-settings: "wdth" 96, "wght" 700;
+    font-size: 14px;
+    line-height: 1;
+    background: var(--text-1);
+    color: var(--knock);
+    border: 1.5px solid var(--text-1);
+    padding: 11px 16px;
+    cursor: pointer;
+    transition:
+      transform 0.08s steps(2),
+      box-shadow 0.08s steps(2);
+  }
+  .btn:hover {
+    box-shadow: 3px 3px 0 var(--spot);
+  }
+  .btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 var(--spot);
+  }
+  .btn:disabled {
+    opacity: 0.34;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+  }
+  .btn-spot {
+    background: var(--spot);
+    border-color: var(--spot);
+    color: #fff;
+  }
+  .btn-spot:hover {
+    box-shadow: 3px 3px 0 var(--text-1);
+  }
+  .btn-spot:active {
+    box-shadow: 1px 1px 0 var(--text-1);
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-1);
+  }
+  .btn-ghost:hover {
+    background: var(--text-1);
+    color: var(--knock);
+    box-shadow: none;
+  }
+  .btn-sm {
+    font-size: 12.5px;
+    padding: 7px 11px;
+  }
+  .btn-lg {
+    font-size: 16px;
+    padding: 14px 22px;
+  }
+
+  .inp,
+  .ta {
+    width: 100%;
+    font-family: var(--font-newsreader), ui-serif, Georgia, serif;
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--text-1);
+    background: var(--surface-3);
+    border: 1.5px solid var(--text-1);
+    padding: 12px 13px;
+    outline: none;
+    resize: vertical;
+  }
+  .inp::placeholder,
+  .ta::placeholder {
+    color: var(--text-3);
+    font-style: italic;
+  }
+  .inp:focus,
+  .ta:focus {
+    box-shadow: 3px 3px 0 var(--spot);
+  }
+
+  /* A checkbox is a hard square that takes the spot ink when struck. */
+  .ck {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    flex: 0 0 22px;
+    margin: 0;
+    border: 1.5px solid var(--text-1);
+    background: var(--surface-3);
+    cursor: pointer;
+    position: relative;
+    transition: background 0.1s steps(2);
+  }
+  .ck:checked {
+    background: var(--spot);
+    border-color: var(--spot);
+  }
+  .ck:checked::after {
+    content: "";
+    position: absolute;
+    left: 5px;
+    top: 9px;
+    width: 9px;
+    height: 4px;
+    border: solid #fff;
+    border-width: 0 0 2.5px 2.5px;
+    transform: rotate(-45deg);
+  }
+
+  /* A 1–5 reading, drawn as filled bars rather than a slider. */
+  .gauge {
+    display: inline-flex;
+    gap: 3px;
+    align-items: flex-end;
+  }
+  .gauge i {
+    width: 9px;
+    display: block;
+    background: var(--line);
+  }
+  .gauge i:nth-child(1) { height: 8px; }
+  .gauge i:nth-child(2) { height: 11px; }
+  .gauge i:nth-child(3) { height: 14px; }
+  .gauge i:nth-child(4) { height: 17px; }
+  .gauge i:nth-child(5) { height: 20px; }
+  .gauge i.on { background: var(--spot); }
+
+  /* ---------- wizard ---------- */
+  .wiz {
+    max-width: 660px;
+    margin: 0 auto;
+  }
+  .wiz-card {
+    background: var(--surface-3);
+    border: 1.5px solid var(--text-1);
+    box-shadow: 6px 6px 0 var(--spot);
+    padding: 32px 34px 28px;
+  }
+  .wiz-bar {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 26px;
+  }
+  .wiz-bar i {
+    flex: 1;
+    height: 6px;
+    display: block;
+    background: var(--line);
+  }
+  .wiz-bar i.on { background: var(--text-1); }
+  .wiz-bar i.cur { background: var(--spot); }
+  .wiz-step {
+    font-size: 11.5px;
+    color: var(--text-3);
+    font-variation-settings: "wght" 660;
+    margin-bottom: 9px;
+  }
+  .wiz-q {
+    font-family: var(--font-newsreader), ui-serif, Georgia, serif;
+    font-size: clamp(21px, 2.9vw, 28px);
+    line-height: 1.22;
+    letter-spacing: -0.01em;
+    margin: 0 0 7px;
+    text-wrap: balance;
+  }
+  .wiz-h {
+    font-family: var(--font-newsreader), ui-serif, Georgia, serif;
+    font-style: italic;
+    font-size: 16px;
+    color: var(--text-2);
+    margin: 0 0 20px;
+  }
+  .wiz-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 26px;
+    padding-top: 20px;
+    border-top: 1.5px solid var(--line);
+  }
+  .wiz-count {
+    font-size: 11.5px;
+    color: var(--text-3);
+    font-variant-numeric: tabular-nums;
+  }
+  .wiz-count.over { color: var(--spot); }
+
+  /* A 1–5 pick, as five hard keys rather than a slider. */
+  .pick {
+    display: flex;
+    gap: 6px;
+  }
+  .pick button {
+    flex: 1;
+    border: 1.5px solid var(--text-1);
+    background: var(--surface-3);
+    color: var(--text-1);
+    padding: 12px 0 10px;
+    cursor: pointer;
+    font-variant-numeric: tabular-nums;
+  }
+  .pick button[aria-pressed="true"] {
+    background: var(--spot);
+    border-color: var(--spot);
+    color: #fff;
+  }
+
+  /* 6am from bed: on a phone the primary action sits under the thumb. */
+  @media (max-width: 760px) {
+    .wiz-card {
+      padding: 22px 20px 20px;
+      box-shadow: 4px 4px 0 var(--spot);
+    }
+    .wiz-foot {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 31;
+      margin: 0;
+      padding: 11px 18px calc(11px + env(safe-area-inset-bottom));
+      background: var(--surface-0);
+      border-top: 1.5px solid var(--text-1);
+    }
+    .wiz-foot .btn-next { flex: 1; }
+    .wiz { padding-bottom: 76px; }
+  }
+
+  /* ---------- motion: ink, paper, mechanism. All stepped. ---------- */
+  @keyframes print {
+    from { clip-path: inset(0 0 100% 0); }
+    to { clip-path: inset(0 0 0 0); }
+  }
+  .fx-print {
+    animation: print 0.26s steps(6) backwards;
+  }
 }

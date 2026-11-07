@@ -60,9 +60,7 @@ export function ManifestoWizard({ initial }: Props) {
         energy,
         mood: mood.trim(),
         manifesto: manifesto.trim(),
-        priorities: priorities
-          .map((p) => p.trim())
-          .filter((p) => p.length > 0),
+        priorities: priorities.map((p) => p.trim()).filter((p) => p.length > 0),
         protect: protect.trim(),
         gratitude: gratitude.trim(),
       };
@@ -84,74 +82,71 @@ export function ManifestoWizard({ initial }: Props) {
   }
 
   function next() {
-    if (step === TOTAL_STEPS) {
-      submit();
-    } else {
-      setStep(step + 1);
-    }
+    if (step === TOTAL_STEPS) submit();
+    else setStep(step + 1);
   }
   function back() {
     setStep(Math.max(1, step - 1));
   }
 
   return (
-    <div className="card max-w-2xl mx-auto">
-      <div className="card-glow" />
-
-      <div className="flex items-center justify-between mb-6">
-        <div className="text-xs uppercase tracking-[0.18em] text-ink-400">
-          Morning manifesto · {step} / {TOTAL_STEPS}
-        </div>
-        <div className="flex gap-1">
-          {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
-            <span
-              key={i}
-              className={`h-1 w-8 rounded-full transition ${
-                i < step ? "bg-accent-green" : "bg-ink-700"
-              }`}
-            />
-          ))}
-        </div>
+    <div className="wiz">
+      <div className="wiz-bar" aria-hidden="true">
+        {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
+          <i
+            key={i}
+            className={
+              i + 1 < step ? "on" : i + 1 === step ? "cur" : undefined
+            }
+          />
+        ))}
       </div>
 
-      <div className="min-h-[280px]">
+      <div className="wiz-card">
+        <div className="wiz-step">
+          Step {step} of {TOTAL_STEPS}
+        </div>
+
         {step === 1 && (
           <Step
-            heading="How is your energy this morning?"
-            subhead="Be honest. Naming it tells the day how to treat you."
+            heading="How much is in the tank?"
+            subhead="A gut read, not an audit. Naming it tells the day how to treat you."
           >
-            <div className="grid grid-cols-5 gap-2 mb-6">
+            <div className="pick" role="group" aria-label="Energy">
               {[1, 2, 3, 4, 5].map((n) => (
                 <button
                   key={n}
                   type="button"
                   onClick={() => setEnergy(n)}
-                  className={`py-3 rounded-lg border text-sm transition ${
-                    energy === n
-                      ? "border-accent-green bg-accent-green/10 text-accent-green"
-                      : "border-white/5 text-ink-300 hover:border-white/15"
-                  }`}
+                  aria-pressed={energy === n}
                 >
-                  <div className="font-serif text-xl">{n}</div>
-                  <div className="text-[10px] uppercase tracking-wider mt-0.5">
+                  <span
+                    className="block text-lg"
+                    style={{ fontVariationSettings: "'wdth' 100, 'wght' 700" }}
+                  >
+                    {n}
+                  </span>
+                  <span className="block text-[10.5px] mt-0.5 opacity-70">
                     {ENERGY_LABELS[n - 1]}
-                  </div>
+                  </span>
                 </button>
               ))}
             </div>
 
-            <Label>And the feeling underneath it?</Label>
-            <div className="flex flex-wrap gap-2 mb-3">
+            <p className="wiz-h mt-6 mb-3">And the feeling underneath it?</p>
+            <div className="flex flex-wrap gap-1.5 mb-3">
               {MOOD_OPTIONS.map((m) => (
                 <button
                   key={m}
                   type="button"
                   onClick={() => setMood(m)}
-                  className={`px-3 py-1.5 rounded-full text-xs border transition ${
+                  aria-pressed={mood === m}
+                  className={`border-[1.5px] border-ink-50 text-xs px-2.5 py-1.5 ${
                     mood === m
-                      ? "border-accent-violet bg-accent-violet/10 text-accent-violet"
-                      : "border-white/10 text-ink-300 hover:border-white/30"
+                      ? "bg-ink-50 text-ink-900"
+                      : "bg-transparent hover:bg-ink-700"
                   }`}
+                  style={{ fontVariationSettings: "'wght' 620" }}
                 >
                   {m}
                 </button>
@@ -160,25 +155,20 @@ export function ManifestoWizard({ initial }: Props) {
             <div className="flex items-center gap-2">
               <input
                 type="text"
-                value={
-                  MOOD_OPTIONS.includes(mood) ? "" : mood
-                }
+                value={MOOD_OPTIONS.includes(mood) ? "" : mood}
                 onChange={(e) => setMood(e.target.value)}
-                placeholder="…or type your own"
-                className="flex-1 bg-ink-900 border border-white/5 rounded-lg px-3 py-2 text-sm focus:border-accent-violet focus:outline-none"
+                placeholder="or type your own"
+                className="inp"
               />
-              <VoiceButton
-                size="sm"
-                onTranscript={(t) => setMood(t)}
-              />
+              <VoiceButton size="sm" onTranscript={(t) => setMood(t)} />
             </div>
           </Step>
         )}
 
         {step === 2 && (
           <Step
-            heading="Today, the version of me showing up is…"
-            subhead="One sentence. Identity-level. Who is the you that lives this day?"
+            heading="Who are you today?"
+            subhead="Present tense. One sentence you would be glad to be held to."
           >
             <textarea
               value={manifesto}
@@ -186,18 +176,18 @@ export function ManifestoWizard({ initial }: Props) {
               autoFocus
               rows={4}
               maxLength={280}
-              placeholder="… someone who finishes what they start."
-              className="w-full bg-ink-900 border border-white/5 rounded-lg px-4 py-3 font-serif text-xl leading-snug focus:border-accent-green focus:outline-none resize-none"
+              placeholder="I am someone who finishes what they start."
+              className="ta"
             />
-            <div className="flex items-center justify-between text-[11px] text-ink-400 mt-2">
+            <div className="flex items-center justify-between mt-2">
               <VoiceButton
                 size="sm"
-                onTranscript={(t) =>
-                  setManifesto((prev) => appendVoice(prev, t))
-                }
+                onTranscript={(t) => setManifesto((p) => appendVoice(p, t))}
               />
-              <span className="tabular-nums">
-                {manifesto.length} / 280
+              <span
+                className={`wiz-count ${manifesto.length > 258 ? "over" : ""}`}
+              >
+                {manifesto.length}/280
               </span>
             </div>
           </Step>
@@ -205,15 +195,18 @@ export function ManifestoWizard({ initial }: Props) {
 
         {step === 3 && (
           <Step
-            heading="The three things that matter today."
-            subhead="If only these three got done, the day still counts."
+            heading="What are the three?"
+            subhead="In the order you will actually do them. Two is allowed."
           >
-            <div className="space-y-2.5">
+            <div className="flex flex-col gap-2.5">
               {[0, 1, 2].map((i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full bg-ink-700 grid place-items-center text-xs text-ink-300 shrink-0">
+                <div key={i} className="flex items-center gap-2.5">
+                  <span
+                    className="w-[26px] shrink-0 tabular-nums text-[15px] text-ink-400"
+                    style={{ fontVariationSettings: "'wdth' 80, 'wght' 800" }}
+                  >
                     {i + 1}
-                  </div>
+                  </span>
                   <input
                     type="text"
                     value={priorities[i]}
@@ -223,12 +216,8 @@ export function ManifestoWizard({ initial }: Props) {
                       setPriorities(next);
                     }}
                     maxLength={140}
-                    placeholder={
-                      i === 0
-                        ? "The one that matters most"
-                        : "Another priority"
-                    }
-                    className="flex-1 bg-ink-900 border border-white/5 rounded-lg px-3 py-2 text-sm focus:border-accent-green focus:outline-none"
+                    placeholder={i === 2 ? "optional" : ""}
+                    className="inp"
                   />
                   <VoiceButton
                     size="sm"
@@ -246,8 +235,8 @@ export function ManifestoWizard({ initial }: Props) {
 
         {step === 4 && (
           <Step
-            heading="If today goes sideways, the one thing you must protect is…"
-            subhead="Could be a person, a window of focus, your morning routine — anything."
+            heading="What are you protecting today?"
+            subhead="The block, the person, or the boundary. If the day goes sideways, this is what survives."
           >
             <div className="flex items-center gap-2">
               <input
@@ -256,14 +245,12 @@ export function ManifestoWizard({ initial }: Props) {
                 onChange={(e) => setProtect(e.target.value)}
                 autoFocus
                 maxLength={200}
-                placeholder="… the 90 minutes after lunch."
-                className="flex-1 bg-ink-900 border border-white/5 rounded-lg px-4 py-3 text-base focus:border-accent-rose focus:outline-none"
+                placeholder="the ninety minutes after lunch"
+                className="inp"
               />
               <VoiceButton
                 size="md"
-                onTranscript={(t) =>
-                  setProtect((prev) => appendVoice(prev, t))
-                }
+                onTranscript={(t) => setProtect((p) => appendVoice(p, t))}
               />
             </div>
           </Step>
@@ -271,7 +258,7 @@ export function ManifestoWizard({ initial }: Props) {
 
         {step === 5 && (
           <Step
-            heading="One thing you're grateful for."
+            heading="One thing you are thankful for."
             subhead="Specific beats grand. Yesterday counts."
           >
             <textarea
@@ -280,51 +267,59 @@ export function ManifestoWizard({ initial }: Props) {
               autoFocus
               rows={3}
               maxLength={200}
-              placeholder="… that the dog forgave me for skipping the walk."
-              className="w-full bg-ink-900 border border-white/5 rounded-lg px-4 py-3 text-base focus:border-accent-gold focus:outline-none resize-none"
+              placeholder="that the dog forgave me for skipping the walk"
+              className="ta"
             />
-            <div className="flex items-center justify-between text-[11px] text-ink-400 mt-2">
+            <div className="flex items-center justify-between mt-2">
               <VoiceButton
                 size="sm"
-                onTranscript={(t) =>
-                  setGratitude((prev) => appendVoice(prev, t))
-                }
+                onTranscript={(t) => setGratitude((p) => appendVoice(p, t))}
               />
-              <span className="tabular-nums">
-                {gratitude.length} / 200
+              <span
+                className={`wiz-count ${gratitude.length > 184 ? "over" : ""}`}
+              >
+                {gratitude.length}/200
               </span>
             </div>
           </Step>
         )}
-      </div>
 
-      {error && (
-        <div className="mt-4 text-sm text-accent-rose bg-accent-rose/10 border border-accent-rose/30 rounded-lg px-3 py-2">
-          {error}
+        {error && (
+          <div
+            className="mt-4 px-3 py-2.5 text-sm border-[1.5px]"
+            style={{ borderColor: "var(--spot)", color: "var(--spot)" }}
+            role="alert"
+          >
+            {error} Nothing was lost; press it again.
+          </div>
+        )}
+
+        <div className="wiz-foot">
+          {step > 1 ? (
+            <button
+              type="button"
+              onClick={back}
+              disabled={submitting}
+              className="btn btn-ghost"
+            >
+              Back
+            </button>
+          ) : (
+            <span />
+          )}
+          <button
+            type="button"
+            onClick={next}
+            disabled={!canContinue || submitting}
+            className={`btn btn-next ${step === TOTAL_STEPS ? "btn-spot" : ""}`}
+          >
+            {submitting
+              ? "Saving"
+              : step === TOTAL_STEPS
+                ? "Set the day"
+                : "Next"}
+          </button>
         </div>
-      )}
-
-      <div className="flex items-center justify-between mt-8">
-        <button
-          type="button"
-          onClick={back}
-          disabled={step === 1 || submitting}
-          className="text-sm text-ink-300 hover:text-ink-100 disabled:opacity-30 disabled:cursor-not-allowed transition"
-        >
-          ← Back
-        </button>
-        <button
-          type="button"
-          onClick={next}
-          disabled={!canContinue || submitting}
-          className="px-5 py-2 rounded-lg bg-accent-green/15 text-accent-green border border-accent-green/30 text-sm hover:bg-accent-green/25 disabled:opacity-30 disabled:cursor-not-allowed transition"
-        >
-          {submitting
-            ? "Saving…"
-            : step === TOTAL_STEPS
-              ? "Set the day →"
-              : "Continue →"}
-        </button>
       </div>
     </div>
   );
@@ -341,18 +336,8 @@ function Step({
 }) {
   return (
     <div>
-      <h2 className="font-serif text-2xl text-ink-50 mb-1.5 leading-snug">
-        {heading}
-      </h2>
-      <p className="text-sm text-ink-300 mb-6">{subhead}</p>
-      {children}
-    </div>
-  );
-}
-
-function Label({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="text-xs uppercase tracking-[0.18em] text-ink-400 mb-2">
+      <h2 className="wiz-q">{heading}</h2>
+      <p className="wiz-h">{subhead}</p>
       {children}
     </div>
   );

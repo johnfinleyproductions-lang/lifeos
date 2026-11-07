@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { format } from "date-fns";
 import { getAuthContext } from "@/lib/auth/server-helpers";
 import { getTodayCheckin } from "@/lib/checkin/today";
 import { ManifestoCard } from "@/components/today/ManifestoCard";
@@ -8,6 +7,30 @@ import { BalanceCard } from "@/components/today/BalanceCard";
 import { PlanCard } from "@/components/today/PlanCard";
 import { FocusHabitsCard } from "@/components/today/FocusHabitsCard";
 import { EveningSummaryCard } from "@/components/today/EveningSummaryCard";
+
+const DAYS = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+const MONTHS = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
 
 function greetingFor(date: Date) {
   const h = date.getHours();
@@ -18,74 +41,100 @@ function greetingFor(date: Date) {
   return "Late night";
 }
 
+function dayOfYear(d: Date) {
+  return Math.floor(
+    (d.getTime() - new Date(d.getFullYear(), 0, 0).getTime()) / 864e5,
+  );
+}
+
 export default async function TodayPage() {
   const { user } = await getAuthContext();
   const eveningDone = user
     ? (await getTodayCheckin(user.id)).evening !== null
     : false;
   const now = new Date();
-  const greeting = greetingFor(now);
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <header className="flex items-end justify-between mb-8">
+    <div className="max-w-[1080px] mx-auto">
+      <header className="flex items-start justify-between gap-5 mb-6">
         <div>
-          <div className="text-xs uppercase tracking-[0.2em] text-ink-400 mb-1">
-            {format(now, "EEEE · MMMM d")}
+          <div
+            className="text-xs text-ink-300"
+            style={{ fontVariationSettings: "'wdth' 100, 'wght' 620" }}
+          >
+            {DAYS[now.getDay()]}, {now.getDate()} {MONTHS[now.getMonth()]}
+            <span className="inline-block w-5" />
+            <b className="text-ink-50 tabular-nums">No. {dayOfYear(now)}</b>
           </div>
-          <h1 className="font-serif text-4xl tracking-tight text-ink-50">
-            {greeting}
+          <h1 className="t-h1 mt-[7px]">
+            {greetingFor(now)}
             {user ? `, ${user.name?.split(" ")[0]}` : ""}.
           </h1>
         </div>
-        <div className="text-right text-sm text-ink-300">
-          <div>{eveningDone ? "Day closed" : "Day in motion"}</div>
-          <div className="text-ink-400 text-xs mt-0.5">Phase 2 · live</div>
+        <div className="shrink-0">
+          <span
+            className={eveningDone ? "tab" : "tab tab-spot"}
+            title={
+              eveningDone
+                ? "The evening shutdown is logged"
+                : "The evening shutdown is still open"
+            }
+          >
+            {eveningDone ? "Day closed" : "Day in motion"}
+          </span>
         </div>
       </header>
 
       {!user && (
-        <div className="card mb-6 border-accent-gold/20 bg-accent-gold/5">
-          <div className="font-serif text-lg text-ink-50 mb-1">
-            You&apos;re viewing LifeOS in dev mode
-          </div>
-          <p className="text-sm text-ink-200 mb-3">
-            This page renders with mock data because no Evergreen Core session
-            was found. Sign in over at EC, then come back — your name and your
-            real check-in data will populate here.
+        <div className="sheet sheet-bare mb-5">
+          <div className="t-h2">No session, so this is sample data</div>
+          <p className="t-read text-ink-300 mt-2 max-w-[62ch]">
+            Nothing on this page is yours yet. Pick a profile, or sign in over
+            at Evergreen Core, and your real check-ins will populate here.
           </p>
-          <Link
-            href={`${
-              process.env.NEXT_PUBLIC_EC_URL?.trim() ||
-              "http://localhost:3000"
-            }/auth`}
-            className="inline-block text-xs px-3 py-1.5 rounded-lg bg-accent-gold/20 text-accent-gold hover:bg-accent-gold/30 transition"
-          >
-            Open Evergreen Core →
-          </Link>
+          <div className="flex items-center gap-2 mt-4">
+            <Link href="/pick-profile" className="btn btn-sm">
+              Pick a profile
+            </Link>
+            <Link
+              href={`${
+                process.env.NEXT_PUBLIC_EC_URL?.trim() || "http://localhost:3000"
+              }/auth`}
+              className="btn btn-sm btn-ghost"
+            >
+              Open Evergreen Core
+            </Link>
+          </div>
         </div>
       )}
 
-      <div className="mb-6">
-        <ManifestoCard />
-      </div>
+      {/* The manifesto is the largest thing on the page. Everything else
+          stays quiet around it. */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1.55fr_1fr] gap-5 items-start">
+        <div>
+          <ManifestoCard />
+          <div className="mt-5">
+            <PlanCard />
+          </div>
+          <div className="mt-5">
+            <EveningSummaryCard />
+          </div>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <QuestsCard />
-        <BalanceCard />
-        <PlanCard />
-        <FocusHabitsCard />
+        <div className="flex flex-col gap-3.5">
+          <FocusHabitsCard />
+          <QuestsCard />
+          <BalanceCard />
+        </div>
       </div>
-
-      <EveningSummaryCard />
 
       {!eveningDone && user && (
-        <div className="mt-6 flex items-center justify-end">
-          <Link
-            href="/evening"
-            className="text-xs text-ink-400 hover:text-ink-100 transition"
-          >
-            End the day → evening shutdown
+        <div className="sheet sheet-bare mt-5 flex items-center justify-between gap-4">
+          <span className="t-read text-ink-300 m-0">
+            The day is still open. The shutdown takes about four minutes.
+          </span>
+          <Link href="/evening" className="btn btn-spot shrink-0">
+            Close the day
           </Link>
         </div>
       )}

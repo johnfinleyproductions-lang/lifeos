@@ -1,25 +1,25 @@
 import type { Metadata } from "next";
-import { Inter, Fraunces, JetBrains_Mono } from "next/font/google";
+import { Bricolage_Grotesque, Newsreader } from "next/font/google";
 import { Sidebar } from "@/components/Sidebar";
 import { getAuthContext } from "@/lib/auth/server-helpers";
 import "./globals.css";
 
-const inter = Inter({
+/**
+ * Two faces. Bricolage carries every piece of chrome; Newsreader is
+ * reserved for the user's own writing, so a serif on screen always means
+ * words they wrote themselves.
+ */
+const bricolage = Bricolage_Grotesque({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-bricolage",
+  axes: ["opsz", "wdth"],
   display: "swap",
 });
 
-const fraunces = Fraunces({
+const newsreader = Newsreader({
   subsets: ["latin"],
-  variable: "--font-fraunces",
-  display: "swap",
-  axes: ["opsz", "SOFT"],
-});
-
-const jetbrains = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-jetbrains",
+  variable: "--font-newsreader",
+  axes: ["opsz"],
   display: "swap",
 });
 
@@ -29,17 +29,30 @@ export const metadata: Metadata = {
     "A daily check-in, identity, and coaching companion. Morning manifesto, evening shutdown, quests, habits, journal — all yours.",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "black-translucent",
+    statusBarStyle: "default",
     title: "LifeOS",
   },
 };
 
 export const viewport = {
-  themeColor: "#0a0a0c",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#d5d6cf" },
+    { media: "(prefers-color-scheme: dark)", color: "#121512" },
+  ],
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
 };
+
+/**
+ * Settles the theme before first paint so a night-mode user never sees a
+ * frame of stock. Kept inline and tiny for that reason.
+ */
+const THEME_BOOT = `(function(){try{
+  var t=localStorage.getItem('lifeos-theme');
+  if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'night':'day';
+  document.documentElement.dataset.theme=t;
+}catch(e){document.documentElement.dataset.theme='day'}})()`;
 
 export default async function RootLayout({
   children,
@@ -53,12 +66,19 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${fraunces.variable} ${jetbrains.variable}`}
+      data-theme="day"
+      className={`${bricolage.variable} ${newsreader.variable}`}
+      suppressHydrationWarning
     >
-      <body className="bg-ink-950 text-ink-100 antialiased">
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOT }} />
+      </head>
+      <body className="bg-ink-900 text-ink-100 antialiased">
         <div className="flex min-h-screen">
           <Sidebar user={user} />
-          <main className="flex-1 px-8 py-8 overflow-y-auto">{children}</main>
+          <main className="flex-1 min-w-0 px-7 py-7 overflow-y-auto">
+            {children}
+          </main>
         </div>
       </body>
     </html>

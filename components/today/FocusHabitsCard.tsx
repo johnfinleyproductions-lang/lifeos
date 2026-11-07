@@ -9,19 +9,45 @@ import {
 } from "@/lib/db/schema/lifeos";
 import { getAuthContext } from "@/lib/auth/server-helpers";
 
+function Tile({
+  href,
+  label,
+  value,
+  unit,
+  foot,
+  spot,
+}: {
+  href: string;
+  label: string;
+  value: number;
+  unit?: string;
+  foot: string;
+  spot?: boolean;
+}) {
+  return (
+    <Link href={href} className="block group">
+      <div className="stat-l">{label}</div>
+      <div className={`stat-v ${spot ? "text-accent-spot" : ""}`}>
+        {value}
+        {unit && <small>{unit}</small>}
+      </div>
+      <div className="stat-f group-hover:text-accent-spot">{foot}</div>
+    </Link>
+  );
+}
+
 export async function FocusHabitsCard() {
   const { user } = await getAuthContext();
 
   if (!user) {
     return (
-      <div className="card">
-        <div className="card-glow" />
-        <div className="text-xs uppercase tracking-[0.18em] text-ink-400 mb-2">
-          Today&apos;s tracking
+      <div className="sheet">
+        <div className="tab-row">
+          <span className="tab">Today</span>
+          <span className="fill" />
         </div>
-        <div className="font-serif text-lg text-ink-100">— focus, — habits</div>
-        <p className="text-xs text-ink-400 mt-2">
-          Sign in to see today&apos;s focus and habit stats.
+        <p className="t-read text-ink-300 m-0">
+          Pick a profile to see the day&apos;s focus and habits.
         </p>
       </div>
     );
@@ -65,47 +91,35 @@ export async function FocusHabitsCard() {
   const completionCount = Number(completionsRow?.value ?? 0);
 
   return (
-    <div className="card">
-      <div className="card-glow" />
-      <div className="text-xs uppercase tracking-[0.18em] text-ink-400 mb-3">
-        Today&apos;s tracking
+    <div className="sheet">
+      <div className="tab-row">
+        <span className="tab">Today</span>
+        <span className="fill" />
       </div>
       <div className="grid grid-cols-2 gap-4">
-        <Link
+        <Tile
           href="/focus"
-          className="block p-3 -m-3 rounded-lg hover:bg-white/5 transition"
-        >
-          <div className="font-serif text-3xl text-ink-50 tabular-nums">
-            {focusMinutes}
-            <span className="text-sm text-ink-400 ml-1">min</span>
-          </div>
-          <div className="text-[11px] text-accent-sky uppercase tracking-wider mt-1">
-            Focus
-          </div>
-          <div className="text-[11px] text-ink-400 mt-0.5">
-            {focusSessions.length}{" "}
-            {focusSessions.length === 1 ? "session" : "sessions"}
-          </div>
-        </Link>
-        <Link
+          label="Focus logged"
+          value={focusMinutes}
+          unit="min"
+          spot={focusMinutes > 0}
+          foot={`${focusSessions.length} ${
+            focusSessions.length === 1 ? "session" : "sessions"
+          }`}
+        />
+        <Tile
           href="/habits"
-          className="block p-3 -m-3 rounded-lg hover:bg-white/5 transition"
-        >
-          <div className="font-serif text-3xl text-ink-50 tabular-nums">
-            {completionCount}
-            <span className="text-sm text-ink-400">/{habitCount}</span>
-          </div>
-          <div className="text-[11px] text-accent-green uppercase tracking-wider mt-1">
-            Habits
-          </div>
-          <div className="text-[11px] text-ink-400 mt-0.5">
-            {habitCount === 0
-              ? "none yet"
+          label="Habits struck"
+          value={completionCount}
+          unit={`/${habitCount}`}
+          foot={
+            habitCount === 0
+              ? "None set up yet"
               : completionCount === habitCount
-                ? "all done"
-                : `${habitCount - completionCount} to go`}
-          </div>
-        </Link>
+                ? "All of them"
+                : `${habitCount - completionCount} to go`
+          }
+        />
       </div>
     </div>
   );
