@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { and, count, eq, gte, isNotNull } from "drizzle-orm";
-import { format, startOfDay } from "date-fns";
+import { startOfDay, todayKey } from "@/lib/time/day";
 import { db } from "@/lib/db";
 import {
   lifeosFocusSessions,
@@ -53,8 +53,8 @@ export async function FocusHabitsCard() {
     );
   }
 
-  const today = format(new Date(), "yyyy-MM-dd");
-  const dayStart = startOfDay(new Date());
+  const today = todayKey();
+  const dayStart = startOfDay(today);
 
   const focusSessions = await db
     .select()

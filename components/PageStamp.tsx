@@ -1,35 +1,6 @@
 import Link from "next/link";
 import { PlateForRoute } from "@/components/field/PlateForRoute";
-
-const DAYS = [
-  "Sunday",
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-];
-const MONTHS = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
-
-function dayOfYear(d: Date) {
-  return Math.floor(
-    (d.getTime() - new Date(d.getFullYear(), 0, 0).getTime()) / 864e5,
-  );
-}
+import { dayOfYear, formatDay, todayKey } from "@/lib/time/day";
 
 /**
  * The stamp every page carries: the date as a log entry would write it,
@@ -59,7 +30,7 @@ export function PageStamp({
   backHref?: string;
   backLabel?: string;
 }) {
-  const now = new Date();
+  const today = todayKey();
 
   return (
     <header className="flex items-start justify-between gap-4 md:gap-5 mb-6">
@@ -73,9 +44,9 @@ export function PageStamp({
             className="text-xs text-ink-300"
             style={{ fontVariationSettings: "'wdth' 100, 'wght' 620" }}
           >
-            {DAYS[now.getDay()]}, {now.getDate()} {MONTHS[now.getMonth()]}
+            {formatDay(today, "EEEE, d MMMM")}
             <span className="inline-block w-5" />
-            <b className="text-ink-50 tabular-nums">No. {dayOfYear(now)}</b>
+            <b className="text-ink-50 tabular-nums">No. {dayOfYear(today)}</b>
           </div>
           {title && <h1 className="t-h1 mt-[7px]">{title}</h1>}
           {subtitle && (

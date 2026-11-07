@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { format } from "date-fns";
+import { formatInstant } from "@/lib/time/day";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
@@ -105,7 +105,7 @@ export default async function IdentityPage() {
                     {e.title}
                   </div>
                   <div className="text-[11.5px] text-ink-400 shrink-0 tabular-nums">
-                    {format(new Date(e.createdAt), "d MMM")}
+                    {formatInstant(new Date(e.createdAt), "d MMM")}
                   </div>
                 </div>
                 {e.body && (
@@ -157,7 +157,7 @@ export default async function IdentityPage() {
       {latestFutureLetter && (
         <Section
           title="Future letter"
-          subtitle={`Last written ${format(
+          subtitle={`Last written ${formatInstant(
             new Date(latestFutureLetter.createdAt),
             "d MMMM yyyy",
           )}.`}

@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { formatDay } from "@/lib/time/day";
 import type { InsightsData } from "@/lib/insights/queries";
 
 /**
@@ -23,12 +23,9 @@ export function Trends({ data }: { data: InsightsData }) {
 function Axis({ data }: { data: InsightsData }) {
   return (
     <div className="flex justify-between text-[10.5px] text-ink-400 mt-2 tabular-nums">
-      <span>{format(new Date(data.dayPoints[0].date), "MMM d")}</span>
+      <span>{formatDay(data.dayPoints[0].date, "MMM d")}</span>
       <span>
-        {format(
-          new Date(data.dayPoints[data.dayPoints.length - 1].date),
-          "MMM d",
-        )}
+        {formatDay(data.dayPoints[data.dayPoints.length - 1].date, "MMM d")}
       </span>
     </div>
   );
@@ -63,7 +60,7 @@ function DayRatingChart({ data }: { data: InsightsData }) {
             return (
               <div
                 key={p.date}
-                title={`${format(new Date(p.date), "MMM d")}: ${
+                title={`${formatDay(p.date, "MMM d")}: ${
                   p.eveningRating === null
                     ? "not rated"
                     : `${p.eveningRating}/5`
@@ -98,7 +95,7 @@ function FocusChart({ data }: { data: InsightsData }) {
             return (
               <div
                 key={p.date}
-                title={`${format(new Date(p.date), "MMM d")}: ${
+                title={`${formatDay(p.date, "MMM d")}: ${
                   p.focusMinutes
                 } min`}
                 className={`flex-1 ${
@@ -145,7 +142,7 @@ function HabitHeatmap({ data }: { data: InsightsData }) {
                   return (
                     <div
                       key={d}
-                      title={`${format(new Date(d), "MMM d")}: ${
+                      title={`${formatDay(d, "MMM d")}: ${
                         done ? "done" : "missed"
                       }`}
                       className={`flex-1 h-4 ${

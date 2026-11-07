@@ -57,26 +57,28 @@ const NAV: NavGroup[] = [
 
 const SIGN_IN_URL = "/pick-profile";
 
-function dayOfYear(d: Date) {
-  return Math.floor(
-    (d.getTime() - new Date(d.getFullYear(), 0, 0).getTime()) / 864e5,
-  );
-}
-
 /**
  * On a desk the rail runs down the left edge. On a phone it folds into a
  * strip across the top with a Menu key; the sections drop down from it
  * and close again as soon as a route is chosen. Without this the rail
  * took 232 of a phone's 390 pixels and the pages rendered in the rest.
+ *
+ * `day` and `year` arrive from the layout, computed in the household zone.
+ * Computing them here from the browser clock would show the device's day,
+ * which is not necessarily the household's, and would need a post-mount
+ * effect to avoid a hydration mismatch across midnight.
  */
-export function Sidebar({ user }: { user: AppUser | null }) {
+export function Sidebar({
+  user,
+  day,
+  year,
+}: {
+  user: AppUser | null;
+  day: number;
+  year: number;
+}) {
   const pathname = usePathname();
-  const [day, setDay] = useState<number | null>(null);
   const [open, setOpen] = useState(false);
-
-  // Rendered after mount so the server and client never disagree about
-  // the date, which would otherwise hydrate-mismatch across midnight.
-  useEffect(() => setDay(dayOfYear(new Date())), []);
 
   // A chosen route closes the menu.
   useEffect(() => setOpen(false), [pathname]);
@@ -92,7 +94,7 @@ export function Sidebar({ user }: { user: AppUser | null }) {
             LifeOS
           </div>
           <div className="text-[11px] text-ink-300 mt-1 tabular-nums">
-            {day === null ? " " : `Day ${day} of ${new Date().getFullYear()}`}
+            Day {day} of {year}
           </div>
         </div>
         <button

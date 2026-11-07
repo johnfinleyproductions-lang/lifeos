@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { format } from "date-fns";
+import { formatDay, formatInstant } from "@/lib/time/day";
 import { desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { lifeosJournalEntries } from "@/lib/db/schema/lifeos";
@@ -61,7 +61,7 @@ export default async function JournalPastPage() {
             <section key={date}>
               <div className="tab-row">
                 <span className="tab">
-                  {format(new Date(date), "EEEE, d MMMM yyyy")}
+                  {formatDay(date, "EEEE, d MMMM yyyy")}
                 </span>
                 <span className="fill" />
                 <span className="text-[11.5px] text-ink-400 tabular-nums">
@@ -84,7 +84,7 @@ export default async function JournalPastPage() {
                       <div className="flex items-baseline justify-between gap-3 mb-3">
                         <div className="lbl">{meta.join(", ")}</div>
                         <span className="text-[11.5px] text-ink-400 tabular-nums shrink-0">
-                          {format(new Date(e.createdAt), "h:mm a")}
+                          {formatInstant(new Date(e.createdAt), "h:mm a")}
                         </span>
                       </div>
                       {lens && <div className="t-h2 mb-2">{lens.prompt}</div>}

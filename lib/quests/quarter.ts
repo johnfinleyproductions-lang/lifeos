@@ -7,12 +7,25 @@
  *   Grind  (~day 28-63): the long middle, where most of the doing happens
  *   Sprint (~day 64-81): closing pushes, ship the things
  *   Review (~day 82-end): reflect, gather lessons, prep next quarter
+ *
+ * Everything here is calendar arithmetic on day keys from lib/time/day, not
+ * millisecond arithmetic on Dates. The previous version divided elapsed
+ * milliseconds by 86,400,000, which on a server in a DST zone made Q1 one
+ * day short (the quarter loses an hour in March) and put the day number off
+ * by one for an hour around midnight after each transition.
  */
+import {
+  addDays,
+  daysBetween,
+  makeDayKey,
+  parseDayKey,
+  todayKey,
+  type DayKey,
+} from "@/lib/time/day";
 
-export function currentQuarter(date: Date = new Date()): string {
-  const year = date.getFullYear();
-  const month = date.getMonth();
-  const q = Math.floor(month / 3) + 1;
+export function currentQuarter(day: DayKey = todayKey()): string {
+  const { year, month } = parseDayKey(day);
+  const q = Math.floor((month - 1) / 3) + 1;
   return `${year}Q${q}`;
 }
 
@@ -26,18 +39,21 @@ export type QuarterProgress = {
   phase: QuarterPhase;
 };
 
-export function quarterProgress(date: Date = new Date()): QuarterProgress {
-  const year = date.getFullYear();
-  const month = date.getMonth();
-  const quarterStartMonth = Math.floor(month / 3) * 3;
-  const quarterStart = new Date(year, quarterStartMonth, 1);
-  const quarterEnd = new Date(year, quarterStartMonth + 3, 0);
-  const dayMs = 24 * 60 * 60 * 1000;
-  const day =
-    Math.floor((date.getTime() - quarterStart.getTime()) / dayMs) + 1;
-  const totalDays =
-    Math.floor((quarterEnd.getTime() - quarterStart.getTime()) / dayMs) + 1;
-  const pct = day / totalDays;
+export function quarterProgress(day: DayKey = todayKey()): QuarterProgress {
+  const { year, month } = parseDayKey(day);
+  const quarterStartMonth = Math.floor((month - 1) / 3) * 3 + 1;
+  const quarterStart = makeDayKey(year, quarterStartMonth, 1);
+  // The first day of the next quarter, minus one, is the last day of this
+  // one. Rolls into January correctly via addDays.
+  const nextQuarterStart =
+    quarterStartMonth === 10
+      ? makeDayKey(year + 1, 1, 1)
+      : makeDayKey(year, quarterStartMonth + 3, 1);
+  const quarterEnd = addDays(nextQuarterStart, -1);
+
+  const dayNumber = daysBetween(quarterStart, day) + 1;
+  const totalDays = daysBetween(quarterStart, quarterEnd) + 1;
+  const pct = dayNumber / totalDays;
 
   let phase: QuarterPhase = "Launch";
   if (pct > 0.1 && pct <= 0.3) phase = "Build";
@@ -46,8 +62,8 @@ export function quarterProgress(date: Date = new Date()): QuarterProgress {
   else if (pct > 0.9) phase = "Review";
 
   return {
-    quarter: currentQuarter(date),
-    day,
+    quarter: currentQuarter(day),
+    day: dayNumber,
     totalDays,
     pct,
     phase,

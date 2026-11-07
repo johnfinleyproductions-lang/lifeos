@@ -1,6 +1,6 @@
 import { cache } from "react";
 import { and, desc, eq, ne } from "drizzle-orm";
-import { format } from "date-fns";
+import { todayKey } from "@/lib/time/day";
 import { db } from "@/lib/db";
 import {
   lifeosDailyCheckins,
@@ -60,7 +60,7 @@ export type CoachContext = {
 
 export const getCoachContext = cache(
   async (userId: string): Promise<CoachContext> => {
-    const today = format(new Date(), "yyyy-MM-dd");
+    const today = todayKey();
 
     // Latest checkin (could be today or yesterday)
     const [latestCheckin] = await db

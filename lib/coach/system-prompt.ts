@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { formatDay, formatInstant, todayKey } from "@/lib/time/day";
 import type { CoachContext } from "./context";
 
 /**
@@ -16,7 +16,7 @@ export function buildSystemPrompt(
   user: { name: string },
   ctx: CoachContext,
 ): string {
-  const today = format(new Date(), "EEEE, MMMM d, yyyy");
+  const today = formatDay(todayKey(), "EEEE, MMMM d, yyyy");
   const firstName = user.name.split(" ")[0];
 
   const lines: string[] = [];
@@ -108,7 +108,7 @@ export function buildSystemPrompt(
   if (ctx.recentConfidence.length > 0) {
     lines.push(`Recent confidence file entries (last 5):`);
     for (const c of ctx.recentConfidence) {
-      const date = format(new Date(c.createdAt), "MMM d");
+      const date = formatInstant(new Date(c.createdAt), "MMM d");
       lines.push(`  - [${date}] ${c.title}${c.body ? `: "${c.body}"` : ""}`);
     }
     lines.push("");

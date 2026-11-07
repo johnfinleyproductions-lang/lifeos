@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { lifeosFocusSessions } from "@/lib/db/schema/lifeos";
 import { requireApiUser } from "@/lib/auth/server-helpers";
 import { startFocusSchema } from "@/lib/focus/schema";
+import { now } from "@/lib/time/day";
 
 /**
  * POST /api/focus/start — open a focus session.
@@ -52,7 +53,7 @@ export async function POST(request: Request) {
     .values({
       userId: user.id,
       label: parsed.data.label,
-      startedAt: new Date(),
+      startedAt: now(),
     })
     .returning();
 

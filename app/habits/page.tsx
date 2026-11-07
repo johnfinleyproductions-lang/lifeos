@@ -1,5 +1,5 @@
 import { and, eq, gte, inArray } from "drizzle-orm";
-import { format, subDays } from "date-fns";
+import { addDays, formatDay, lastNDays, todayKey } from "@/lib/time/day";
 import { db } from "@/lib/db";
 import {
   lifeosHabits,
@@ -20,7 +20,8 @@ export default async function HabitsPage() {
     )
     .orderBy(lifeosHabits.createdAt);
 
-  const sevenDaysAgo = format(subDays(new Date(), 6), "yyyy-MM-dd");
+  const today = todayKey();
+  const sevenDaysAgo = addDays(today, -6);
   const completions =
     habits.length > 0
       ? await db
@@ -47,13 +48,10 @@ export default async function HabitsPage() {
   }
 
   // Last 7 days, oldest first so the strip reads left-to-right naturally
-  const days = Array.from({ length: 7 }, (_, i) => {
-    const d = subDays(new Date(), 6 - i);
-    return {
-      date: format(d, "yyyy-MM-dd"),
-      label: format(d, "EEEEEE"), // Mo, Tu, We
-    };
-  });
+  const days = lastNDays(7, today).map((d) => ({
+    date: d,
+    label: formatDay(d, "EEEEEE"), // Mo, Tu, We
+  }));
 
   const habitsWithCompletions = habits.map((h) => ({
     id: h.id,
