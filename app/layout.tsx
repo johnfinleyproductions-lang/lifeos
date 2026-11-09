@@ -50,10 +50,14 @@ export const viewport = {
 /**
  * Settles the theme before first paint so a night-mode user never sees a
  * frame of stock. Kept inline and tiny for that reason.
+ *
+ * Day is where everyone starts, whatever the device's own appearance is
+ * set to: the cream page is what the app is. Night is a choice made with
+ * the button in the rail, and it is remembered.
  */
 const THEME_BOOT = `(function(){try{
   var t=localStorage.getItem('lifeos-theme');
-  if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'night':'day';
+  if(t!=='night')t='day';
   document.documentElement.dataset.theme=t;
 }catch(e){document.documentElement.dataset.theme='day'}})()`;
 

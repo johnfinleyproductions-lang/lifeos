@@ -17,7 +17,24 @@ const SUGGESTED_OPENERS = [
   "What patterns do you see in my last 7 days?",
 ];
 
-export function CoachChat() {
+const MODEL_KEY = "lifeos-coach-model";
+
+type ModelState =
+  | { status: "loading" }
+  | { status: "ready"; models: string[] }
+  | { status: "down"; reason: string };
+
+export function CoachChat({
+  defaultModel,
+  host,
+}: {
+  /** The model the server uses when nobody has picked. */
+  defaultModel: string;
+  /** The model server's address, for the message when it is not answering. */
+  host: string;
+}) {
+  const [model, setModel] = useState(defaultModel);
+  const [modelState, setModelState] = useState<ModelState>({ status: "loading" });
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
@@ -26,6 +43,62 @@ export function CoachChat() {
   const [ttsSupported, setTtsSupported] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastSpokenRef = useRef<string>("");
+
+  /** Ask the server which models the coach can use, and settle on one. */
+  async function loadModels() {
+    setModelState({ status: "loading" });
+    try {
+      const res = await fetch("/api/coach/models", { cache: "no-store" });
+      const data = await res.json();
+      if (!res.ok || !data.reachable) {
+        setModelState({
+          status: "down",
+          reason: data.reason ?? data.error ?? "The model server is not answering.",
+        });
+        return;
+      }
+      const models: string[] = data.models ?? [];
+      if (models.length === 0) {
+        setModelState({
+          status: "down",
+          reason: `${host} is running but has no chat models yet.`,
+        });
+        return;
+      }
+      // Keep the last pick if it is still there, then the default, then
+      // whatever the server lists first.
+      let saved: string | null = null;
+      try {
+        saved = localStorage.getItem(MODEL_KEY);
+      } catch {
+        saved = null;
+      }
+      const pick =
+        (saved && models.includes(saved) && saved) ||
+        (models.includes(defaultModel) && defaultModel) ||
+        models.find((name) => name.startsWith(`${defaultModel}:`)) ||
+        models[0];
+      setModel(pick);
+      setModelState({ status: "ready", models });
+    } catch {
+      setModelState({ status: "down", reason: "Could not ask for the list of models." });
+    }
+  }
+
+  function chooseModel(next: string) {
+    setModel(next);
+    try {
+      localStorage.setItem(MODEL_KEY, next);
+    } catch {
+      // Private windows may refuse storage. The pick still holds for this visit.
+    }
+  }
+
+  useEffect(() => {
+    loadModels();
+    // Once, when the page opens. Refresh asks again.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     setTtsSupported(isSpeechSynthesisSupported());
@@ -71,7 +144,7 @@ export function CoachChat() {
       const res = await fetch("/api/coach/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: nextMessages }),
+        body: JSON.stringify({ messages: nextMessages, model }),
       });
 
       if (!res.ok) {
@@ -176,9 +249,45 @@ export function CoachChat() {
         </div>
       )}
 
-      {/* Voice settings strip */}
-      {ttsSupported && (
-        <div className="flex items-center justify-between mb-2">
+      {/* Which model answers, and whether it answers aloud */}
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 mb-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <label htmlFor="coach-model" className="shrink-0 text-[12.5px] font-semibold text-ink-300">
+            Model
+          </label>
+          {modelState.status === "ready" ? (
+            <select
+              id="coach-model"
+              className="pick"
+              value={model}
+              disabled={streaming}
+              onChange={(e) => chooseModel(e.target.value)}
+            >
+              {modelState.models.map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <span id="coach-model" className="text-[13px] text-ink-400 truncate">
+              {modelState.status === "loading"
+                ? "Asking the model server what it has."
+                : modelState.reason}
+            </span>
+          )}
+          {modelState.status !== "loading" && (
+            <button
+              type="button"
+              className="chip min-h-9"
+              onClick={loadModels}
+              title={`Ask ${host} again`}
+            >
+              Refresh
+            </button>
+          )}
+        </div>
+        {ttsSupported && (
           <button
             type="button"
             onClick={() => {
@@ -190,8 +299,8 @@ export function CoachChat() {
           >
             {speakResponses ? "Speaking replies aloud" : "Read replies aloud"}
           </button>
-        </div>
-      )}
+        )}
+      </div>
 
       <form
         onSubmit={(e) => {

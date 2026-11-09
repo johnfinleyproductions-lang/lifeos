@@ -3,6 +3,7 @@ import { requireApiUser } from "@/lib/auth/server-helpers";
 import { getCoachContext } from "@/lib/coach/context";
 import { buildSystemPrompt } from "@/lib/coach/system-prompt";
 import { chatRequestSchema } from "@/lib/coach/schema";
+import { llmConfig } from "@/lib/coach/llm";
 
 /**
  * POST /api/coach/chat — streamed chat against an OpenAI-compatible LLM.
@@ -19,19 +20,12 @@ import { chatRequestSchema } from "@/lib/coach/schema";
  * The system prompt + LifeOS context is injected as the first message
  * (OpenAI spec uses role:"system" rather than a top-level system field).
  */
-const DEFAULT_BASE = "http://localhost:11434/v1";
-const DEFAULT_MODEL = "qwen2.5";
-const DEFAULT_KEY = "ollama";
 
 export async function POST(request: Request) {
   const { user, unauthorizedResponse } = await requireApiUser();
   if (unauthorizedResponse) return unauthorizedResponse;
 
-  const baseUrl =
-    process.env.LIFEOS_LLM_BASE_URL?.trim() || DEFAULT_BASE;
-  const apiKey =
-    process.env.LIFEOS_LLM_API_KEY?.trim() || DEFAULT_KEY;
-  const model = process.env.LIFEOS_LLM_MODEL?.trim() || DEFAULT_MODEL;
+  const { baseUrl, apiKey, defaultModel } = llmConfig();
 
   let body: unknown;
   try {
@@ -47,6 +41,10 @@ export async function POST(request: Request) {
       { status: 422 },
     );
   }
+
+  // The person's pick from the Coach page, or the default when they have
+  // not made one.
+  const model = parsed.data.model ?? defaultModel;
 
   const ctx = await getCoachContext(user.id);
   const system = buildSystemPrompt({ name: user.name }, ctx);
@@ -86,7 +84,10 @@ export async function POST(request: Request) {
     const text = await upstream.text().catch(() => "");
     return NextResponse.json(
       {
-        error: `Upstream error (${upstream.status})`,
+        error:
+          upstream.status === 404
+            ? `The model server does not have "${model}". Pick another model above.`
+            : `Upstream error (${upstream.status})`,
         detail: text.slice(0, 500),
       },
       { status: 502 },

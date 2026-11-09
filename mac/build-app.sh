@@ -96,9 +96,12 @@ LIFEOS_DAY_START=4
 # window onto that server instead of running its own copy:
 # LIFEOS_URL=https://lifeos.example.com
 
-# The coach is optional.
-# LIFEOS_LLM_BASE_URL=http://localhost:11434/v1
+# The coach talks to Ollama on this Mac unless told otherwise. Which model
+# it uses is picked on the Coach page, from whatever that server has.
+# To use a model server on another machine, set its address here:
+# LIFEOS_LLM_BASE_URL=http://192.168.4.200:11434/v1
 # LIFEOS_LLM_API_KEY=ollama
+# The model to start on, before anyone has picked:
 # LIFEOS_LLM_MODEL=qwen2.5:32b
 SETTINGS_EOF
   chmod 600 "$SETTINGS"

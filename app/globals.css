@@ -607,6 +607,36 @@
 
   /* A selectable chip: ink outline, filled solid when pressed. Used for
      moods, cadences, lenses, categories. */
+  /* A native select, dressed as the chips beside it. Used where the list
+     can be long and comes from somewhere else, like the coach's models. */
+  .pick {
+    appearance: none;
+    -webkit-appearance: none;
+    min-height: 36px;
+    max-width: min(46vw, 320px);
+    padding: 6px 30px 6px 10px;
+    border: 1.5px solid rgb(var(--text-1));
+    border-radius: 0;
+    background-color: rgb(var(--surface-3));
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%231a1611' stroke-width='2'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    color: rgb(var(--text-1));
+    font: inherit;
+    font-size: 13.5px;
+    font-weight: 600;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    cursor: pointer;
+  }
+  .pick:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+  [data-theme="night"] .pick {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%23d7d9d1' stroke-width='2'/%3E%3C/svg%3E");
+  }
+
   .chip {
     min-height: 36px;
     display: inline-flex;

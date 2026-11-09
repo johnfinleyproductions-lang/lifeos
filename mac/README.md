@@ -59,6 +59,27 @@ nothing running on the Mac. When you deploy, give the server the **same
 `LIFEOS_SECRET`, household code and profile list** as this file, so the same
 people sign in to the same logs from the Mac, the phone and the browser.
 
+## The coach
+
+The coach talks to a model server on your own hardware. By default that is
+Ollama on this Mac (`localhost:11434`), so if Ollama is running, the coach
+works with no settings at all.
+
+**Which model** is chosen on the Coach page: the Model menu beside the
+message box lists every chat model the server has. Pick one and it is
+remembered on this Mac. Pull a new model in Ollama, press Refresh, and it is
+in the list.
+
+**Which machine** is a setting. To use Ollama on another computer, add its
+address to the settings file and reopen LifeOS:
+
+```
+LIFEOS_LLM_BASE_URL=http://192.168.4.200:11434/v1
+```
+
+Any server that speaks the OpenAI API works the same way: LM Studio,
+llama.cpp, vLLM.
+
 ## Day to day
 
 - **Cmd R** reloads. **Cmd 1** goes to Today. **Cmd [** and **Cmd ]** go back
