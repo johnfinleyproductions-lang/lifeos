@@ -13,3 +13,4 @@ drizzle/.snapshots/
 
 # TypeScript incremental build cache
 *.tsbuildinfo
+mac/dist/

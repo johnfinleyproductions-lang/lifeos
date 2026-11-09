@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { timingSafeEqual } from "node:crypto";
 import { sign, unsign } from "./signing";
+import { cookieSecure } from "@/lib/http/cookie-flags";
 
 /**
  * The household gate.
@@ -56,7 +57,7 @@ export async function unlockHousehold(): Promise<void> {
   const store = await cookies();
   store.set(COOKIE, sign(String(Date.now())), {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: cookieSecure(),
     sameSite: "lax",
     path: "/",
     maxAge: MAX_AGE,

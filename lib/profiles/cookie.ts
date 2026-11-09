@@ -13,6 +13,7 @@ import { NcbError } from "@/lib/ncb/config";
 import { currentNcbSession } from "@/lib/ncb/session";
 import { getProfile, getProfiles } from "./config";
 import { sign, unsign } from "./signing";
+import { cookieSecure } from "@/lib/http/cookie-flags";
 
 const COOKIE_NAME = "lifeos_profile";
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
@@ -60,7 +61,7 @@ export async function setActiveProfile(slug: string): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.set(COOKIE_NAME, sign(slug), {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: cookieSecure(),
     sameSite: "lax",
     path: "/",
     maxAge: COOKIE_MAX_AGE,

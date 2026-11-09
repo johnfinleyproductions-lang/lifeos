@@ -14,6 +14,7 @@
 import { cookies } from "next/headers";
 import { cache } from "react";
 import { NcbError, ncbConfig, ncbFetch } from "./config";
+import { cookieSecure } from "@/lib/http/cookie-flags";
 
 /** LifeOS's own cookie holding the NCB session token. */
 export const SESSION_COOKIE = "lifeos_session";
@@ -42,7 +43,12 @@ function headers(token?: string | null): Record<string, string> {
     "X-Database-Instance": instance,
     // better-auth checks the Origin of state-changing requests. NCB accepts
     // the app's own address; it is not a secret and not trusted for anything.
-    Origin: process.env.NEXT_PUBLIC_APP_URL?.trim() || "http://localhost:3001",
+    // LIFEOS_APP_URL is read when the server starts. NEXT_PUBLIC_APP_URL is
+    // fixed when the app is built, so it is only the fallback.
+    Origin:
+      process.env.LIFEOS_APP_URL?.trim() ||
+      process.env.NEXT_PUBLIC_APP_URL?.trim() ||
+      "http://localhost:3001",
   };
   if (token) out.Cookie = upstreamCookieHeader(token);
   return out;
@@ -206,7 +212,7 @@ export async function writeSessionCookie(token: string): Promise<void> {
   const store = await cookies();
   store.set(SESSION_COOKIE, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: cookieSecure(),
     sameSite: "lax",
     path: "/",
     maxAge: SESSION_COOKIE_MAX_AGE,

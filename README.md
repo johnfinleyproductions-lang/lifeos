@@ -20,6 +20,16 @@ docker compose up -d --build
 That serves on <http://localhost:3001>. There is nothing to migrate and no
 second container: the tables already exist in NoCodeBackend.
 
+### As a Mac app
+
+```bash
+./mac/build-app.sh
+```
+
+Builds `LifeOS.app` with its own window and icon, installs it, and puts a
+shortcut on the Desktop. It runs LifeOS on the Mac itself, so no server is
+needed. `mac/README.md` has the details.
+
 ### Without Docker
 
 Needs Node 22+ and pnpm.
@@ -133,6 +143,7 @@ lib/db/schema/      one file per table
 lib/ncb/            NoCodeBackend config, requests and sessions
 lib/profiles/       household gate, profile cookie, profile sign-in
 docs/ncb/           NoCodeBackend's own setup guides and the live schema, as issued
+mac/                the Mac app: window, icon, build script
 scripts/            check-time.mjs, check-db.mjs
 ```
 
