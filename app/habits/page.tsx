@@ -1,11 +1,11 @@
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray } from "@/lib/db/ops";
 import { dayKeyOf, formatDay, lastNDays, todayKey } from "@/lib/time/day";
 import { keptIn } from "@/lib/habits/cadence";
 import { db } from "@/lib/db";
 import {
   lifeosHabits,
   lifeosHabitCompletions,
-} from "@/lib/db/schema/lifeos";
+} from "@/lib/db/schema";
 import { requireUserContext } from "@/lib/auth/server-helpers";
 import { pressingsFor } from "@/lib/habits/pressings";
 import { fieldMarksShown } from "@/lib/collection/field-marks";

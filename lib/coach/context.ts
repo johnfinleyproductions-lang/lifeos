@@ -1,12 +1,12 @@
 import { cache } from "react";
-import { and, desc, eq, ne } from "drizzle-orm";
+import { and, desc, eq, ne } from "@/lib/db/ops";
 import { todayKey } from "@/lib/time/day";
 import { db } from "@/lib/db";
 import {
   lifeosDailyCheckins,
   lifeosQuests,
   lifeosConfidenceEntries,
-} from "@/lib/db/schema/lifeos";
+} from "@/lib/db/schema";
 import { morningManifestoSchema } from "@/lib/manifesto/schema";
 import { eveningShutdownSchema } from "@/lib/manifesto/evening-schema";
 import {

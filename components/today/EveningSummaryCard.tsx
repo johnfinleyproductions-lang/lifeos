@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { and, count, eq, gte, isNotNull } from "drizzle-orm";
+import { and, count, eq, gte, isNotNull } from "@/lib/db/ops";
 import { formatDay, todayKey } from "@/lib/time/day";
 import { db } from "@/lib/db";
-import { lifeosDailyCheckins } from "@/lib/db/schema/lifeos";
+import { lifeosDailyCheckins } from "@/lib/db/schema";
 import { getAuthContext } from "@/lib/auth/server-helpers";
 import { getTodayCheckin } from "@/lib/checkin/today";
 import { fieldMarksShown } from "@/lib/collection/field-marks";

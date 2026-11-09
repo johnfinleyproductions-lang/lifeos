@@ -1,7 +1,7 @@
-import { desc, eq } from "drizzle-orm";
+import { desc, eq } from "@/lib/db/ops";
 import { todayKey } from "@/lib/time/day";
 import { db } from "@/lib/db";
-import { lifeosDailyCheckins } from "@/lib/db/schema/lifeos";
+import { lifeosDailyCheckins } from "@/lib/db/schema";
 import { requireUserContext } from "@/lib/auth/server-helpers";
 import { ManifestoWizard } from "@/components/morning/ManifestoWizard";
 import { PageStamp } from "@/components/PageStamp";

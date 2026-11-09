@@ -1,10 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { and, eq } from "drizzle-orm";
+import { and, eq } from "@/lib/db/ops";
 import { todayKey } from "@/lib/time/day";
 import { db } from "@/lib/db";
-import { lifeosDailyCheckins } from "@/lib/db/schema/lifeos";
+import { lifeosDailyCheckins } from "@/lib/db/schema";
 import { getAuthContext } from "@/lib/auth/server-helpers";
 import { eveningShutdownSchema } from "@/lib/manifesto/evening-schema";
 

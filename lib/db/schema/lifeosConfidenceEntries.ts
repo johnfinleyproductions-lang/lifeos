@@ -1,11 +1,4 @@
-import { sql } from "drizzle-orm";
-import {
-  pgTable,
-  uuid,
-  text,
-  timestamp,
-  index,
-} from "drizzle-orm/pg-core";
+import { table, id, owner, text, timestamp } from "../table";
 
 /**
  * Confidence file — evidence of who you're becoming.
@@ -21,31 +14,19 @@ import {
  * or just a context string). Loose rather than FK because sources span
  * multiple tables and even other apps.
  */
-export const lifeosConfidenceEntries = pgTable(
+export const lifeosConfidenceEntries = table(
   "lifeos_confidence_entries",
   {
-    id: uuid("id")
-      .primaryKey()
-      .default(sql`gen_random_uuid()`),
-    userId: uuid("user_id").notNull(),
-    // Written by nobody since Phase 2. Kept, nullable, because
-    // existing rows carry a real value worth not throwing away.
-    workspaceId: uuid("workspace_id"),
+    id: id(),
+    userId: owner().notNull(),
     kind: text("kind").notNull().default("manual"),
     source: text("source"),
     title: text("title").notNull(),
     body: text("body"),
-    createdAt: timestamp("created_at", { withTimezone: true })
+    createdAt: timestamp("created_at")
       .notNull()
       .defaultNow(),
-  },
-  (table) => ({
-    userCreatedIdx: index("idx_lifeos_confidence_user_created").on(
-      table.userId,
-      table.createdAt,
-    ),
-  }),
-);
+  });
 
 export type LifeosConfidenceEntry =
   typeof lifeosConfidenceEntries.$inferSelect;

@@ -1,12 +1,4 @@
-import { sql } from "drizzle-orm";
-import {
-  pgTable,
-  uuid,
-  text,
-  timestamp,
-  integer,
-  index,
-} from "drizzle-orm/pg-core";
+import { table, id, owner, ref, text, integer, timestamp } from "../table";
 
 /**
  * Focus sessions — timed deep work blocks.
@@ -19,33 +11,21 @@ import {
  * lifeos_quests). Phase 9 lets us correlate focus sessions to EC's
  * generations table for the Insights tab.
  */
-export const lifeosFocusSessions = pgTable(
+export const lifeosFocusSessions = table(
   "lifeos_focus_sessions",
   {
-    id: uuid("id")
-      .primaryKey()
-      .default(sql`gen_random_uuid()`),
-    userId: uuid("user_id").notNull(),
-    // Written by nobody since Phase 2. Kept, nullable, because
-    // existing rows carry a real value worth not throwing away.
-    workspaceId: uuid("workspace_id"),
+    id: id(),
+    userId: owner().notNull(),
     label: text("label").notNull(),
-    startedAt: timestamp("started_at", { withTimezone: true }).notNull(),
-    endedAt: timestamp("ended_at", { withTimezone: true }),
+    startedAt: timestamp("started_at").notNull(),
+    endedAt: timestamp("ended_at"),
     durationMinutes: integer("duration_minutes"),
     note: text("note"),
-    questId: uuid("quest_id"),
-    createdAt: timestamp("created_at", { withTimezone: true })
+    questId: ref("quest_id"),
+    createdAt: timestamp("created_at")
       .notNull()
       .defaultNow(),
-  },
-  (table) => ({
-    userStartedIdx: index("idx_lifeos_focus_user_started").on(
-      table.userId,
-      table.startedAt,
-    ),
-  }),
-);
+  });
 
 export type LifeosFocusSession = typeof lifeosFocusSessions.$inferSelect;
 export type NewLifeosFocusSession = typeof lifeosFocusSessions.$inferInsert;

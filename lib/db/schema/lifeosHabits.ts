@@ -1,12 +1,4 @@
-import { sql } from "drizzle-orm";
-import {
-  pgTable,
-  uuid,
-  text,
-  boolean,
-  timestamp,
-  index,
-} from "drizzle-orm/pg-core";
+import { table, id, owner, text, boolean, timestamp } from "../table";
 
 /**
  * Habits — recurring rituals the user wants to build.
@@ -20,16 +12,11 @@ import {
  * The MIND OS Habit Architecture fields (stack_anchor, reward, protection)
  * are optional but central to the framework — see Phase 5 protocol.
  */
-export const lifeosHabits = pgTable(
+export const lifeosHabits = table(
   "lifeos_habits",
   {
-    id: uuid("id")
-      .primaryKey()
-      .default(sql`gen_random_uuid()`),
-    userId: uuid("user_id").notNull(),
-    // Written by nobody since Phase 2. Kept, nullable, because
-    // existing rows carry a real value worth not throwing away.
-    workspaceId: uuid("workspace_id"),
+    id: id(),
+    userId: owner().notNull(),
     name: text("name").notNull(),
     cadence: text("cadence").notNull().default("daily"),
     description: text("description"),
@@ -37,20 +24,13 @@ export const lifeosHabits = pgTable(
     reward: text("reward"),
     protection: text("protection"),
     archived: boolean("archived").notNull().default(false),
-    createdAt: timestamp("created_at", { withTimezone: true })
+    createdAt: timestamp("created_at")
       .notNull()
       .defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true })
+    updatedAt: timestamp("updated_at")
       .notNull()
       .defaultNow(),
-  },
-  (table) => ({
-    userActiveIdx: index("idx_lifeos_habits_user_active").on(
-      table.userId,
-      table.archived,
-    ),
-  }),
-);
+  });
 
 export type LifeosHabit = typeof lifeosHabits.$inferSelect;
 export type NewLifeosHabit = typeof lifeosHabits.$inferInsert;

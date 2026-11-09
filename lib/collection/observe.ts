@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { and, asc, eq, isNotNull, sql } from "drizzle-orm";
+import { and, asc, eq, isNotNull } from "@/lib/db/ops";
 import { dayKeyOf, todayKey } from "@/lib/time/day";
 import { db } from "@/lib/db";
 import {
@@ -10,7 +10,7 @@ import {
   lifeosHabitCompletions,
   lifeosProtocolRuns,
   lifeosQuests,
-} from "@/lib/db/schema/lifeos";
+} from "@/lib/db/schema";
 import { PROTOCOLS } from "@/lib/protocols/definitions";
 import { KEPT_PROTOCOL_SET } from "@/app/protocols/kept";
 import { CATALOGUE, type Specimen } from "./catalogue";
@@ -66,15 +66,25 @@ export const getCollection = cache(
         db
           .select({
             date: lifeosDailyCheckins.entryDate,
-            morning: sql<boolean>`${lifeosDailyCheckins.morning} is not null`,
-            evening: sql<boolean>`${lifeosDailyCheckins.evening} is not null`,
-            rating: sql<
-              string | null
-            >`${lifeosDailyCheckins.evening}->>'dayRating'`,
+            morning: lifeosDailyCheckins.morning,
+            evening: lifeosDailyCheckins.evening,
           })
           .from(lifeosDailyCheckins)
           .where(eq(lifeosDailyCheckins.userId, userId))
-          .orderBy(asc(lifeosDailyCheckins.entryDate)),
+          .orderBy(asc(lifeosDailyCheckins.entryDate))
+          .then((rows) =>
+            rows.map((row) => {
+              const rating = (row.evening as { dayRating?: unknown } | null)
+                ?.dayRating;
+              return {
+                date: row.date,
+                morning: row.morning !== null,
+                evening: row.evening !== null,
+                // Postgres read this with ->>, which always gave text.
+                rating: rating == null ? null : String(rating),
+              };
+            }),
+          ),
 
         db
           .select({ date: lifeosHabitCompletions.completionDate })

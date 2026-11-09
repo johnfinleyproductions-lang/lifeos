@@ -1,19 +1,23 @@
-import { sql } from "drizzle-orm";
+import { ncbConfig, ncbFetch } from "@/lib/ncb/config";
 
-import { db } from "@/lib/db";
-
-// A health check that does not touch the database only proves Node is
-// running, which is the one failure mode a container restart already
-// covers. SELECT 1 is what distinguishes "up" from "up but useless".
+// A health check that only proves Node is running covers the one failure a
+// container restart already fixes. This one asks NoCodeBackend a question
+// that needs no sign-in, so "ok" means the app is serving and can reach the
+// place its data lives.
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    await db.execute(sql`select 1`);
+    const { authUrl, instance } = ncbConfig();
+    const res = await ncbFetch(
+      `${authUrl}/providers?instance=${encodeURIComponent(instance)}`,
+      { method: "GET", headers: { "X-Database-Instance": instance } },
+    );
+    if (res.status !== 200) throw new Error(`providers answered ${res.status}`);
     return Response.json({ ok: true, db: "up" });
   } catch (err) {
     // Unauthenticated endpoint: log the detail, return none of it.
-    console.error("[health] database check failed", err);
+    console.error("[health] NoCodeBackend check failed", err);
     return Response.json({ ok: false, db: "down" }, { status: 503 });
   }
 }

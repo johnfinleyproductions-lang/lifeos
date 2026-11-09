@@ -1,7 +1,7 @@
-import { and, count, eq } from "drizzle-orm";
+import { and, count, eq } from "@/lib/db/ops";
 import { formatDay, formatInstant } from "@/lib/time/day";
 import { db } from "@/lib/db";
-import { lifeosQuests } from "@/lib/db/schema/lifeos";
+import { lifeosQuests } from "@/lib/db/schema";
 import { requireUserContext } from "@/lib/auth/server-helpers";
 import { fieldMarksShown } from "@/lib/collection/field-marks";
 import { QuestsClient } from "@/components/quests/QuestsClient";

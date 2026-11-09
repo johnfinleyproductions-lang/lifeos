@@ -2,9 +2,7 @@
 # node_modules on top of the one installed by the deps stage. Coolify
 # builds from a fresh clone so it never had one, but a local `docker build`
 # did, and pnpm's node_modules is a tree of symlinks into .pnpm with
-# absolute paths that do not resolve inside the image. The builder also
-# dereferences node_modules/drizzle-orm into /migrate-deps, so this is now
-# load-bearing rather than just a speed-up.
+# absolute paths that do not resolve inside the image.
 node_modules
 .next
 .git

@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "@/lib/db/ops";
 import { Watermark } from "@/components/field/Watermark";
 import { formatDay } from "@/lib/time/day";
 import { db } from "@/lib/db";
-import { lifeosProtocolRuns } from "@/lib/db/schema/lifeos";
+import { lifeosProtocolRuns } from "@/lib/db/schema";
 import { requireUserContext } from "@/lib/auth/server-helpers";
 import { BALANCE_DIMENSIONS } from "@/lib/reflection/balance";
 import {

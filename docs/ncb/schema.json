@@ -1,0 +1,911 @@
+{
+  "instance": "54318_lifeos",
+  "generatedAt": "2026-11-09T20:37:33.415Z",
+  "tables": {
+    "lifeos_compass": {
+      "primaryKey": "id",
+      "columns": {
+        "id": {
+          "type": "integer",
+          "nullable": false,
+          "autoIncrement": true
+        },
+        "mission": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "eulogy": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "success_definition": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "future_paths": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "ideal_week": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "created_at": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "updated_at": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "user_id": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL",
+          "indexed": true,
+          "unique": true,
+          "foreignKey": {
+            "table": "ncba_user",
+            "column": "id",
+            "onDelete": "cascade",
+            "onUpdate": "cascade"
+          }
+        }
+      }
+    },
+    "lifeos_confidence_entries": {
+      "primaryKey": "id",
+      "columns": {
+        "id": {
+          "type": "integer",
+          "nullable": false,
+          "autoIncrement": true
+        },
+        "kind": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "source": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "title": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "body": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "created_at": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "NULL",
+          "indexed": true
+        },
+        "user_id": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL",
+          "indexed": true,
+          "foreignKey": {
+            "table": "ncba_user",
+            "column": "id",
+            "onDelete": "cascade",
+            "onUpdate": "cascade"
+          }
+        }
+      }
+    },
+    "lifeos_daily_checkins": {
+      "primaryKey": "id",
+      "columns": {
+        "id": {
+          "type": "integer",
+          "nullable": false,
+          "autoIncrement": true
+        },
+        "entry_date": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "NULL",
+          "indexed": true,
+          "unique": true
+        },
+        "morning": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "evening": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "ritual_depth": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "created_at": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "updated_at": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "user_id": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL",
+          "indexed": true,
+          "unique": true,
+          "foreignKey": {
+            "table": "ncba_user",
+            "column": "id",
+            "onDelete": "cascade",
+            "onUpdate": "cascade"
+          }
+        }
+      }
+    },
+    "lifeos_focus_sessions": {
+      "primaryKey": "id",
+      "columns": {
+        "id": {
+          "type": "integer",
+          "nullable": false,
+          "autoIncrement": true
+        },
+        "label": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "started_at": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "NULL",
+          "indexed": true
+        },
+        "ended_at": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "duration_minutes": {
+          "type": "integer",
+          "nullable": true,
+          "default": null
+        },
+        "note": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "quest_id": {
+          "type": "integer",
+          "nullable": true,
+          "default": null,
+          "indexed": true,
+          "foreignKey": {
+            "table": "lifeos_quests",
+            "column": "id",
+            "onDelete": "set null",
+            "onUpdate": "cascade"
+          }
+        },
+        "created_at": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "user_id": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL",
+          "indexed": true,
+          "foreignKey": {
+            "table": "ncba_user",
+            "column": "id",
+            "onDelete": "cascade",
+            "onUpdate": "cascade"
+          }
+        }
+      }
+    },
+    "lifeos_habit_completions": {
+      "primaryKey": "id",
+      "columns": {
+        "id": {
+          "type": "integer",
+          "nullable": false,
+          "autoIncrement": true
+        },
+        "habit_id": {
+          "type": "integer",
+          "nullable": true,
+          "default": null,
+          "indexed": true,
+          "unique": true,
+          "foreignKey": {
+            "table": "lifeos_habits",
+            "column": "id",
+            "onDelete": "cascade",
+            "onUpdate": "cascade"
+          }
+        },
+        "completion_date": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "NULL",
+          "indexed": true,
+          "unique": true
+        },
+        "note": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "created_at": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "user_id": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL",
+          "indexed": true,
+          "foreignKey": {
+            "table": "ncba_user",
+            "column": "id",
+            "onDelete": "cascade",
+            "onUpdate": "cascade"
+          }
+        }
+      }
+    },
+    "lifeos_habits": {
+      "primaryKey": "id",
+      "columns": {
+        "id": {
+          "type": "integer",
+          "nullable": false,
+          "autoIncrement": true
+        },
+        "name": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "cadence": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "description": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "stack_anchor": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "reward": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "protection": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "archived": {
+          "type": "integer",
+          "nullable": true,
+          "default": null,
+          "indexed": true
+        },
+        "created_at": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "updated_at": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "user_id": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL",
+          "indexed": true,
+          "foreignKey": {
+            "table": "ncba_user",
+            "column": "id",
+            "onDelete": "cascade",
+            "onUpdate": "cascade"
+          }
+        }
+      }
+    },
+    "lifeos_journal_entries": {
+      "primaryKey": "id",
+      "columns": {
+        "id": {
+          "type": "integer",
+          "nullable": false,
+          "autoIncrement": true
+        },
+        "entry_date": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "NULL",
+          "indexed": true
+        },
+        "mode": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "body": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "framework_lens": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "is_decision": {
+          "type": "integer",
+          "nullable": true,
+          "default": null
+        },
+        "decision_summary": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "decision_category": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "decision_door": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "created_at": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "updated_at": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "user_id": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL",
+          "indexed": true,
+          "foreignKey": {
+            "table": "ncba_user",
+            "column": "id",
+            "onDelete": "cascade",
+            "onUpdate": "cascade"
+          }
+        }
+      }
+    },
+    "lifeos_open_loops": {
+      "primaryKey": "id",
+      "columns": {
+        "id": {
+          "type": "integer",
+          "nullable": false,
+          "autoIncrement": true
+        },
+        "source_entry_id": {
+          "type": "integer",
+          "nullable": true,
+          "default": null,
+          "indexed": true,
+          "foreignKey": {
+            "table": "lifeos_journal_entries",
+            "column": "id",
+            "onDelete": "set null",
+            "onUpdate": "cascade"
+          }
+        },
+        "question": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "status": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL",
+          "indexed": true
+        },
+        "opened_at": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "resolved_at": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "resolution_note": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "user_id": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL",
+          "indexed": true,
+          "foreignKey": {
+            "table": "ncba_user",
+            "column": "id",
+            "onDelete": "cascade",
+            "onUpdate": "cascade"
+          }
+        }
+      }
+    },
+    "lifeos_protocol_runs": {
+      "primaryKey": "id",
+      "columns": {
+        "id": {
+          "type": "integer",
+          "nullable": false,
+          "autoIncrement": true
+        },
+        "slug": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "run_date": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "NULL",
+          "indexed": true
+        },
+        "payload": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "duration_seconds": {
+          "type": "integer",
+          "nullable": true,
+          "default": null
+        },
+        "created_at": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "user_id": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL",
+          "indexed": true,
+          "foreignKey": {
+            "table": "ncba_user",
+            "column": "id",
+            "onDelete": "cascade",
+            "onUpdate": "cascade"
+          }
+        }
+      }
+    },
+    "lifeos_quests": {
+      "primaryKey": "id",
+      "columns": {
+        "id": {
+          "type": "integer",
+          "nullable": false,
+          "autoIncrement": true
+        },
+        "title": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "description": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "domain": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "type": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "quarter": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "start_date": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "end_date": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "progress": {
+          "type": "integer",
+          "nullable": true,
+          "default": null
+        },
+        "status": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "archived": {
+          "type": "integer",
+          "nullable": true,
+          "default": null,
+          "indexed": true
+        },
+        "created_at": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "updated_at": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "user_id": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL",
+          "indexed": true,
+          "foreignKey": {
+            "table": "ncba_user",
+            "column": "id",
+            "onDelete": "cascade",
+            "onUpdate": "cascade"
+          }
+        }
+      }
+    },
+    "lifeos_reframes_seen": {
+      "primaryKey": "id",
+      "columns": {
+        "id": {
+          "type": "integer",
+          "nullable": false,
+          "autoIncrement": true
+        },
+        "reframe_key": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL",
+          "indexed": true
+        },
+        "shown_at": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "dismissed": {
+          "type": "integer",
+          "nullable": true,
+          "default": null
+        },
+        "user_id": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL",
+          "indexed": true,
+          "foreignKey": {
+            "table": "ncba_user",
+            "column": "id",
+            "onDelete": "cascade",
+            "onUpdate": "cascade"
+          }
+        }
+      }
+    },
+    "ncba_account": {
+      "primaryKey": "id",
+      "columns": {
+        "id": {
+          "type": "string",
+          "nullable": false
+        },
+        "user_id": {
+          "type": "string",
+          "nullable": false,
+          "indexed": true,
+          "foreignKey": {
+            "table": "ncba_user",
+            "column": "id",
+            "onDelete": "cascade",
+            "onUpdate": "cascade"
+          }
+        },
+        "accountid": {
+          "type": "string",
+          "nullable": false
+        },
+        "providerid": {
+          "type": "string",
+          "nullable": false
+        },
+        "accesstoken": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "refreshtoken": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "accesstokenexpiresat": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "refreshtokenexpiresat": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "scope": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "idtoken": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "password": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "createdat": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "current_timestamp()"
+        },
+        "updatedat": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "current_timestamp()"
+        }
+      }
+    },
+    "ncba_config": {
+      "primaryKey": "id",
+      "columns": {
+        "id": {
+          "type": "string",
+          "nullable": false
+        },
+        "provider": {
+          "type": "string",
+          "nullable": false,
+          "indexed": true,
+          "unique": true
+        },
+        "enabled": {
+          "type": "integer",
+          "nullable": true,
+          "default": 0
+        },
+        "client_id": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "client_secret": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "extra_config": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "created_at": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "current_timestamp()"
+        },
+        "updated_at": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "current_timestamp()"
+        }
+      }
+    },
+    "ncba_rls_config": {
+      "primaryKey": "table_name",
+      "columns": {
+        "table_name": {
+          "type": "string",
+          "nullable": false
+        },
+        "policy": {
+          "type": "string",
+          "nullable": false
+        }
+      }
+    },
+    "ncba_session": {
+      "primaryKey": "id",
+      "columns": {
+        "id": {
+          "type": "string",
+          "nullable": false
+        },
+        "user_id": {
+          "type": "string",
+          "nullable": false,
+          "indexed": true,
+          "foreignKey": {
+            "table": "ncba_user",
+            "column": "id",
+            "onDelete": "cascade",
+            "onUpdate": "cascade"
+          }
+        },
+        "expiresat": {
+          "type": "datetime",
+          "nullable": false
+        },
+        "token": {
+          "type": "string",
+          "nullable": false,
+          "indexed": true,
+          "unique": true
+        },
+        "ipaddress": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "useragent": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "createdat": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "current_timestamp()"
+        },
+        "updatedat": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "current_timestamp()"
+        }
+      }
+    },
+    "ncba_user": {
+      "primaryKey": "id",
+      "columns": {
+        "id": {
+          "type": "string",
+          "nullable": false
+        },
+        "name": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "email": {
+          "type": "string",
+          "nullable": false,
+          "indexed": true,
+          "unique": true
+        },
+        "emailverified": {
+          "type": "integer",
+          "nullable": true,
+          "default": 0
+        },
+        "image": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "role": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "createdat": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "current_timestamp()"
+        },
+        "updatedat": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "current_timestamp()"
+        }
+      }
+    },
+    "ncba_verification": {
+      "primaryKey": "id",
+      "columns": {
+        "id": {
+          "type": "string",
+          "nullable": false
+        },
+        "identifier": {
+          "type": "string",
+          "nullable": false
+        },
+        "value": {
+          "type": "string",
+          "nullable": false
+        },
+        "expiresat": {
+          "type": "datetime",
+          "nullable": false
+        },
+        "createdat": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "current_timestamp()"
+        },
+        "updatedat": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "current_timestamp()"
+        }
+      }
+    }
+  }
+}

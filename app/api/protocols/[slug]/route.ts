@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import {
   lifeosProtocolRuns,
   lifeosConfidenceEntries,
-} from "@/lib/db/schema/lifeos";
+} from "@/lib/db/schema";
 import { requireApiUser } from "@/lib/auth/server-helpers";
 import { protocolRunSchema } from "@/lib/protocols/schema";
 import { getProtocol } from "@/lib/protocols/definitions";

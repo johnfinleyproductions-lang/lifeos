@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq } from "@/lib/db/ops";
 import { formatInstant, todayKey } from "@/lib/time/day";
 import { db } from "@/lib/db";
-import { lifeosJournalEntries } from "@/lib/db/schema/lifeos";
+import { lifeosJournalEntries } from "@/lib/db/schema";
 import { requireUserContext } from "@/lib/auth/server-helpers";
 import { lensForDay } from "@/lib/journal/daily-lens";
 import {

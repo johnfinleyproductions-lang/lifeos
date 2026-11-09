@@ -1,10 +1,10 @@
-import { and, desc, eq, gt, isNotNull, lt } from "drizzle-orm";
+import { and, desc, eq, gt, isNotNull, lt } from "@/lib/db/ops";
 import { addDays, daysBetween, formatDay, todayKey } from "@/lib/time/day";
 import { db } from "@/lib/db";
 import {
   lifeosDailyCheckins,
   lifeosProtocolRuns,
-} from "@/lib/db/schema/lifeos";
+} from "@/lib/db/schema";
 import { eveningShutdownSchema } from "./evening-schema";
 import { weeklyReviewPayloadSchema } from "@/lib/reflection/weekly-review-schema";
 

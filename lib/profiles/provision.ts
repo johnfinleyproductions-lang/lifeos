@@ -1,44 +1,53 @@
-import { eq } from "drizzle-orm";
-import { db } from "@/lib/db";
-import { authUsers } from "@/lib/db/schema/auth";
-import type { ProfileConfig } from "./config";
-
 /**
- * Find or create the user row for a profile, then ensure they have a
- * workspace.
+ * Signing a household profile in to NoCodeBackend.
  *
- * Match strategy: case-insensitive email lookup. If a user already exists
- * with that email (e.g. you signed up via magic link before, or EC created
- * the user), we re-use that user's id. Otherwise we INSERT a fresh row.
+ * LifeOS has no passwords for people to remember. The household code opens
+ * the picker, and picking a name is the whole of signing in. NCB's native
+ * auth, though, wants an email and a password for each account.
  *
- * Returns the resolved user_id so the caller can stash it in the profile
- * cookie.
+ * So each profile's password is derived on the server from LIFEOS_SECRET and
+ * the profile's email. Nobody types it, it is stored nowhere, and it is the
+ * same every time, so the server can sign the profile in whenever the
+ * picker asks. The first time a profile is picked there is no account yet,
+ * and one is created with that same password.
+ *
+ * The consequence to know about: LIFEOS_SECRET must not change once profiles
+ * exist. A new secret derives new passwords, and NCB will refuse them. The
+ * data is untouched if that happens; the fix is to put the old secret back,
+ * or to reset that user's password in the NoCodeBackend dashboard.
  */
-export async function findOrCreateUserForProfile(
+import { type NcbUser, signIn, signUp } from "@/lib/ncb/session";
+import type { ProfileConfig } from "./config";
+import { derive } from "./signing";
+
+export class ProfileSignInError extends Error {}
+
+function passwordFor(email: string): string {
+  return derive(`ncb-profile-password:v1:${email}`);
+}
+
+export async function signInProfile(
   profile: ProfileConfig,
-): Promise<string> {
-  const emailNorm = profile.email.trim().toLowerCase();
+): Promise<{ token: string; user: NcbUser }> {
+  const email = profile.email.trim().toLowerCase();
+  const password = passwordFor(email);
 
-  // 1. Try to find an existing user.
-  const existing = await db
-    .select({ id: authUsers.id })
-    .from(authUsers)
-    .where(eq(authUsers.email, emailNorm))
-    .limit(1);
-
-  if (existing.length > 0) {
-    return existing[0].id;
+  const first = await signIn(email, password);
+  if (first.ok) return first;
+  if (first.reason !== "wrong-credentials") {
+    throw new ProfileSignInError(`NoCodeBackend refused the sign-in: ${first.detail}`);
   }
 
-  // 2. Create a new user.
-  const [created] = await db
-    .insert(authUsers)
-    .values({
-      name: profile.name,
-      email: emailNorm,
-      emailVerified: true,
-    })
-    .returning({ id: authUsers.id });
-
-  return created.id;
+  // Either the account does not exist yet, or it exists with a password this
+  // server can no longer derive. Creating it tells the two apart.
+  const created = await signUp(profile.name, email, password);
+  if (created.ok) return created;
+  if (created.reason === "exists") {
+    throw new ProfileSignInError(
+      `There is already a NoCodeBackend account for ${email}, but its password does not match this server's LIFEOS_SECRET. Restore the original secret, or reset that user's password in NoCodeBackend.`,
+    );
+  }
+  throw new ProfileSignInError(
+    `NoCodeBackend would not create an account for ${email}: ${created.detail}. If public sign-up is switched off for the database, switch it on while new profiles are added.`,
+  );
 }

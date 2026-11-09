@@ -1,59 +1,33 @@
-import { sql } from "drizzle-orm";
-import {
-  pgTable,
-  uuid,
-  date,
-  jsonb,
-  text,
-  timestamp,
-  unique,
-  index,
-} from "drizzle-orm/pg-core";
+import { table, id, owner, text, date, timestamp, json } from "../table";
 
 /**
  * Daily check-ins — one row per (user, entry_date).
  *
- * - `morning` and `evening` are jsonb so the wizard schemas can evolve
- *   without DDL migrations. Validate at the API layer with zod.
+ * - `morning` and `evening` are JSON (stored as text) so the wizard
+ *   schemas can evolve without a schema change. Validate at the API layer
+ *   with zod.
  * - `ritual_depth` controls quick / standard / deep prompt sets.
- * - No FK to `user(id)` or `workspaces(id)` on purpose. EC owns those tables;
- *   LifeOS treats user_id and workspace_id as soft references (indexed,
- *   uuid-typed, but unconstrained). Keeps cross-app coupling loose.
+ * - `user_id` is set and filtered by NoCodeBackend from the session.
+ * - The database enforces one row per (user_id, entry_date).
  *
  * Spec: §2.2 (Core tables).
  */
-export const lifeosDailyCheckins = pgTable(
+export const lifeosDailyCheckins = table(
   "lifeos_daily_checkins",
   {
-    id: uuid("id")
-      .primaryKey()
-      .default(sql`gen_random_uuid()`),
-    // Written by nobody since Phase 2. Kept, nullable, because
-    // existing rows carry a real value worth not throwing away.
-    workspaceId: uuid("workspace_id"),
-    userId: uuid("user_id").notNull(),
+    id: id(),
+    userId: owner().notNull(),
     entryDate: date("entry_date").notNull(),
-    morning: jsonb("morning"),
-    evening: jsonb("evening"),
+    morning: json("morning"),
+    evening: json("evening"),
     ritualDepth: text("ritual_depth").notNull().default("standard"),
-    createdAt: timestamp("created_at", { withTimezone: true })
+    createdAt: timestamp("created_at")
       .notNull()
       .defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true })
+    updatedAt: timestamp("updated_at")
       .notNull()
       .defaultNow(),
-  },
-  (table) => ({
-    userDateUnique: unique("lifeos_daily_checkins_user_date_unique").on(
-      table.userId,
-      table.entryDate,
-    ),
-    userDateIdx: index("idx_lifeos_checkins_user_date").on(
-      table.userId,
-      table.entryDate,
-    ),
-  }),
-);
+  });
 
 export type LifeosDailyCheckin = typeof lifeosDailyCheckins.$inferSelect;
 export type NewLifeosDailyCheckin = typeof lifeosDailyCheckins.$inferInsert;

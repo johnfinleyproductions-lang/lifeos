@@ -1,9 +1,9 @@
 import { Watermark } from "@/components/field/Watermark";
 import Link from "next/link";
 import { formatDay } from "@/lib/time/day";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "@/lib/db/ops";
 import { db } from "@/lib/db";
-import { lifeosJournalEntries } from "@/lib/db/schema/lifeos";
+import { lifeosJournalEntries } from "@/lib/db/schema";
 import { requireUserContext } from "@/lib/auth/server-helpers";
 import { getLens } from "@/lib/journal/lenses";
 import { DECISION_CATEGORY_LABELS } from "@/lib/journal/schema";

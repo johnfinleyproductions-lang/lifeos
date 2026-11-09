@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull } from "@/lib/db/ops";
 import { db } from "@/lib/db";
-import { lifeosFocusSessions } from "@/lib/db/schema/lifeos";
+import { lifeosFocusSessions } from "@/lib/db/schema";
 import { getAuthContext } from "@/lib/auth/server-helpers";
 import { formatInstant, now } from "@/lib/time/day";
 import { Stamp } from "@/components/field/Stamp";

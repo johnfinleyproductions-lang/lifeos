@@ -1,7 +1,7 @@
-import { and, desc, eq, gte, isNotNull, isNull } from "drizzle-orm";
+import { and, desc, eq, gte, isNotNull, isNull } from "@/lib/db/ops";
 import { startOfDay, todayKey } from "@/lib/time/day";
 import { db } from "@/lib/db";
-import { lifeosFocusSessions } from "@/lib/db/schema/lifeos";
+import { lifeosFocusSessions } from "@/lib/db/schema";
 import { requireUserContext } from "@/lib/auth/server-helpers";
 import { FocusClient } from "@/components/focus/FocusClient";
 import { PageStamp } from "@/components/PageStamp";

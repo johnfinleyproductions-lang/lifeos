@@ -1,9 +1,9 @@
-import { and, eq, isNotNull, like } from "drizzle-orm";
+import { and, eq, isNotNull, like } from "@/lib/db/ops";
 import { db } from "@/lib/db";
 import {
   lifeosConfidenceEntries,
   lifeosDailyCheckins,
-} from "@/lib/db/schema/lifeos";
+} from "@/lib/db/schema";
 import { eveningShutdownSchema } from "@/lib/manifesto/evening-schema";
 import { startOfDay } from "@/lib/time/day";
 

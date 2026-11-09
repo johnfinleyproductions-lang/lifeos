@@ -1,296 +1,94 @@
 # Deploying LifeOS to Coolify
 
-This is the full playbook for deploying LifeOS to `lifeos.evergreenwellnessmktg.com` on M90t Coolify, with shared-session SSO to Evergreen Core.
+This is the NoCodeBackend build (`v2-ncb`). It is one container with no
+database beside it: the data and the sign-in accounts are in the NoCodeBackend
+database `54318_lifeos`, which already exists and is empty.
 
-The whole deploy is ~30-60 minutes if everything's wired up; longer the first time as you click around the Coolify UI.
+You can deploy this branch on its own to test it. Nothing has to be merged
+into `main` first.
 
----
+## 1. Point the app at the branch
 
-## Prerequisites
+In Coolify, open the LifeOS application and set its branch to `v2-ncb`. Build
+pack is Dockerfile, the port is 3001, and the health check path is
+`/api/health`.
 
-- A GitHub account (a private repo will be fine — Coolify can pull from private repos with a deploy key)
-- Coolify access on M90t at the usual admin URL
-- DNS access for `evergreenwellnessmktg.com` so you can add a `lifeos` subdomain record (or confirm the wildcard cert covers it)
-- Evergreen Core already deployed and reachable at `app.evergreenwellnessmktg.com`
-- The LifeOS repo at `~/lifeos` is committed clean
+If LifeOS has a Postgres resource or a `DATABASE_URL` from an earlier
+deployment, this build ignores both. Leave them in place until you have
+decided which version you are keeping.
 
----
-
-## Step 1 — Push to GitHub
-
-Create a private repo at github.com (call it whatever — `lifeos` is fine).
-
-```
-cd ~/lifeos
-git remote add origin git@github.com:<your-username>/lifeos.git
-git branch -M main
-git push -u origin main
-```
-
-If `git remote add` says "remote origin already exists", run `git remote set-url origin git@github.com:<your-username>/lifeos.git` instead.
-
-Verify it pushed:
-
-```
-git remote -v
-git log --oneline -5
-```
-
----
-
-## Step 2 — Apply the LifeOS auth update (production cookieDomain)
-
-The new `lib/auth/server.ts` reads a `BETTER_AUTH_COOKIE_DOMAIN` env var. When set, it enables cross-subdomain cookies. Local dev keeps working unchanged.
-
-```
-cd ~/lifeos
-cp "/Users/tylerfreund/Documents/Claude/Projects/AI backend/lifeos-v4-prototype/lifeos-phase1/lib/auth/server.ts" lib/auth/server.ts
-cp "/Users/tylerfreund/Documents/Claude/Projects/AI backend/lifeos-v4-prototype/lifeos-phase1/.env.example" .env.example
-pnpm build
-git add -A
-git commit -m "Add production cookieDomain config for cross-subdomain SSO"
-git push
-```
-
----
-
-## Step 3 — The ONE Evergreen Core change
-
-This is the only EC code change in the entire LifeOS build. It mirrors the LifeOS pattern: env-driven crossSubDomainCookies.
-
-**File:** `~/evergreen-core/lib/auth/index.ts`
-
-**Find:**
-
-```typescript
-  advanced: {
-    database: {
-      generateId: "uuid",
-    },
-  },
-```
-
-**Replace with:**
-
-```typescript
-  advanced: {
-    database: {
-      generateId: "uuid",
-    },
-    ...(process.env.BETTER_AUTH_COOKIE_DOMAIN?.trim()
-      ? {
-          crossSubDomainCookies: {
-            enabled: true,
-            domain: process.env.BETTER_AUTH_COOKIE_DOMAIN.trim(),
-          },
-        }
-      : {}),
-  },
-```
-
-That's it. One block added. Local EC dev is unaffected because the env var is unset locally.
-
-Commit and push EC:
-
-```
-cd ~/evergreen-core
-git add lib/auth/index.ts
-git commit -m "Production crossSubDomainCookies config (env-driven)"
-git push
-```
-
-If EC auto-deploys via Coolify, this will land in production once you set the env var in Step 5.
-
----
-
-## Step 4 — DNS
-
-Confirm `lifeos.evergreenwellnessmktg.com` resolves to your M90t.
-
-If you have a wildcard `*.evergreenwellnessmktg.com` A record pointing at M90t already, no DNS change is needed. The wildcard cert (Let's Encrypt via DNS-01 from Namecheap or wherever) should auto-cover the new subdomain too.
-
-Verify:
-
-```
-dig lifeos.evergreenwellnessmktg.com +short
-```
-
-Should return your M90t public IP (or whatever's serving wildcard subdomains today).
-
----
-
-## Step 5 — Coolify config
-
-Open Coolify in the browser. Steps:
-
-### 5a — New Application
-
-- Click "+ New Resource" → "Application"
-- Source: "Public Repository" or "Private Repository" depending on your repo visibility
-- For private: set up a deploy key — Coolify generates an SSH key, you add it to GitHub repo settings → Deploy keys
-- Repo URL: `git@github.com:<your-username>/lifeos.git`
-- Branch: `main`
-
-### 5b — Build settings
-
-- Build pack: `Dockerfile`
-- Dockerfile location: `./Dockerfile` (default)
-- Context: `.` (default)
-
-### 5c — Network
-
-- Domain: `lifeos.evergreenwellnessmktg.com`
-- Port (inside container): `3001` — this matches our Dockerfile `EXPOSE 3001` and `PORT=3001`
-- HTTPS: enabled (Coolify uses Traefik with the wildcard cert)
-- Health check path: `/api/health` — it runs `SELECT 1`, so a pass means the
-  app is serving *and* the database answers
-
-### 5d — Environment variables
-
-Add these in the Coolify env panel. Copy values from `~/evergreen-core/.env.local` where indicated:
+## 2. Set the environment variables
 
 | Key | Value |
 |---|---|
-| `DATABASE_URL` | (copy from EC `.env.local`) |
-| `BETTER_AUTH_SECRET` | (copy from EC `.env.local` — must match EC) |
-| `BETTER_AUTH_COOKIE_DOMAIN` | `.evergreenwellnessmktg.com` |
+| `NCB_INSTANCE` | `54318_lifeos` |
+| `LIFEOS_SECRET` | a new random string, 32+ characters. Run `openssl rand -base64 36` and paste the result. |
 | `NEXT_PUBLIC_APP_URL` | `https://lifeos.evergreenwellnessmktg.com` |
-| `NEXT_PUBLIC_EC_URL` | `https://app.evergreenwellnessmktg.com` |
-| `BETTER_AUTH_TRUSTED_ORIGINS` | `https://lifeos.evergreenwellnessmktg.com` |
-| `NODE_ENV` | `production` |
-| `LIFEOS_HOUSEHOLD_CODE` | a shared code for the house, 4+ characters |
-| `LIFEOS_PROFILES` | JSON array of the household, on one line |
+| `LIFEOS_HOUSEHOLD_CODE` | the shared code for the house, 4+ characters |
+| `LIFEOS_PROFILES` | the JSON array of people, on one line. Format in `.env.example`. |
 | `LIFEOS_TIMEZONE` | `America/Chicago` |
 
-`LIFEOS_TIMEZONE` is what stops an evening entry written at 7pm being filed
-under tomorrow. The image needs no `tzdata` package and the container's own
-`TZ` does not need setting; this is the only knob. A zone name the runtime does
-not recognise stops the server at boot with the reason in the log, so if a
-deploy dies instantly look for `[time]` before anything else.
+Save a copy of `LIFEOS_SECRET` in your password manager before you deploy.
+Each person's sign-in is derived from it. If it is ever lost or changed,
+nobody can get in until the original value is put back.
 
-The last two fail closed. Without `LIFEOS_HOUSEHOLD_CODE` nobody can pick a
-profile at all, and without `LIFEOS_PROFILES` the picker shows nobody and
-explains why in the log. See `.env.example` for the profile format and its
-constraints. Profiles resolve to users by email address, so reuse the same
-addresses to carry people's existing logs across a redeploy.
+Do not add `NCB_SECRET_KEY`. The app does not use it and is safer without it.
+`docs/nocodebackend.md` has the reason.
 
-Optional — only if you want the AI Coach in production:
+These are no longer read and can be removed when you are ready:
+`DATABASE_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`,
+`BETTER_AUTH_COOKIE_DOMAIN`, `BETTER_AUTH_TRUSTED_ORIGINS`,
+`NEXT_PUBLIC_EC_URL`. Evergreen Core needs no change at all for this build.
 
-| Key | Value |
-|---|---|
-| `LIFEOS_LLM_BASE_URL` | `http://192.168.4.200:11434/v1` (or wherever Ollama is) |
-| `LIFEOS_LLM_API_KEY` | `ollama` (any string is fine for Ollama) |
-| `LIFEOS_LLM_MODEL` | `qwen2.5:32b` (or whatever's pulled) |
+The coach is optional and set up as before, with `LIFEOS_LLM_BASE_URL`,
+`LIFEOS_LLM_API_KEY` and `LIFEOS_LLM_MODEL`.
 
-Note: the LLM URL has to be reachable from the Coolify container. If Ollama is on M90t too, the host IP works. If on Framestation, make sure firewall allows it.
+## 3. Deploy and check
 
-### 5e — Also update EC's environment variables
+Deploy. The first build takes a few minutes. Then:
 
-In Coolify, find the existing Evergreen Core app, edit env vars, add:
+1. Open `https://lifeos.evergreenwellnessmktg.com/api/health`. It should read
+   `{"ok":true,"db":"up"}`. That means the app is up and can reach
+   NoCodeBackend.
+2. Open the site. You should land on the picker, locked.
+3. Enter the household code and pick your name. The first pick takes a second
+   longer than later ones: it is creating your account in NoCodeBackend.
+4. Run a quick morning. You should land on Today with your priorities showing.
+5. Open the NoCodeBackend dashboard and look at `lifeos_daily_checkins`. There
+   should be one row, with your user id on it.
+6. On your phone, do the same with the same name. You should see the morning
+   you just set.
 
-| Key | Value |
-|---|---|
-| `BETTER_AUTH_COOKIE_DOMAIN` | `.evergreenwellnessmktg.com` |
-| `BETTER_AUTH_TRUSTED_ORIGINS` | `https://lifeos.evergreenwellnessmktg.com` (or append if it already has values, comma-separated) |
+## 4. After everyone has picked their name once
 
-EC will redeploy with the new env. After it's up, EC's session cookies will use the shared domain.
-
----
-
-## Step 6 — Deploy
-
-Hit Deploy on the LifeOS app. Watch the build logs. First build takes a couple of minutes (downloads Next 16 + deps, builds standalone bundle, layers the image). Subsequent deploys are faster because of Docker layer caching.
-
-Look for:
-- `pnpm install` succeeds
-- `pnpm build` succeeds (`Compiled successfully`)
-- `[migrate] schema up to date` — the container applies migrations itself
-  before serving, on every boot
-- Final image starts the standalone server on port 3001
-- Coolify health check passes
-
-Nothing applies the schema by hand any more. The image's entrypoint runs the
-migrations first and exits non-zero if they fail, so a container that is up is
-a container whose schema matches its code. If a deploy dies at boot, read the
-log for `[migrate] FAILED` before looking anywhere else.
-
----
-
-## Step 7 — Smoke test
-
-### 7a — App loads
-
-In a private/incognito window: `https://lifeos.evergreenwellnessmktg.com`
-
-Should redirect to `https://app.evergreenwellnessmktg.com/auth` because no session yet.
-
-### 7b — Sign in via EC
-
-Sign in over at EC. Cookie gets set on `.evergreenwellnessmktg.com`.
-
-### 7c — Bounce back to LifeOS
-
-Visit `https://lifeos.evergreenwellnessmktg.com` again. Should land on Today, sidebar showing your name + email at the bottom. **This is the SSO win.**
-
-### 7d — End-to-end loop
-
-Click `/morning`, run the wizard. Reload Today — manifesto should persist.
-
-```
-psql "$(grep ^DATABASE_URL ~/lifeos/.env.local | cut -d= -f2-)" -c "SELECT entry_date, jsonb_pretty(morning) FROM lifeos_daily_checkins WHERE entry_date = CURRENT_DATE;"
-```
-
-Should show your real entry written from the deployed app.
-
-### 7e — Phone test
-
-On your iPhone:
-1. Open Safari → `https://lifeos.evergreenwellnessmktg.com`
-2. Sign in if not already (or sign into EC first)
-3. Tap Share → "Add to Home Screen"
-4. Name it "LifeOS", confirm
-5. Tap the icon. It opens fullscreen.
-
-Tomorrow morning: tap LifeOS icon, do morning manifesto from your bed. The whole point.
-
----
+In the NoCodeBackend dashboard, open the `54318_lifeos` database's auth
+settings and switch public sign-up off. It has to be on for the first pick of
+each profile and has no use after that. Switch it back on for a moment when
+you add a person.
 
 ## If something goes wrong
 
-### Build fails on Coolify
+**The health check says down.** The container cannot reach
+`app.nocodebackend.com`, or `NCB_INSTANCE` is missing or misspelled. The log
+line starts with `[health]`.
 
-- Check the build logs. Usually a missing env var or a permissions issue on the deploy key.
-- Try `pnpm install` and `pnpm build` locally to verify the repo state is clean.
+**The picker shows nobody.** `LIFEOS_PROFILES` is missing or is not valid JSON
+on one line. The log line starts with `[profiles]`.
 
-### Build succeeds but app crashes on boot
+**The code is right but picking a name fails.** The message on screen says
+which of two things it is. If it mentions sign-up, public sign-up is off in
+NoCodeBackend and this profile has no account yet. If it mentions
+`LIFEOS_SECRET`, the secret differs from the one the account was created with.
 
-- Check Coolify logs (the app's runtime logs).
-- Most common: DATABASE_URL or BETTER_AUTH_SECRET unset, or pointing somewhere unreachable.
-- The app throws an explicit `BETTER_AUTH_SECRET is not set` error if the secret is missing — surface that.
+**The server stops at boot.** Look for `[time]` in the log: the zone name in
+`LIFEOS_TIMEZONE` is not one the runtime knows.
 
-### App loads but redirects to /auth forever
+**Pages feel slow.** Set `LIFEOS_NCB_TRACE=1` and redeploy. The log then has
+one line per request to NoCodeBackend with how long it took.
 
-- Cookie domain mismatch. Both EC and LifeOS need `BETTER_AUTH_COOKIE_DOMAIN=.evergreenwellnessmktg.com` (note the leading dot).
-- Try: open browser dev tools → Application → Cookies → check the `better-auth.session_token` cookie. Domain should be `.evergreenwellnessmktg.com`. If it's `app.evergreenwellnessmktg.com`, EC's env var isn't applied yet.
-- Both apps need to be redeployed AFTER the env vars are set.
+## What has not been tried
 
-### "Cross-origin" or trusted origin errors
-
-- Make sure `BETTER_AUTH_TRUSTED_ORIGINS` on each app includes the OTHER app's full URL (with https://).
-
-### LLM coach times out
-
-- Check `LIFEOS_LLM_BASE_URL` is reachable from the Coolify container. If Ollama is on a private LAN host, the container needs network access to it.
-- Easiest test from inside the container (Coolify provides a shell): `curl $LIFEOS_LLM_BASE_URL/models`
-
----
-
-## After deploy
-
-Future LifeOS pushes auto-deploy. You can keep building Phase 7, 9, 10 against the deployed app. Each push to `main` rebuilds.
-
-Once you have a few real days of data on the deployed instance, delete the gibberish row from local dev:
-
-```
-psql "$(grep ^DATABASE_URL ~/lifeos/.env.local | cut -d= -f2-)" -c "DELETE FROM lifeos_daily_checkins WHERE morning->>'manifesto' = 'tetete';"
-```
+The Docker image for this build was not built in the sandbox it was written
+in, which cannot reach the package registry from inside a Docker build. The
+app itself was built and run there with `pnpm build` and tested against the
+live database. Your first Coolify deploy is the first full image build.

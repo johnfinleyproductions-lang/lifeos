@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { and, eq, ne, asc } from "drizzle-orm";
+import { and, eq, ne, asc } from "@/lib/db/ops";
 import { db } from "@/lib/db";
-import { lifeosQuests } from "@/lib/db/schema/lifeos";
+import { lifeosQuests } from "@/lib/db/schema";
 import { getAuthContext } from "@/lib/auth/server-helpers";
 import { quarterProgress } from "@/lib/quests/quarter";
 

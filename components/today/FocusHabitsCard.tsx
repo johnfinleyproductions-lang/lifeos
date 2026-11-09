@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { and, eq, gte, inArray, isNotNull } from "drizzle-orm";
+import { and, eq, gte, inArray, isNotNull } from "@/lib/db/ops";
 import { startOfDay, todayKey, weekdayOf } from "@/lib/time/day";
 import { cadenceOf, isoWeekOf } from "@/lib/insights/habit-denominator";
 import { db } from "@/lib/db";
@@ -7,7 +7,7 @@ import {
   lifeosFocusSessions,
   lifeosHabits,
   lifeosHabitCompletions,
-} from "@/lib/db/schema/lifeos";
+} from "@/lib/db/schema";
 import { getAuthContext } from "@/lib/auth/server-helpers";
 
 function Tile({

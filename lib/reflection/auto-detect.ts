@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { and, count, desc, eq, gte, inArray, isNotNull } from "drizzle-orm";
+import { and, count, desc, eq, gte, inArray, isNotNull } from "@/lib/db/ops";
 import { addDays, lastNDays, startOfDay, todayKey } from "@/lib/time/day";
 import {
   phraseSum,
@@ -15,7 +15,7 @@ import {
   lifeosHabitCompletions,
   lifeosQuests,
   lifeosProtocolRuns,
-} from "@/lib/db/schema/lifeos";
+} from "@/lib/db/schema";
 import { type BalanceScore, ZERO_BALANCE } from "./balance";
 import {
   weeklyReviewInputSchema,

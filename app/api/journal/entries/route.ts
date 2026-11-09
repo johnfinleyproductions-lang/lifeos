@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { todayKey } from "@/lib/time/day";
 import { db } from "@/lib/db";
-import { lifeosJournalEntries } from "@/lib/db/schema/lifeos";
+import { lifeosJournalEntries } from "@/lib/db/schema";
 import { requireApiUser } from "@/lib/auth/server-helpers";
 import { createJournalEntrySchema } from "@/lib/journal/schema";
 

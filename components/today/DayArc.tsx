@@ -1,9 +1,9 @@
-import { and, eq, gte, lt } from "drizzle-orm";
+import { and, eq, gte, lt } from "@/lib/db/ops";
 import { db } from "@/lib/db";
 import {
   lifeosDailyCheckins,
   lifeosFocusSessions,
-} from "@/lib/db/schema/lifeos";
+} from "@/lib/db/schema";
 import { getAuthContext } from "@/lib/auth/server-helpers";
 import { Plate } from "@/components/field/plates";
 import {

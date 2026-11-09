@@ -1,50 +1,26 @@
-import { sql } from "drizzle-orm";
-import {
-  pgTable,
-  uuid,
-  date,
-  text,
-  timestamp,
-  unique,
-  index,
-} from "drizzle-orm/pg-core";
-import { lifeosHabits } from "./lifeosHabits";
+import { table, id, owner, ref, text, date, timestamp } from "../table";
 
 /**
  * Habit completions — one row per (habit, date).
  *
- * Hard FK on habit_id with cascade delete (LifeOS owns both tables, unlike
- * the soft user_id/workspace_id refs which point at EC-owned tables).
+ * Deleting a habit deletes its completions. NoCodeBackend has no foreign
+ * keys, so that cascade is declared in lib/db/index.ts.
  *
  * UNIQUE(habit_id, completion_date) means toggling = INSERT/DELETE rather
  * than upsert. Simpler and matches the wizard pattern.
  */
-export const lifeosHabitCompletions = pgTable(
+export const lifeosHabitCompletions = table(
   "lifeos_habit_completions",
   {
-    id: uuid("id")
-      .primaryKey()
-      .default(sql`gen_random_uuid()`),
-    habitId: uuid("habit_id")
-      .notNull()
-      .references(() => lifeosHabits.id, { onDelete: "cascade" }),
-    userId: uuid("user_id").notNull(),
+    id: id(),
+    habitId: ref("habit_id").notNull(),
+    userId: owner().notNull(),
     completionDate: date("completion_date").notNull(),
     note: text("note"),
-    createdAt: timestamp("created_at", { withTimezone: true })
+    createdAt: timestamp("created_at")
       .notNull()
       .defaultNow(),
-  },
-  (table) => ({
-    habitDateUnique: unique(
-      "lifeos_habit_completions_habit_date_unique",
-    ).on(table.habitId, table.completionDate),
-    userDateIdx: index("idx_lifeos_habit_completions_user_date").on(
-      table.userId,
-      table.completionDate,
-    ),
-  }),
-);
+  });
 
 export type LifeosHabitCompletion = typeof lifeosHabitCompletions.$inferSelect;
 export type NewLifeosHabitCompletion =

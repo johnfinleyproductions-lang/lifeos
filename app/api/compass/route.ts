@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
+import { eq } from "@/lib/db/ops";
 import { db } from "@/lib/db";
-import { lifeosCompass } from "@/lib/db/schema/lifeos";
+import { lifeosCompass } from "@/lib/db/schema";
 import { requireApiUser } from "@/lib/auth/server-helpers";
 import { upsertCompassSchema } from "@/lib/compass/schema";
 

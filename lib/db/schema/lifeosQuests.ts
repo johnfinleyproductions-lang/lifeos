@@ -1,14 +1,4 @@
-import { sql } from "drizzle-orm";
-import {
-  pgTable,
-  uuid,
-  text,
-  integer,
-  boolean,
-  date,
-  timestamp,
-  index,
-} from "drizzle-orm/pg-core";
+import { table, id, owner, text, integer, boolean, date, timestamp } from "../table";
 
 /**
  * Quarterly Quests (Ali Abdaal LifeOS framework).
@@ -29,16 +19,11 @@ import {
  *   - status='abandoned' → dropped intentionally; surfaces in Year Review
  *   - archived=true → hidden from default views (post-quarter cleanup)
  */
-export const lifeosQuests = pgTable(
+export const lifeosQuests = table(
   "lifeos_quests",
   {
-    id: uuid("id")
-      .primaryKey()
-      .default(sql`gen_random_uuid()`),
-    userId: uuid("user_id").notNull(),
-    // Written by nobody since Phase 2. Kept, nullable, because
-    // existing rows carry a real value worth not throwing away.
-    workspaceId: uuid("workspace_id"),
+    id: id(),
+    userId: owner().notNull(),
     title: text("title").notNull(),
     description: text("description"),
     domain: text("domain").notNull(), // 'work' | 'life'
@@ -49,24 +34,13 @@ export const lifeosQuests = pgTable(
     progress: integer("progress").notNull().default(0),
     status: text("status").notNull().default("active"),
     archived: boolean("archived").notNull().default(false),
-    createdAt: timestamp("created_at", { withTimezone: true })
+    createdAt: timestamp("created_at")
       .notNull()
       .defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true })
+    updatedAt: timestamp("updated_at")
       .notNull()
       .defaultNow(),
-  },
-  (table) => ({
-    userActiveIdx: index("idx_lifeos_quests_user_active").on(
-      table.userId,
-      table.archived,
-    ),
-    userQuarterIdx: index("idx_lifeos_quests_user_quarter").on(
-      table.userId,
-      table.quarter,
-    ),
-  }),
-);
+  });
 
 export type LifeosQuest = typeof lifeosQuests.$inferSelect;
 export type NewLifeosQuest = typeof lifeosQuests.$inferInsert;

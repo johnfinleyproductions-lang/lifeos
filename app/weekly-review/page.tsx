@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { and, eq } from "drizzle-orm";
+import { and, eq } from "@/lib/db/ops";
 import { db } from "@/lib/db";
-import { lifeosQuests } from "@/lib/db/schema/lifeos";
+import { lifeosQuests } from "@/lib/db/schema";
 import { requireUserContext } from "@/lib/auth/server-helpers";
 import {
   getScorecard,

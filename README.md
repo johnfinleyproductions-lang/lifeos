@@ -5,56 +5,30 @@ habits, focus sessions, quests, a journal with twelve lenses, a weekly review,
 and a coach that can see your check-ins but never your journal. Several people
 share one install, each picking their profile behind a household code.
 
-Next.js 16 (App Router), React 19, TypeScript, Tailwind, Drizzle ORM and
-Postgres. Runs as a single standalone container.
+Next.js 16 (App Router), React 19, TypeScript and Tailwind. Data and sign-in
+live in a [NoCodeBackend](https://nocodebackend.com) database, reached from the
+server over its REST API. Runs as a single standalone container with no
+database of its own to look after.
 
 ## Running it
 
-```sh
-cp .env.example .env     # then fill it in, see Configuration below
+```bash
+cp .env.example .env     # fill it in
 docker compose up -d --build
 ```
 
-That brings up Postgres and the app together, applies the schema, and serves on
-<http://localhost:3001>. Nothing else to run: migrations are applied by the
-container's entrypoint on every boot, before the server starts.
-
-### Against a database you already have
-
-Set `DATABASE_URL` in `.env` and start only the app. The bundled Postgres
-service is then ignored.
-
-```sh
-docker compose up -d --build app
-```
-
-LifeOS owns its own schema, so it is safe to point this at a database that
-holds other things: it creates and migrates only its own `lifeos_*` tables plus
-the four better-auth tables (`user`, `session`, `account`, `verification`).
-
-To move LifeOS out of a shared database and into its own, `scripts/copy-data.mjs`
-copies just the rows that belong to it. It takes only the users its own data
-references, rather than everybody in a shared `user` table, verifies the result
-byte for byte, and refuses to call the copy complete if anything differs.
-
-```sh
-SOURCE_DATABASE_URL=postgres://...old \
-DATABASE_URL=postgres://...new \
-  node scripts/copy-data.mjs --dry-run
-```
+That serves on <http://localhost:3001>. There is nothing to migrate and no
+second container: the tables already exist in NoCodeBackend.
 
 ### Without Docker
 
-Needs Node 22+, pnpm and a reachable Postgres.
+Needs Node 22+ and pnpm.
 
-```sh
+```bash
 pnpm install
-pnpm db:deploy        # apply migrations
-pnpm dev              # http://localhost:3001
+cp .env.example .env.local   # fill it in
+pnpm dev
 ```
-
-With no `LIFEOS_PROFILES` set, development falls back to two sample profiles so
-this works out of the box. Production refuses to invent anyone.
 
 ## Configuration
 
@@ -63,21 +37,37 @@ constraints. The ones you cannot skip:
 
 | Variable | Why |
 |---|---|
-| `DATABASE_URL` | Postgres connection. Supplied by compose unless you set it. |
-| `BETTER_AUTH_SECRET` | Signs sessions and the profile cookie. 32+ characters. |
-| `BETTER_AUTH_URL` | The app's own public URL. |
+| `NCB_INSTANCE` | Which NoCodeBackend database holds everything, e.g. `54318_lifeos`. |
+| `LIFEOS_SECRET` | Signs the profile cookie and derives each profile's sign-in. 32+ characters. Must never change once people have data. |
+| `NEXT_PUBLIC_APP_URL` | The app's own public URL. |
 | `LIFEOS_HOUSEHOLD_CODE` | Gates profile switching. Unset means nobody can pick a profile. |
 | `LIFEOS_PROFILES` | JSON array of the people this install knows about. |
 | `LIFEOS_TIMEZONE` | Which calendar a day is filed under. Defaults to `America/Chicago`. |
 | `LIFEOS_DAY_START` | The hour a day begins, so a late entry files under the right day. Defaults to `4`. |
 
-Two of those fail closed by design. With no household code, `/pick-profile` and
-the switch endpoint stay shut. With no profile list, the picker shows nobody and
-says why. An unconfigured deploy is locked rather than open, and a malformed
-profile list is refused whole rather than quietly dropping one person.
+Three of those fail closed by design. With no `NCB_INSTANCE` the app has
+nowhere to read from and says so. With no household code, `/pick-profile` and
+the switch endpoint stay shut. With no profile list, the picker shows nobody
+and says why. An unconfigured deploy is locked rather than open.
+
+The NoCodeBackend secret key is deliberately not on that list. The app does
+not use it, and `docs/nocodebackend.md` explains why it should stay out of the
+app's environment.
 
 The coach is optional. Without `LIFEOS_LLM_BASE_URL` the rest of the app works
 and the coach is simply unavailable.
+
+## Where the data lives
+
+`docs/nocodebackend.md` is the full account: how sign-in maps onto
+NoCodeBackend's native auth, how a query in the code becomes a REST call, what
+was learned by testing the live service, and how to change the schema.
+
+The short version. Every table has a `user_id` that NoCodeBackend fills from
+the signed-in session and filters every read by. The app adds its own check on
+top: any row that comes back belonging to someone else fails the whole read.
+The journal is stored there like everything else, so it is on NoCodeBackend's
+servers and no longer on yours.
 
 ## Which day is today
 
@@ -105,49 +95,45 @@ than calling `new Date()` or date-fns directly. `scripts/check-time.mjs` is the
 unit check and `scripts/check-day-boundary.sh` drives a real server across the
 boundary.
 
-## Schema changes
+## Checks
 
-Drizzle schema lives in `lib/db/schema/`, exported from `lifeos.ts`. After
-editing it:
-
-```sh
-pnpm db:generate      # writes a new file under drizzle/
+```bash
+pnpm check
 ```
 
-Then read the generated SQL and make it idempotent before committing it
-(`CREATE TABLE IF NOT EXISTS`, and guard constraints against `pg_constraint`).
-These migrations run against databases that may already hold some of the
-objects, so they have to tolerate that.
+Runs two suites under plain Node, with no network and no build:
 
-`pnpm db:deploy` applies them. It is the same `scripts/migrate.mjs` the
-container runs, takes a Postgres advisory lock so two instances booting at once
-cannot both migrate, and exits non-zero on failure.
-
-Add any new `lifeos_*` table to the `TABLES` array in `scripts/copy-data.mjs`
-too, in foreign-key-safe order, or that script will refuse to run rather than
-silently leave your data behind.
+- `scripts/check-time.mjs`, 88 checks on which calendar day an instant
+  belongs to, across zones and both daylight-saving changes.
+- `scripts/check-db.mjs`, 26 checks on the data layer, the last of which runs
+  3,000 random queries and compares each answer with the plain meaning of the
+  query.
 
 ## Health
 
-`GET /api/health` runs `SELECT 1` and returns 200 with `{"ok":true}` or 503. It
-touches the database on purpose: a check that only proves Node is running tells
-you about the one failure a restart already fixes. Both the Dockerfile and
-compose use it.
+`GET /api/health` asks NoCodeBackend a question that needs no sign-in and
+returns 200 with `{"ok":true}` or 503. It reaches the store on purpose: a check
+that only proves Node is running tells you about the one failure a restart
+already fixes. Both the Dockerfile and compose use it.
+
+Set `LIFEOS_NCB_TRACE=1` to log one line per request to NoCodeBackend, with its
+status and how long it took.
 
 ## Deploying
 
-`DEPLOY.md` covers the Coolify deployment, including the DNS and the
-shared-cookie setup that lets Evergreen Core sign you in.
+`DEPLOY.md` covers the Coolify deployment.
 
 ## Repo map
 
 ```
 app/                routes; one folder per surface
 components/         UI, grouped by surface; components/field/ is the print layer
-lib/db/schema/      Drizzle tables, exported from lifeos.ts
-lib/profiles/       household gate, profile cookie, provisioning
-drizzle/            generated SQL migrations and their journal
-scripts/            migrate.mjs, copy-data.mjs
+lib/db/             the data layer: tables, operators, planning, transport
+lib/db/schema/      one file per table
+lib/ncb/            NoCodeBackend config, requests and sessions
+lib/profiles/       household gate, profile cookie, profile sign-in
+docs/ncb/           NoCodeBackend's own setup guides and the live schema, as issued
+scripts/            check-time.mjs, check-db.mjs
 ```
 
 Design notes live in `app/globals.css`, which is where the tokens, the shared
@@ -163,9 +149,17 @@ dropped rather than left to fail. Adding ESLint back is a real piece of work
 with its own dependencies and its own first wave of findings. TypeScript is
 checked on every `pnpm build`.
 
-## A note on the other docs
+No automated end-to-end test is in the repo. The browser run that verified
+this build against the live database is described in `docs/nocodebackend.md`.
 
-`00-SETUP.md` is the original Phase 1 bootstrap playbook, kept for history. It
-describes copying Evergreen Core's environment and schema, which is no longer
-how this works: LifeOS now owns its own migrations and can run on its own
-database. Start here instead.
+Existing entries were not copied across from the Postgres versions of the app.
+This build starts empty.
+
+## The other versions
+
+`integration/all-phases`, `v2` and `v2-polish` are the same app on Postgres,
+with its own sign-in tables and migrations. This branch, `v2-ncb`, is
+`v2-polish` with the storage and sign-in moved to NoCodeBackend. Nothing in the
+interface differs between `v2-polish` and this branch.
+
+`00-SETUP.md` is the original Phase 1 bootstrap playbook, kept for history.

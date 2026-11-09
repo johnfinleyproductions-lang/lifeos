@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull } from "@/lib/db/ops";
 import { db } from "@/lib/db";
-import { lifeosFocusSessions } from "@/lib/db/schema/lifeos";
+import { lifeosFocusSessions } from "@/lib/db/schema";
 import { requireApiUser } from "@/lib/auth/server-helpers";
 import { stopFocusSchema } from "@/lib/focus/schema";
 import { now } from "@/lib/time/day";

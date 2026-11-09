@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { lifeosHabits } from "@/lib/db/schema/lifeos";
+import { lifeosHabits } from "@/lib/db/schema";
 import { requireApiUser } from "@/lib/auth/server-helpers";
 import { createHabitSchema } from "@/lib/habits/schema";
 

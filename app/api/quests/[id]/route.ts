@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq } from "@/lib/db/ops";
+import { todayKey } from "@/lib/time/day";
 import { db } from "@/lib/db";
-import { lifeosQuests } from "@/lib/db/schema/lifeos";
+import { lifeosQuests } from "@/lib/db/schema";
 import { requireApiUser } from "@/lib/auth/server-helpers";
 import { updateQuestSchema } from "@/lib/quests/schema";
 
@@ -35,12 +36,19 @@ export async function PATCH(
     );
   }
 
+  const mine = and(eq(lifeosQuests.id, id), eq(lifeosQuests.userId, user.id));
+
   // A quest marked done takes today as its end date, unless one was
   // already set. That is the date its cairn carries.
-  const closing =
-    parsed.data.status === "completed"
-      ? { endDate: sql`coalesce(${lifeosQuests.endDate}, current_date)` }
-      : {};
+  let closing: { endDate?: string } = {};
+  if (parsed.data.status === "completed") {
+    const [current] = await db
+      .select({ endDate: lifeosQuests.endDate })
+      .from(lifeosQuests)
+      .where(mine)
+      .limit(1);
+    if (current && !current.endDate) closing = { endDate: todayKey() };
+  }
 
   const [updated] = await db
     .update(lifeosQuests)
@@ -49,9 +57,7 @@ export async function PATCH(
       ...closing,
       updatedAt: new Date(),
     })
-    .where(
-      and(eq(lifeosQuests.id, id), eq(lifeosQuests.userId, user.id)),
-    )
+    .where(mine)
     .returning();
 
   if (!updated) {

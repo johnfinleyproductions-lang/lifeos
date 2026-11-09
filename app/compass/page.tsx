@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { eq } from "@/lib/db/ops";
 import { db } from "@/lib/db";
-import { lifeosCompass } from "@/lib/db/schema/lifeos";
+import { lifeosCompass } from "@/lib/db/schema";
 import { requireUserContext } from "@/lib/auth/server-helpers";
 import { futurePathsSchema, type FuturePaths } from "@/lib/compass/schema";
 import { PageStamp } from "@/components/PageStamp";

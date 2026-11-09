@@ -11,7 +11,10 @@ import { createHmac, timingSafeEqual } from "node:crypto";
  * before anything looks at it.
  */
 
-const SECRET = process.env.BETTER_AUTH_SECRET?.trim();
+// LIFEOS_SECRET is the name going forward. BETTER_AUTH_SECRET is still read
+// so a deployment configured before the move to NoCodeBackend keeps working.
+const SECRET =
+  process.env.LIFEOS_SECRET?.trim() || process.env.BETTER_AUTH_SECRET?.trim();
 
 function key(): string {
   if (!SECRET) {
@@ -19,7 +22,7 @@ function key(): string {
     // time. This is here so that a future caller outside that path
     // cannot silently end up signing with an empty key.
     throw new Error(
-      "BETTER_AUTH_SECRET is not set. Profile cookies cannot be signed.",
+      "LIFEOS_SECRET is not set. Profile cookies cannot be signed and profiles cannot sign in.",
     );
   }
   return SECRET;
@@ -62,4 +65,17 @@ export function unsign(value: string | undefined | null): string | null {
   }
 
   return payload;
+}
+
+/**
+ * A stable secret derived from the server secret, for one named purpose.
+ * The same label always gives the same value, and the value says nothing
+ * about the secret or about any other label.
+ */
+export function derive(label: string): string {
+  return createHmac("sha256", key()).update(`derive:${label}`).digest("base64url");
+}
+
+export function secretConfigured(): boolean {
+  return Boolean(SECRET);
 }

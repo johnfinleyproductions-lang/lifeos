@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { lifeosQuests } from "@/lib/db/schema/lifeos";
+import { lifeosQuests } from "@/lib/db/schema";
 import { requireApiUser } from "@/lib/auth/server-helpers";
 import { createQuestSchema } from "@/lib/quests/schema";
 import { currentQuarter } from "@/lib/quests/quarter";

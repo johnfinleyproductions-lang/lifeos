@@ -1,80 +1,29 @@
-# Run LifeOS as a self-contained stack.
+# Run LifeOS as a single container.
 #
 #   cp .env.example .env     # then fill it in
 #   docker compose up -d --build
 #
-# Two modes, chosen by whether DATABASE_URL is set in .env:
-#
-#   unset  — the bundled `db` service below is used, and LifeOS owns its
-#            database outright. This is the end state.
-#   set    — the app talks to whatever you point it at and the `db` service
-#            is ignored. Use this while LifeOS still lives in Evergreen
-#            Core's database. Start just the app with:
-#              docker compose up -d --build app
-#
-# Migrations are not run from here. The image's entrypoint applies them on
-# every boot before the server starts, and exits non-zero if they fail, so a
-# container that is up is a container whose schema matches its code.
+# There is no database service here. The data and the sign-in accounts live
+# in NoCodeBackend, named by NCB_INSTANCE in .env, and the app reaches it over
+# HTTPS. Nothing is migrated on boot.
 
 services:
-  db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: lifeos
-      POSTGRES_DB: lifeos
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
-      # Both services share one clock on purpose. LifeOS keys almost
-      # everything to a calendar day, and a Postgres server on a different
-      # zone to the app will disagree with it about which day it is. Phase 4
-      # found exactly that bug while copying data: dates landed a day early.
-      #
-      # Named LIFEOS_TIMEZONE rather than TZ deliberately: compose reads the
-      # shell first, and a bare TZ would silently inherit whatever the
-      # machine running `docker compose` happens to be set to, so the same
-      # file would behave differently on a laptop and on the server.
-      TZ: ${LIFEOS_TIMEZONE:-America/Chicago}
-      PGTZ: ${LIFEOS_TIMEZONE:-America/Chicago}
-    volumes:
-      - lifeos-db:/var/lib/postgresql/data
-    healthcheck:
-      # The app's entrypoint migrates before serving, so it must not start
-      # against a Postgres that is still coming up.
-      test: ["CMD-SHELL", "pg_isready -U lifeos -d lifeos"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
-      start_period: 10s
-    restart: unless-stopped
-    # Not published. Nothing outside the compose network needs the database.
-    # To inspect it from the host, uncomment and connect to localhost:5433.
-    # ports:
-    #   - "5433:5432"
-
   app:
     build:
       context: .
-    depends_on:
-      db:
-        condition: service_healthy
     env_file:
       - .env
     environment:
-      # Falls back to the bundled db. Setting DATABASE_URL in .env overrides
-      # this, which is how you point the app at an existing database.
-      DATABASE_URL: ${DATABASE_URL:-postgres://lifeos:${POSTGRES_PASSWORD}@db:5432/lifeos}
       NODE_ENV: production
       TZ: ${LIFEOS_TIMEZONE:-America/Chicago}
     ports:
       - "${LIFEOS_PORT:-3001}:3001"
     healthcheck:
-      # /api/health runs SELECT 1, so this means "serving and the database
-      # answers", not merely "the process is alive".
+      # /api/health asks NoCodeBackend a question, so this means "serving and
+      # the store answers", not merely "the process is alive".
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3001/api/health >/dev/null || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 40s
     restart: unless-stopped
-
-volumes:
-  lifeos-db:

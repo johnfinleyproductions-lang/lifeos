@@ -1,14 +1,14 @@
 import { Watermark } from "@/components/field/Watermark";
 import Link from "next/link";
 import { formatDay, formatInstant } from "@/lib/time/day";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "@/lib/db/ops";
 import { db } from "@/lib/db";
 import {
   lifeosCompass,
   lifeosConfidenceEntries,
   lifeosProtocolRuns,
   lifeosDailyCheckins,
-} from "@/lib/db/schema/lifeos";
+} from "@/lib/db/schema";
 import { requireUserContext } from "@/lib/auth/server-helpers";
 import { PROTOCOLS, getProtocol } from "@/lib/protocols/definitions";
 import { morningManifestoSchema } from "@/lib/manifesto/schema";

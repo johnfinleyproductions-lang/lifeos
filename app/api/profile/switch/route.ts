@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getProfile } from "@/lib/profiles/config";
-import { findOrCreateUserForProfile } from "@/lib/profiles/provision";
+import { ProfileSignInError, signInProfile } from "@/lib/profiles/provision";
+import {
+  clearSessionCookie,
+  readSessionToken,
+  signOut,
+  writeSessionCookie,
+} from "@/lib/ncb/session";
 import { setActiveProfile, clearActiveProfile } from "@/lib/profiles/cookie";
 import { isHouseholdUnlocked } from "@/lib/profiles/household";
 
@@ -51,28 +57,31 @@ export async function POST(request: Request) {
   }
 
   try {
-    const userId = await findOrCreateUserForProfile(profile);
-    await setActiveProfile(profile.slug, userId);
-    // The user id stays server-side. The caller only needs to know it
-    // worked, and handing out real ids made the old forged-cookie path
-    // trivial to walk.
+    // Leave the previous profile's session behind before starting a new one.
+    const previous = await readSessionToken();
+    const { token } = await signInProfile(profile);
+    if (previous && previous !== token) await signOut(previous);
+    await writeSessionCookie(token);
+    await setActiveProfile(profile.slug);
     return NextResponse.json({ ok: true, slug: profile.slug });
   } catch (e) {
     console.error("profile switch failed:", e);
     return NextResponse.json(
       {
-        error: "Failed to provision profile",
-        detail: e instanceof Error ? e.message : "unknown",
+        error:
+          e instanceof ProfileSignInError
+            ? e.message
+            : "Could not sign this profile in. NoCodeBackend may be unreachable.",
       },
-      { status: 500 },
+      { status: e instanceof ProfileSignInError ? 409 : 502 },
     );
   }
 }
 
-/**
- * DELETE /api/profile/switch — clear the active profile cookie.
- */
 export async function DELETE() {
+  const token = await readSessionToken();
+  if (token) await signOut(token);
+  await clearSessionCookie();
   await clearActiveProfile();
   return NextResponse.json({ ok: true });
 }

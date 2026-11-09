@@ -1,17 +1,17 @@
 /**
- * Schema barrel. Every table in here is owned and migrated by LifeOS.
+ * Every table LifeOS keeps, in one place.
  *
- * The eleven lifeos_* tables, plus the four better-auth tables, which
- * came under LifeOS ownership in Phase 1.
+ * These live in a NoCodeBackend database. NCB adds two columns to each table
+ * on its own: an integer `id`, and `user_id`, which it fills from the
+ * signed-in session and filters every read by. The definitions here name
+ * both so the app can type them, but neither is ever chosen by the app.
  *
- * Nothing external is left. The workspace tables went in Phase 2: ten
- * routes wrote workspace_id on insert and nothing anywhere read it, so
- * they were removed rather than ported. If shared spaces are ever
- * wanted, they want a real membership model designed at the time, not
- * this column.
+ * The people themselves (name, email, password hash, sessions) are in NCB's
+ * own auth tables, which this app reaches only through sign-in. See
+ * lib/ncb/session.ts.
+ *
+ * The live column list, as NCB reports it, is saved in docs/ncb/schema.json.
  */
-
-// Owned
 export * from "./lifeosDailyCheckins";
 export * from "./lifeosHabits";
 export * from "./lifeosHabitCompletions";
@@ -23,6 +23,3 @@ export * from "./lifeosConfidenceEntries";
 export * from "./lifeosReframesSeen";
 export * from "./lifeosJournalEntries";
 export * from "./lifeosOpenLoops";
-
-export * from "./auth";
-

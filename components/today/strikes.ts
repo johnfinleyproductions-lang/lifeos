@@ -1,8 +1,8 @@
 import { cache } from "react";
-import { and, eq } from "drizzle-orm";
+import { and, eq } from "@/lib/db/ops";
 import { todayKey } from "@/lib/time/day";
 import { db } from "@/lib/db";
-import { lifeosDailyCheckins } from "@/lib/db/schema/lifeos";
+import { lifeosDailyCheckins } from "@/lib/db/schema";
 import { eveningShutdownSchema } from "@/lib/manifesto/evening-schema";
 
 /**

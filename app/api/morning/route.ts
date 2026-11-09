@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { and, eq } from "drizzle-orm";
+import { and, eq } from "@/lib/db/ops";
 import { todayKey } from "@/lib/time/day";
 import { db } from "@/lib/db";
-import { lifeosDailyCheckins } from "@/lib/db/schema/lifeos";
+import { lifeosDailyCheckins } from "@/lib/db/schema";
 import { requireApiUser } from "@/lib/auth/server-helpers";
 import { compactMorning, morningRequestSchema } from "@/lib/manifesto/schema";
 import { storedFromDepthChoice } from "@/lib/settings/ritual-depth";

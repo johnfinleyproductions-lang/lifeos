@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { and, eq, gte, inArray, isNotNull } from "drizzle-orm";
+import { and, eq, gte, inArray, isNotNull } from "@/lib/db/ops";
 import {
   addDays,
   dayKeyOf,
@@ -14,7 +14,7 @@ import {
   lifeosHabits,
   lifeosHabitCompletions,
   lifeosJournalEntries,
-} from "@/lib/db/schema/lifeos";
+} from "@/lib/db/schema";
 import { morningManifestoSchema } from "@/lib/manifesto/schema";
 import { eveningShutdownSchema } from "@/lib/manifesto/evening-schema";
 import { tallyHabit, type HabitTally } from "./habit-denominator";

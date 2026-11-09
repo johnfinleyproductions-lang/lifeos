@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { and, eq } from "drizzle-orm";
+import { and, eq } from "@/lib/db/ops";
 import { db } from "@/lib/db";
-import { lifeosDailyCheckins } from "@/lib/db/schema/lifeos";
+import { lifeosDailyCheckins } from "@/lib/db/schema";
 import { requireApiUser } from "@/lib/auth/server-helpers";
 import { v3ImportSchema } from "@/lib/manifesto/v3-import-schema";
 

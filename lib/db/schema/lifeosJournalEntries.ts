@@ -1,13 +1,4 @@
-import { sql } from "drizzle-orm";
-import {
-  pgTable,
-  uuid,
-  text,
-  date,
-  boolean,
-  timestamp,
-  index,
-} from "drizzle-orm/pg-core";
+import { table, id, owner, text, boolean, date, timestamp } from "../table";
 
 /**
  * Journal entries — the parallel sanctuary.
@@ -35,16 +26,11 @@ import {
  * `is_decision` flips the entry into the Decisions Log. The decision_*
  * fields are filled in when is_decision=true.
  */
-export const lifeosJournalEntries = pgTable(
+export const lifeosJournalEntries = table(
   "lifeos_journal_entries",
   {
-    id: uuid("id")
-      .primaryKey()
-      .default(sql`gen_random_uuid()`),
-    userId: uuid("user_id").notNull(),
-    // Written by nobody since Phase 2. Kept, nullable, because
-    // existing rows carry a real value worth not throwing away.
-    workspaceId: uuid("workspace_id"),
+    id: id(),
+    userId: owner().notNull(),
     entryDate: date("entry_date").notNull(),
     mode: text("mode").notNull(),
     body: text("body").notNull(),
@@ -53,28 +39,13 @@ export const lifeosJournalEntries = pgTable(
     decisionSummary: text("decision_summary"),
     decisionCategory: text("decision_category"),
     decisionDoor: text("decision_door"),
-    createdAt: timestamp("created_at", { withTimezone: true })
+    createdAt: timestamp("created_at")
       .notNull()
       .defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true })
+    updatedAt: timestamp("updated_at")
       .notNull()
       .defaultNow(),
-  },
-  (table) => ({
-    userDateIdx: index("idx_lifeos_journal_user_date").on(
-      table.userId,
-      table.entryDate,
-    ),
-    userDecisionIdx: index("idx_lifeos_journal_decisions").on(
-      table.userId,
-      table.isDecision,
-    ),
-    userModeIdx: index("idx_lifeos_journal_mode").on(
-      table.userId,
-      table.mode,
-    ),
-  }),
-);
+  });
 
 export type LifeosJournalEntry = typeof lifeosJournalEntries.$inferSelect;
 export type NewLifeosJournalEntry =
