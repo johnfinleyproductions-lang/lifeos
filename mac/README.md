@@ -95,7 +95,7 @@ stays in NoCodeBackend.
 
 ## How it is put together
 
-- `LifeOS.swift` is the window: about 400 lines of AppKit and WebKit. It reads
+- `LifeOS.swift` is the window: about 500 lines of AppKit and WebKit. It reads
   the settings, starts the packed server on `127.0.0.1` (this Mac only, not
   the network), waits for it to answer, and shows it. It stops the server
   when you quit.
