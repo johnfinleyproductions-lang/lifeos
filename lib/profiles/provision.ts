@@ -47,7 +47,12 @@ export async function signInProfile(
       `There is already a NoCodeBackend account for ${email}, but its password does not match this server's LIFEOS_SECRET. Restore the original secret, or reset that user's password in NoCodeBackend.`,
     );
   }
+  if (created.reason === "signup-closed") {
+    throw new ProfileSignInError(
+      `${profile.name} has no account yet, and sign-up is switched off in NoCodeBackend. Switch public sign-up on for the database, pick this name once, then switch it off again.`,
+    );
+  }
   throw new ProfileSignInError(
-    `NoCodeBackend would not create an account for ${email}: ${created.detail}. If public sign-up is switched off for the database, switch it on while new profiles are added.`,
+    `NoCodeBackend would not create an account for ${email}: ${created.detail}`,
   );
 }

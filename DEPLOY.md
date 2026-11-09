@@ -43,7 +43,17 @@ These are no longer read and can be removed when you are ready:
 The coach is optional and set up as before, with `LIFEOS_LLM_BASE_URL`,
 `LIFEOS_LLM_API_KEY` and `LIFEOS_LLM_MODEL`.
 
-## 3. Deploy and check
+## 3. Open sign-up for the first sign-ins
+
+Each person's NoCodeBackend account is created the first time their name is
+picked, and NoCodeBackend only allows that while public sign-up is on. It is
+off at the moment, on purpose.
+
+Switch it on for the `54318_lifeos` database: in the NoCodeBackend dashboard's
+auth settings for that database, or by asking Claude with the NoCodeBackend
+tools connected ("turn on public sign-up for 54318_lifeos").
+
+## 4. Deploy and check
 
 Deploy. The first build takes a few minutes. Then:
 
@@ -59,12 +69,12 @@ Deploy. The first build takes a few minutes. Then:
 6. On your phone, do the same with the same name. You should see the morning
    you just set.
 
-## 4. After everyone has picked their name once
+## 5. Close sign-up again
 
-In the NoCodeBackend dashboard, open the `54318_lifeos` database's auth
-settings and switch public sign-up off. It has to be on for the first pick of
-each profile and has no use after that. Switch it back on for a moment when
-you add a person.
+Once everyone in the house has picked their name once, switch public sign-up
+off the same way you switched it on. It has no use after that, and this
+repository is public and names the database. Switch it on for a moment
+whenever you add a person.
 
 ## If something goes wrong
 
@@ -77,7 +87,7 @@ on one line. The log line starts with `[profiles]`.
 
 **The code is right but picking a name fails.** The message on screen says
 which of two things it is. If it mentions sign-up, public sign-up is off in
-NoCodeBackend and this profile has no account yet. If it mentions
+NoCodeBackend and this profile has no account yet: do step 3. If it mentions
 `LIFEOS_SECRET`, the secret differs from the one the account was created with.
 
 **The server stops at boot.** Look for `[time]` in the log: the zone name in

@@ -25,6 +25,7 @@
  * it applies to, then changes exactly those.
  */
 
+import { randomInt } from "node:crypto";
 import { decode, encode, idToWire, normalize } from "./codec";
 import {
   type Condition,
@@ -115,15 +116,14 @@ export type Database = ReturnType<typeof createDatabase>;
 
 export function createDatabase(getTransport: () => Transport | Promise<Transport>) {
   const cascades = new Map<string, Cascade[]>();
-  let nonceCounter = 0;
-
   /**
-   * A value no id will ever equal, different on every call. It makes each
-   * read URL unique, which is what stops NCB serving a remembered answer.
+   * A value no id will ever equal, different on every call and not
+   * guessable. It makes each read URL unique, which is what stops NCB
+   * serving a remembered answer, and unguessable, so nobody else can ask
+   * for the same URL on purpose.
    */
   function nonce(): number {
-    nonceCounter = (nonceCounter + 1) % 1000;
-    return Date.now() * 1000 + nonceCounter;
+    return randomInt(1_000_000, 2 ** 47);
   }
 
   async function readRows(

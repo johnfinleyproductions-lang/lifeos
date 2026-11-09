@@ -55,12 +55,19 @@ resetting that user's password in the NCB dashboard. Do not delete the user to
 start over: deleting a user in NCB deletes every row that person owns. That
 was seen when the test accounts were removed.
 
-**Public sign-up has to be on while profiles are being created.** It is on by
-default. Once everyone in the house has picked their profile once, it can be
-switched off in the NCB dashboard, and should be: while it is on, anyone who
-learns the database name can create an empty account in it. Such an account
-cannot see anyone's data, and cannot get into the app without the household
-code and a place on the profile list. Switch it back on to add a person.
+**Public sign-up is off, and has to be switched on to add a person.** A
+profile's account is created the first time its name is picked, and NCB only
+allows that while public sign-up is on for the database. It is off now. To
+add someone: switch it on in the NCB dashboard (or ask Claude to, with the
+NoCodeBackend tools connected), have them pick their name once, and switch it
+off again. Picking a name that has no account while it is off says exactly
+that on the picker.
+
+It is kept off because NCB's data API accepts any signed-in account, and with
+sign-up on anyone who knows the database name can make one. Such an account
+cannot read anyone else's rows, and cannot get into the app without the
+household code and a place on the profile list, but it could fill the tables
+with rows of its own. This repository is public and names the database.
 
 **Sessions last seven days at NCB.** When one ends the person lands on the
 picker and taps their name again.
@@ -132,7 +139,8 @@ What LifeOS does about them:
   key is not in the app's environment at all.
 - Every read URL carries a filter that changes nothing but the URL
   (`id[ne]=-<number>`, or the same number added to an `id[in]` list), so no
-  remembered answer can be served. This removes the stale reads.
+  remembered answer can be served. This removes the stale reads. The number
+  is random, so nobody else can ask for the same URL on purpose.
 - It never uses NCB's read-by-id path, which is remembered the same way and
   has no room for such a filter.
 
@@ -199,4 +207,5 @@ habits or journal, and being refused when editing, deleting or toggling the
 first person's rows by id; twenty simultaneous loads of the same page by both
 people; one person's profile cookie on another's session; and a replay of
 cookies after sign-out. All 34 passed. The test accounts and their rows were
-removed afterwards.
+removed afterwards, every table was confirmed empty, and public sign-up was
+switched off.

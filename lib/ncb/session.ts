@@ -92,7 +92,11 @@ function tokenFrom(setCookies: string[]): string | null {
 
 export type SignInResult =
   | { ok: true; token: string; user: NcbUser }
-  | { ok: false; reason: "wrong-credentials" | "exists" | "refused"; detail: string };
+  | {
+      ok: false;
+      reason: "wrong-credentials" | "exists" | "signup-closed" | "refused";
+      detail: string;
+    };
 
 async function credentialRequest(
   path: string,
@@ -116,9 +120,15 @@ async function credentialRequest(
     return { ok: false, reason: "refused", detail: "NoCodeBackend signed in without a session." };
   }
   const code = typeof json.code === "string" ? json.code : "";
-  const detail = typeof json.message === "string" ? json.message : `HTTP ${res.status}`;
+  const detail =
+    (typeof json.message === "string" && json.message) ||
+    (typeof json.error === "string" && json.error) ||
+    `HTTP ${res.status}`;
   if (code === "INVALID_EMAIL_OR_PASSWORD") return { ok: false, reason: "wrong-credentials", detail };
   if (code.startsWith("USER_ALREADY_EXISTS")) return { ok: false, reason: "exists", detail };
+  if (res.status === 403 && /sign-?up is disabled/i.test(detail)) {
+    return { ok: false, reason: "signup-closed", detail };
+  }
   return { ok: false, reason: "refused", detail };
 }
 
