@@ -3,6 +3,7 @@ import { Bricolage_Grotesque, Newsreader } from "next/font/google";
 import { Sidebar } from "@/components/Sidebar";
 import { PressMargin } from "@/components/field/PressMargin";
 import { PressDefs } from "@/components/field/PressDefs";
+import { OutboxMark } from "@/components/offline/OutboxMark";
 import { getAuthContext } from "@/lib/auth/server-helpers";
 import { dayOfYear, parseDayKey, todayKey } from "@/lib/time/day";
 import "./globals.css";
@@ -68,7 +69,7 @@ export default async function RootLayout({
 }) {
   // Read session at layout-level. Server Components nested below can call
   // getAuthContext() again — getSession is cached per-request.
-  const { user } = await getAuthContext();
+  const { user, session } = await getAuthContext();
   const today = todayKey();
 
   return (
@@ -103,6 +104,13 @@ export default async function RootLayout({
             </div>
           </main>
         </div>
+        <OutboxMark
+          who={
+            user && session
+              ? { slug: session.profileSlug, name: user.name }
+              : null
+          }
+        />
       </body>
     </html>
   );

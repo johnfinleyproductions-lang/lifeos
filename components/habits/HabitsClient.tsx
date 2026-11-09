@@ -1,10 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatDay } from "@/lib/time/day";
 import { keptLine, type Kept } from "@/lib/habits/cadence";
 import { Watermark } from "@/components/field/Watermark";
+import {
+  offlineFetch,
+  onOutboxChange,
+  pending,
+  rememberHabits,
+} from "@/lib/offline/outbox";
+
+/** Habit ticks still in the outbox for today, by habit id. Latest wins. */
+function waitingTicks(): Record<string, boolean> {
+  const today = new Date().toDateString();
+  const out: Record<string, boolean> = {};
+  for (const item of pending()) {
+    if (item.kind !== "habit" || typeof item.body.completed !== "boolean") continue;
+    if (new Date(item.writtenAt).toDateString() !== today) continue;
+    const id = item.url.split("/")[3];
+    if (id) out[id] = item.body.completed;
+  }
+  return out;
+}
 
 type DayState = {
   date: string;
@@ -74,6 +93,22 @@ export function HabitsClient({ habits }: { habits: Habit[] }) {
   const [submitting, setSubmitting] = useState(false);
   const [toggling, setToggling] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Ticks made with no connection. They are in the outbox, not on the
+  // server yet, so the page shows them from here until they are sent.
+  const [kept, setKept] = useState<Record<string, boolean>>({});
+
+  // The offline desk can tick today's habits; it needs their names.
+  useEffect(() => {
+    rememberHabits(habits.map((h) => ({ id: h.id, name: h.name })));
+  }, [habits]);
+
+  // Follow the outbox: a tick shows as waiting until it has been sent,
+  // across reloads and from the offline desk as well as from here.
+  useEffect(() => {
+    const sync = () => setKept(waitingTicks());
+    sync();
+    return onOutboxChange(sync);
+  }, []);
 
   async function createHabit() {
     if (name.trim().length === 0) return;
@@ -99,14 +134,24 @@ export function HabitsClient({ habits }: { habits: Habit[] }) {
     }
   }
 
-  async function toggleToday(habitId: string) {
+  async function toggleToday(habitId: string, name: string, completed: boolean) {
     setToggling(habitId);
     setError(null);
     try {
-      const res = await fetch(`/api/habits/${habitId}/toggle`, {
-        method: "POST",
-      });
+      // Says which state is wanted instead of "flip it", so sending the
+      // same tick twice (once now, once from the outbox) cannot undo it.
+      const res = await offlineFetch(
+        `/api/habits/${habitId}/toggle`,
+        { completed },
+        {
+          kind: "habit",
+          label: `Habit ${completed ? "done" : "not done"}: ${name}`,
+        },
+      );
       if (!res.ok) throw new Error("Failed to toggle");
+      const data = await res.json().catch(() => ({}));
+      // A kept tick reaches the page through the outbox effect above.
+      if (data.queued) return;
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to toggle");
@@ -136,7 +181,10 @@ export function HabitsClient({ habits }: { habits: Habit[] }) {
       )}
 
       {habits.map((h) => {
-        const todayDone = h.last7Days[h.last7Days.length - 1].done;
+        const waiting = h.id in kept;
+        const todayDone = waiting
+          ? kept[h.id]
+          : h.last7Days[h.last7Days.length - 1].done;
         return (
           <div key={h.id} className="sheet">
             <div className="flex items-center justify-between gap-4 mb-4">
@@ -158,7 +206,7 @@ export function HabitsClient({ habits }: { habits: Habit[] }) {
               </div>
               <button
                 type="button"
-                onClick={() => toggleToday(h.id)}
+                onClick={() => toggleToday(h.id, h.name, !todayDone)}
                 disabled={toggling === h.id}
                 aria-pressed={todayDone}
                 className={`btn btn-sm shrink-0 ${
@@ -167,9 +215,13 @@ export function HabitsClient({ habits }: { habits: Habit[] }) {
               >
                 {toggling === h.id
                   ? "Saving"
-                  : todayDone
-                    ? "Done today"
-                    : "Mark done"}
+                  : waiting
+                    ? todayDone
+                      ? "Done, waiting to send"
+                      : "Undone, waiting to send"
+                    : todayDone
+                      ? "Done today"
+                      : "Mark done"}
               </button>
             </div>
 

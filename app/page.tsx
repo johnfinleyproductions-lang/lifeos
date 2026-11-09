@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Plate } from "@/components/field/plates";
 import { getAuthContext } from "@/lib/auth/server-helpers";
 import { getTodayCheckin } from "@/lib/checkin/today";
@@ -42,7 +43,10 @@ function greetingFor(h: number) {
  * says.
  */
 export default async function TodayPage() {
-  const { user } = await getAuthContext();
+  const { user, offline } = await getAuthContext();
+  // No connection to the data: the desk where writing is kept, not a Today
+  // page with nothing on it.
+  if (offline) redirect("/offline");
   const checkin = user
     ? await getTodayCheckin(user.id)
     : { morning: null, evening: null };

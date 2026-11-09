@@ -102,8 +102,7 @@ yesterday's date.
 
 If you add anything that touches a date, route it through that module rather
 than calling `new Date()` or date-fns directly. `scripts/check-time.mjs` is the
-unit check and `scripts/check-day-boundary.sh` drives a real server across the
-boundary.
+unit check.
 
 ## Taking your data with you
 
@@ -114,6 +113,41 @@ the only backup there is, so it is worth doing now and then.
 
 Reminders are a calendar file from Settings (`GET /api/reminders`), and the
 journal can be searched from Past entries.
+
+## Writing without a connection
+
+The morning page, the evening page, a new journal entry and a habit tick are
+saved on the device first when LifeOS cannot reach its data, and sent when it
+can. A small mark in the corner counts what is waiting. Nothing else works
+offline: reading back, quests, the coach and the rest need the connection.
+
+How it goes:
+
+- Those four saves go through `offlineFetch` (`lib/offline/outbox.ts`). If
+  the request fails, or the server answers that the data is out of reach, the
+  write goes into an outbox in the browser's local storage with the time it
+  was written and who wrote it.
+- The mark (`components/offline/OutboxMark.tsx`) retries when the connection
+  returns, when the window comes back into view, and every twenty seconds.
+  Writes go in the order they were made. Only one tab sends at a time.
+- The server files a late write under the day it was written, not the day it
+  arrived. For the morning and evening pages the later edit wins: each saved
+  page carries the time it was written, and a late write that is older than
+  what is already there is dropped. A journal entry sent twice is stored once.
+  A write made by one person is never filed under another; it waits for its
+  author to sign in.
+- With no connection every page leads to `/offline`, the offline desk: a
+  journal box, a short morning page, a short evening page, today's habit
+  ticks, and the list of what is waiting. In a browser that is the job of a
+  service worker (`app/sw.js/route.ts`), which keeps a signed-out copy of that
+  one page. In the Mac app the pages come from the Mac itself, so the server
+  sends you there.
+
+Limits worth knowing. The outbox lives in the browser: clearing site data, or
+closing a private window, loses whatever is still waiting. The desk needs you
+to have signed in on that device at least once. Editing or deleting an
+existing entry is not kept offline, only new writing. And "later" is judged
+by each device's own clock.
 
 ## Checks
 
@@ -128,8 +162,9 @@ Runs three suites under plain Node, with no network and no build:
 - `scripts/check-db.mjs`, 26 checks on the data layer, the last of which runs
   3,000 random queries and compares each answer with the plain meaning of the
   query.
-- `scripts/check-features.mjs`, 10 checks on journal search and the reminders
-  calendar file.
+- `scripts/check-features.mjs`, 26 checks on journal search, the reminders
+  calendar file and the offline outbox (order, retries, two people on one
+  device, two tabs at once).
 
 ## Health
 

@@ -26,14 +26,26 @@ export type ActiveProfile = {
   createdAt: Date;
 };
 
-export const getActiveProfile = cache(
-  async (): Promise<ActiveProfile | null> => {
+export type ProfileState = {
+  profile: ActiveProfile | null;
+  /**
+   * True when this browser names a real profile but NoCodeBackend could not
+   * be reached to confirm it. Nobody is signed in while this is true. It
+   * only tells the app to offer the offline desk instead of the picker.
+   */
+  offline: boolean;
+};
+
+const NOBODY: ProfileState = { profile: null, offline: false };
+
+export const getProfileState = cache(
+  async (): Promise<ProfileState> => {
     const cookieStore = await cookies();
     const slug = unsign(cookieStore.get(COOKIE_NAME)?.value);
-    if (!slug) return null;
+    if (!slug) return NOBODY;
 
     const profile = getProfile(slug);
-    if (!profile) return null;
+    if (!profile) return NOBODY;
 
     let session: Awaited<ReturnType<typeof currentNcbSession>>;
     try {
@@ -41,21 +53,30 @@ export const getActiveProfile = cache(
     } catch (error) {
       // NCB being unreachable must read as "cannot confirm", never as
       // "signed in". Anything else is a real fault and should surface.
-      if (error instanceof NcbError && error.code === "network") return null;
+      if (error instanceof NcbError && error.code === "network") {
+        return { profile: null, offline: true };
+      }
       throw error;
     }
-    if (!session) return null;
-    if (session.user.email !== profile.email.trim().toLowerCase()) return null;
+    if (!session) return NOBODY;
+    if (session.user.email !== profile.email.trim().toLowerCase()) return NOBODY;
 
     return {
-      slug: profile.slug,
-      userId: session.user.id,
-      name: profile.name,
-      email: profile.email,
-      createdAt: session.user.createdAt,
+      offline: false,
+      profile: {
+        slug: profile.slug,
+        userId: session.user.id,
+        name: profile.name,
+        email: profile.email,
+        createdAt: session.user.createdAt,
+      },
     };
   },
 );
+
+export async function getActiveProfile(): Promise<ActiveProfile | null> {
+  return (await getProfileState()).profile;
+}
 
 export async function setActiveProfile(slug: string): Promise<void> {
   const cookieStore = await cookies();

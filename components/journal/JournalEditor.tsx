@@ -10,6 +10,7 @@ import {
   DECISION_CATEGORY_LABELS,
 } from "@/lib/journal/schema";
 import { VoiceButton } from "@/components/voice/VoiceButton";
+import { offlineFetch } from "@/lib/offline/outbox";
 
 /**
  * Two ways to write. Framework is the default: one lens already chosen,
@@ -73,7 +74,7 @@ export function JournalEditor({ dailyLensKey, todayEntries = [] }: Props) {
   const [decisionDoor, setDecisionDoor] = useState<DecisionDoor | "">("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [savedFlash, setSavedFlash] = useState(false);
+  const [savedFlash, setSavedFlash] = useState<"saved" | "kept" | null>(null);
 
   const lens = getLens(lensKey) ?? dailyLens;
   const mode: JournalMode =
@@ -99,21 +100,30 @@ export function JournalEditor({ dailyLensKey, todayEntries = [] }: Props) {
     setSubmitting(true);
     setError(null);
     try {
-      const res = await fetch("/api/journal/entries", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      const text = body.trim();
+      const words = text.split(/\s+/);
+      const res = await offlineFetch(
+        "/api/journal/entries",
+        {
           mode,
-          body: body.trim(),
-          frameworkLens: mode === "framework" ? lens.key : undefined,
+          body: text,
+          ...(mode === "framework" ? { frameworkLens: lens.key } : {}),
           isDecision,
-          decisionSummary: isDecision ? decisionSummary.trim() : undefined,
-          decisionCategory: isDecision ? decisionCategory : undefined,
-          decisionDoor: isDecision ? decisionDoor : undefined,
-        }),
-      });
+          ...(isDecision
+            ? {
+                decisionSummary: decisionSummary.trim(),
+                decisionCategory,
+                decisionDoor,
+              }
+            : {}),
+        },
+        {
+          kind: "journal",
+          label: `Journal: ${words.slice(0, 7).join(" ")}${words.length > 7 ? "…" : ""}`,
+        },
+      );
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
         throw new Error(data.error ?? "Failed to save");
       }
       // Clear for the next entry. The saved words reappear under the page
@@ -123,9 +133,11 @@ export function JournalEditor({ dailyLensKey, todayEntries = [] }: Props) {
       setDecisionSummary("");
       setDecisionCategory("");
       setDecisionDoor("");
-      setSavedFlash(true);
-      setTimeout(() => setSavedFlash(false), 2500);
-      router.refresh();
+      // With no connection the entry is kept on this device and sent later;
+      // the mark in the corner counts what is waiting.
+      setSavedFlash(data.queued ? "kept" : "saved");
+      setTimeout(() => setSavedFlash(null), data.queued ? 6000 : 2500);
+      if (!data.queued) router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to save");
     } finally {
@@ -268,7 +280,9 @@ export function JournalEditor({ dailyLensKey, todayEntries = [] }: Props) {
                 style={{ fontVariationSettings: "'wght' 700" }}
                 role="status"
               >
-                Saved, below
+                {savedFlash === "kept"
+                  ? "Kept on this device, sends when you are back"
+                  : "Saved, below"}
               </span>
             )}
             <VoiceButton

@@ -32,6 +32,8 @@ export const createJournalEntrySchema = z.object({
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/)
     .optional(),
+  /** Set only when a kept offline write is replayed. See lib/offline. */
+  writtenAt: z.string().max(40).optional(),
 });
 
 export const updateJournalEntrySchema = createJournalEntrySchema.partial();

@@ -209,3 +209,22 @@ people; one person's profile cookie on another's session; and a replay of
 cookies after sign-out. All 34 passed. The test accounts and their rows were
 removed afterwards, every table was confirmed empty, and public sign-up was
 switched off.
+
+Writing without a connection (see the README) had its own run of 40 checks in
+Chromium and 37 in WebKit, against the live database. The server was restarted
+with NCB's address pointing nowhere, then stopped altogether, then brought
+back. Covered: a habit tick, a journal entry and the morning wizard each kept
+on the device from pages already open; every page and every other save
+answering with the offline desk or a 503, never a sign-in prompt; an evening
+page and a second journal entry written on the desk, the latter from the
+service worker's copy with no server at all; all five sent unprompted within
+seconds of NCB returning, by one tab while two were open, each stored once
+and dated to when it was written; an older offline page stepping aside for a
+newer one and a newer one replacing an older; yesterday's page filed under
+yesterday; a repeated entry stored once; another person's write refused with
+409; and habit ticks set, repeated, and unticked in and out of order. The
+test account and its rows were removed afterwards.
+
+One thing this relies on: a save route checks for an existing row and then
+writes. The random nonce on every read (see above) is what makes that check
+see a row written a moment earlier.

@@ -174,6 +174,9 @@ export async function userForToken(token: string): Promise<NcbUser | null> {
   const res = await ncbFetch(authUrl("get-session"), {
     method: "GET",
     headers: headers(token),
+    // Every page waits on this. With no connection it should give up soon
+    // enough that the offline desk appears while the thought is still fresh.
+    timeoutMs: 5_000,
   });
   if (res.status !== 200) {
     throw new NcbError(`NoCodeBackend session check failed (HTTP ${res.status}).`, res.status, "failed");

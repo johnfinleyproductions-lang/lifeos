@@ -36,6 +36,8 @@ export type EveningShutdown = z.infer<typeof eveningShutdownSchema>;
 /** What the wizard POSTs: the shutdown plus the depth it was written at. */
 export const eveningRequestSchema = eveningShutdownSchema.extend({
   depth: z.enum(["quick", "full"]).default("full"),
+  /** Set only when a kept offline write is replayed. See lib/offline. */
+  writtenAt: z.string().max(40).optional(),
 });
 
 export type EveningRequest = z.infer<typeof eveningRequestSchema>;

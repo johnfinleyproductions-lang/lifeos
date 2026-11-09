@@ -133,7 +133,9 @@ function plain(value: unknown): string {
   }
   if (typeof value === "object") {
     return Object.entries(value as Record<string, unknown>)
-      .filter(([, v]) => plain(v) !== "")
+      // Keys that start with an underscore are bookkeeping (when a sheet was
+    // written, for the offline outbox), not something the person wrote.
+    .filter(([k, v]) => !k.startsWith("_") && plain(v) !== "")
       .map(([k, v]) => `${words(k)}: ${plain(v)}`)
       .join("; ");
   }
@@ -144,7 +146,9 @@ function plain(value: unknown): string {
 function sheet(value: unknown): string[] {
   if (!value || typeof value !== "object") return [];
   return Object.entries(value as Record<string, unknown>)
-    .filter(([, v]) => plain(v) !== "")
+    // Keys that start with an underscore are bookkeeping (when a sheet was
+    // written, for the offline outbox), not something the person wrote.
+    .filter(([k, v]) => !k.startsWith("_") && plain(v) !== "")
     .map(([k, v]) => `- ${words(k)}: ${plain(v)}`);
 }
 

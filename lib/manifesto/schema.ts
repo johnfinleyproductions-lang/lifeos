@@ -32,6 +32,8 @@ export type MorningManifesto = z.infer<typeof morningManifestoSchema>;
  */
 export const morningRequestSchema = morningManifestoSchema.extend({
   depth: z.enum(["quick", "full"]).default("full"),
+  /** Set only when a kept offline write is replayed. See lib/offline. */
+  writtenAt: z.string().max(40).optional(),
 });
 
 export type MorningRequest = z.infer<typeof morningRequestSchema>;

@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { and, eq } from "@/lib/db/ops";
-import { todayKey } from "@/lib/time/day";
+import { dayKeyOf, todayKey } from "@/lib/time/day";
 import { db } from "@/lib/db";
 import { lifeosDailyCheckins } from "@/lib/db/schema";
 import { requireApiUser } from "@/lib/auth/server-helpers";
 import { compactMorning, morningRequestSchema } from "@/lib/manifesto/schema";
 import { storedFromDepthChoice } from "@/lib/settings/ritual-depth";
+import { keepable, sheetWrittenAt, writtenAtFrom, wrongAuthor } from "@/lib/offline/replay";
 
 /**
  * POST /api/morning — upsert today's morning manifesto.
@@ -18,9 +19,13 @@ import { storedFromDepthChoice } from "@/lib/settings/ritual-depth";
  * It lands in `ritual_depth` on the row, which is how the wizard remembers
  * the last pick; the jsonb holds only what was actually asked.
  */
-export async function POST(request: Request) {
-  const { user, unauthorizedResponse } = await requireApiUser();
+export const POST = keepable(save);
+
+async function save(request: Request) {
+  const { session, user, unauthorizedResponse } = await requireApiUser();
   if (unauthorizedResponse) return unauthorizedResponse;
+  const notTheirs = wrongAuthor(request, session);
+  if (notTheirs) return notTheirs;
 
   let body: unknown;
   try {
@@ -37,13 +42,16 @@ export async function POST(request: Request) {
     );
   }
 
-  const { depth, ...manifesto } = parsed.data;
-  const morning = compactMorning(manifesto);
+  const { depth, writtenAt, ...manifesto } = parsed.data;
+  // A write kept offline says when it was written. It is filed under that
+  // moment's day, and stamped with it so a later edit can be told apart.
+  const at = writtenAtFrom(writtenAt);
+  const morning = { ...compactMorning(manifesto), _at: (at ?? new Date()).toISOString() };
   const ritualDepth = storedFromDepthChoice(depth);
-  const today = todayKey();
+  const today = at ? dayKeyOf(at) : todayKey();
 
   const existing = await db
-    .select({ id: lifeosDailyCheckins.id })
+    .select({ id: lifeosDailyCheckins.id, morning: lifeosDailyCheckins.morning })
     .from(lifeosDailyCheckins)
     .where(
       and(
@@ -54,6 +62,11 @@ export async function POST(request: Request) {
     .limit(1);
 
   if (existing.length > 0) {
+    // The later edit wins: a replayed write steps aside for a newer sheet
+    // saved from another device while this one was offline.
+    if (at && sheetWrittenAt(existing[0].morning) > at.getTime()) {
+      return NextResponse.json({ ok: true, skipped: "newer" });
+    }
     await db
       .update(lifeosDailyCheckins)
       .set({

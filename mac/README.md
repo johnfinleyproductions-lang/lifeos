@@ -96,6 +96,34 @@ and are shown in Finder.
 **Search** is on Journal, Past entries. Every word you type has to appear in
 the entry.
 
+## Writing with no internet
+
+The app opens and works for writing when the Mac is offline. Any page takes
+you to the Offline desk, where you can write a journal entry, a short morning
+or evening page, and tick today's habits. A page you already had open (the
+morning cards, the journal) saves the same way. Each one is kept on the Mac
+and a mark in the corner counts what is waiting. When the internet is back
+they send themselves within about twenty seconds, in the order you wrote
+them, dated to when you wrote them.
+
+If you wrote the same day's morning or evening page on your phone in the
+meantime, whichever was written later is the one that stays.
+
+Reading past entries, quests, the coach and everything else still need the
+internet. You also need to have picked your name on this Mac once, while
+online, before the desk will take writing.
+
+## Dictation
+
+In any box you can type in, use the Mac's own dictation: Edit, Start
+Dictation, or press the microphone key (or whatever shortcut is set under
+System Settings, Keyboard, Dictation). It works with no setup in LifeOS.
+
+The microphone button next to the journal, the coach and the morning and
+evening cards in Chrome or Safari uses the browser's speech recognition. It only
+appears where the browser offers that, and the Mac app's window does not yet
+ask for the microphone, so do not expect it there.
+
 ## Day to day
 
 - **Cmd R** reloads. **Cmd 1** goes to Today. **Cmd [** and **Cmd ]** go back
@@ -148,6 +176,10 @@ another Mac. Build it there instead.
 The launch sequence was run on Linux the way the app runs it: the packed
 server on `127.0.0.1`, settings from a file, and the full picker sign-in
 driven in the WebKit engine, which is the engine the Mac window uses.
+
+Writing with no internet was tested the same way, in the same engine: the
+server running with the database unreachable, four writes kept, then the
+database back and all four sent on their own with the right dates.
 
 `LifeOS.swift` and `build-app.sh` were written on a machine that cannot
 compile or run Mac software, so neither has been run on a Mac yet. Your first

@@ -258,7 +258,7 @@ export function CoachChat({
           {modelState.status === "ready" ? (
             <select
               id="coach-model"
-              className="pick"
+              className="sel"
               value={model}
               disabled={streaming}
               onChange={(e) => chooseModel(e.target.value)}

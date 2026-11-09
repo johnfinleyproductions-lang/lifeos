@@ -17,6 +17,7 @@ import {
   type DepthChoice,
 } from "@/lib/settings/ritual-depth";
 import { VoiceButton } from "@/components/voice/VoiceButton";
+import { offlineFetch } from "@/lib/offline/outbox";
 
 function appendVoice(prev: string, text: string): string {
   return prev.trim().length > 0 ? `${prev} ${text}` : text;
@@ -117,14 +118,19 @@ export function EveningWizard({
         ...(initial?.release ? { release: initial.release } : {}),
         depth,
       };
-      const res = await fetch("/api/evening", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+      const res = await offlineFetch("/api/evening", payload, {
+        kind: "evening",
+        label: "Evening page",
       });
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
         throw new Error(data.error ?? `Save failed (${res.status})`);
+      }
+      if (data.queued) {
+        // No connection. The page is kept on this device; the offline desk
+        // shows it waiting. A full page load, so it works with no network.
+        window.location.assign("/offline");
+        return;
       }
       router.push("/");
       router.refresh();

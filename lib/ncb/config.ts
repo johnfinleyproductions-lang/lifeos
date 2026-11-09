@@ -65,6 +65,20 @@ export class NcbError extends Error {
 
 const TIMEOUT_MS = 15_000;
 
+/**
+ * After a request fails to reach NCB at all, the next few seconds of
+ * requests fail at once instead of each waiting out its own timeout. A page
+ * makes several requests; without this, a page opened with no connection
+ * would hang for the sum of them before it could offer the offline desk.
+ */
+const DOWN_FOR_MS = 6_000;
+let downUntil = 0;
+
+/** True while the last attempt to reach NCB failed and the pause is running. */
+export function ncbLooksDown(): boolean {
+  return Date.now() < downUntil;
+}
+
 /** Set LIFEOS_NCB_TRACE=1 to log one line per request: what, status, how long. */
 const TRACE = process.env.LIFEOS_NCB_TRACE === "1";
 
@@ -75,8 +89,11 @@ const TRACE = process.env.LIFEOS_NCB_TRACE === "1";
  */
 export async function ncbFetch(
   url: string,
-  init: { method: string; headers: Record<string, string>; body?: string },
+  init: { method: string; headers: Record<string, string>; body?: string; timeoutMs?: number },
 ): Promise<{ status: number; text: string; setCookies: string[] }> {
+  if (ncbLooksDown()) {
+    throw new NcbError("Could not reach NoCodeBackend: still unreachable", 0, "network");
+  }
   const attempts = init.method === "GET" ? 2 : 1;
   let lastError: unknown;
   for (let attempt = 1; attempt <= attempts; attempt++) {
@@ -87,9 +104,10 @@ export async function ncbFetch(
         headers: init.headers,
         body: init.body,
         cache: "no-store",
-        signal: AbortSignal.timeout(TIMEOUT_MS),
+        signal: AbortSignal.timeout(init.timeoutMs ?? TIMEOUT_MS),
       });
       const text = await res.text();
+      downUntil = 0;
       if (TRACE) {
         const path = url.slice(url.indexOf("/api/") + 5, url.indexOf("?"));
         console.log(`[ncb] ${init.method} ${path} ${res.status} ${Date.now() - started}ms`);
@@ -105,5 +123,6 @@ export async function ncbFetch(
     }
   }
   const reason = lastError instanceof Error ? lastError.message : "unknown";
+  downUntil = Date.now() + DOWN_FOR_MS;
   throw new NcbError(`Could not reach NoCodeBackend: ${reason}`, 0, "network");
 }

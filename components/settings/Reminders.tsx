@@ -107,7 +107,7 @@ function Row(props: {
       <input
         id={props.id}
         type="time"
-        className="pick !pr-2.5 !bg-none tabular-nums"
+        className="sel !pr-2.5 !bg-none tabular-nums"
         value={props.time}
         disabled={!props.on}
         onChange={(e) => props.onTime(e.target.value)}
