@@ -4,8 +4,9 @@
 
 /* LifeOS — risograph field log.
  *
- * Cool grey stock, true black ink, and one fluorescent orange that means
- * exactly one thing: live, today, now. No rounded corners and no soft
+ * Cream stationery stock, warm black ink, and one fluorescent orange that
+ * means exactly one thing: live, today, now. The stock is meant to read as
+ * a journal page: laid lines, a few fibres, and tone that is not quite even. No rounded corners and no soft
  * shadows anywhere; depth comes from hard offset misregistration.
  *
  * Day is the default. Night is a single data-theme flip on <html>, so no
@@ -26,25 +27,24 @@
        never reaches the stylesheet. */
 
     /* surfaces, lightest ground to raised panel */
-    --surface-0: 195 197 188; /* rail, tab bar */
-    --surface-1: 213 214 207; /* page */
-    --surface-2: 231 232 226; /* panels */
-    --surface-3: 242 243 238; /* input surfaces, the hero */
+    --surface-0: 226 214 188; /* rail, tab bar: the cover board */
+    --surface-1: 239 230 209; /* page */
+    --surface-2: 247 240 224; /* panels: a sheet laid on the page */
+    --surface-3: 253 249 238; /* input surfaces, the hero */
 
-    /* text, strongest to faintest. The faintest clears 4.5:1 on the page
-       and the panels at 11.5px; 110 114 106 fell to 3.4:1 on the page.
-       It is 3.9:1 on the rail stock, so the rail sets its small type in
-       --text-2 rather than this. */
-    --text-1: 0 0 0;
-    --text-2: 71 74 68;
-    --text-3: 90 92 86;
+    /* text, strongest to faintest. Warm black, the way ink sits on cream.
+       The faintest is 5.8:1 on the page, 6.3:1 on the panels and 5.0:1 on
+       the rail, so it clears 4.5:1 at 11.5px on every stock. */
+    --text-1: 26 22 17;
+    --text-2: 77 68 55;
+    --text-3: 96 86 70;
 
-    --knock: 231 232 226; /* type knocked out of a filled block */
+    --knock: 247 240 224; /* type knocked out of a filled block */
 
     /* Rules are a solid tone rather than ink at low alpha, so they read
        the same whatever sits behind them. */
-    --line: 169 171 163;
-    --line-soft: 196 198 190;
+    --line: 192 178 150;
+    --line-soft: 216 205 180;
 
     --spot: 255 84 54; /* fluorescent orange */
     --green: 0 169 92;
@@ -102,22 +102,56 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  /* Paper. One fixed layer of fractal noise, multiplying into the stock
-     in day and screening over it at night, so surfaces read as printed
-     rather than filled. Static, cheap, and never in the way. */
+  /* Paper. The stock is built from four things, none of them an image
+     file:
+
+       mottle   slow cloudy tone under everything, so the page is not one
+                flat colour from edge to edge
+       laid     the fine parallel lines a paper mould leaves, with a
+                fainter chain line across them every 26px
+       fibres   a few stray strands lying across the sheet
+       tooth    the fine grain that makes flat colour read as printed
+
+     The mottle belongs to the page, so it sits in the page's own
+     background. The other three are one fixed layer above everything,
+     multiplying into whatever is beneath: panels, inputs and the rail are
+     paper too, not plastic laid on paper. Static, and never in the way.
+
+     Each SVG tile stitches at its edges, so no seam shows where it
+     repeats. */
+  body {
+    background-image:
+      radial-gradient(ellipse 120% 90% at 50% 38%, transparent 60%, rgb(150 118 62 / 0.10) 100%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='640'%3E%3Cfilter id='m' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.0045' numOctaves='2' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .55  0 0 0 0 .43  0 0 0 0 .22  .42 0 0 0 -.13'/%3E%3C/filter%3E%3Crect width='640' height='640' filter='url(%23m)'/%3E%3C/svg%3E");
+    background-attachment: fixed;
+  }
+
+  /* Above the rail and the tab bar (z 40), below dialogs (z 60). */
   body::after {
     content: "";
     position: fixed;
     inset: 0;
-    z-index: 9;
+    z-index: 50;
     pointer-events: none;
-    opacity: 0.055;
     mix-blend-mode: multiply;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-image:
+      /* tooth */
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .33  0 0 0 0 .26  0 0 0 0 .15  .5 0 0 0 -.17'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E"),
+      /* fibres: sparse, lying across the sheet */
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='700' height='700'%3E%3Cfilter id='f' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.028 .85' numOctaves='2' seed='23' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .42  0 0 0 0 .32  0 0 0 0 .17  2.8 0 0 0 -2.02'/%3E%3C/filter%3E%3Crect width='700' height='700' filter='url(%23f)'/%3E%3C/svg%3E"),
+      /* laid lines, then the chain lines across them */
+      repeating-linear-gradient(0deg, rgb(120 96 52 / 0.055) 0 1px, transparent 1px 3px),
+      repeating-linear-gradient(90deg, rgb(120 96 52 / 0.05) 0 1px, transparent 1px 26px);
+  }
+  /* Night keeps its own plain grain. A dark sheet with laid lines reads
+     as a screen door, not as paper. */
+  [data-theme="night"] body {
+    background-image: none;
   }
   [data-theme="night"] body::after {
     mix-blend-mode: screen;
     opacity: 0.07;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 
   ::selection {
