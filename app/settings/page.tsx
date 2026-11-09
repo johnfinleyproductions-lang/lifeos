@@ -63,7 +63,7 @@ export default async function SettingsPage() {
 
       <Section
         title="Theme"
-        subtitle="Day or night stock. Follows the device until you choose; the switch at the foot of the rail does the same thing."
+        subtitle="Day or night stock. Everyone starts on day; the switch at the foot of the rail does the same thing."
       >
         <ThemeChoice />
       </Section>
