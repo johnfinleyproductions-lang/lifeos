@@ -3,6 +3,7 @@ import { requireUserContext } from "@/lib/auth/server-helpers";
 import { FieldMarksToggle } from "@/components/settings/FieldMarksToggle";
 import { PageStamp } from "@/components/PageStamp";
 import { ThemeChoice } from "./ThemeChoice";
+import { Reminders } from "@/components/settings/Reminders";
 
 /**
  * What a person, not a developer, might want to tune. The account block
@@ -62,6 +63,13 @@ export default async function SettingsPage() {
       </Section>
 
       <Section
+        title="Reminders"
+        subtitle="A nudge for the morning page and the evening page, through the calendar you already use, so it reaches your phone, your watch and your Mac."
+      >
+        <Reminders />
+      </Section>
+
+      <Section
         title="Theme"
         subtitle="Day or night stock. Everyone starts on day; the switch at the foot of the rail does the same thing."
       >
@@ -73,6 +81,27 @@ export default async function SettingsPage() {
         subtitle="The collection's small notes around the app. Nothing here is a target, and hiding them loses nothing."
       >
         <FieldMarksToggle />
+      </Section>
+
+      <Section
+        title="Your data"
+        subtitle="Everything you have written here is yours to take. Both files hold your journal, so keep them somewhere private."
+      >
+        <div className="sheet">
+          <div className="flex flex-wrap gap-3">
+            <a className="btn" href="/api/export?format=md" download>
+              Download to read
+            </a>
+            <a className="btn btn-ghost" href="/api/export?format=json" download>
+              Download the full record
+            </a>
+          </div>
+          <p className="mt-4 mb-0 text-[13.5px] text-ink-300 max-w-[62ch]">
+            The first is one document you can open in any text editor or print: journal, days,
+            habits, focus, quests and compass. The second is every row exactly as stored, for a
+            backup or for moving to another tool.
+          </p>
+        </div>
       </Section>
     </div>
   );

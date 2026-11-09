@@ -61,7 +61,7 @@ export function PressMargin({ sheet }: { sheet?: number }) {
 
       <span className="flex-1 border-b border-dotted border-ink-600" />
 
-      <span className="text-[10.5px]">two passes, grey stock</span>
+      <span className="text-[10.5px]">two passes, cream stock</span>
     </div>
     </div>
   );

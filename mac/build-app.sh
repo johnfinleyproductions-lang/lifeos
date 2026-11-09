@@ -151,6 +151,13 @@ cat > "$APP/Contents/Info.plist" <<PLIST_EOF
   <key>LSMinimumSystemVersion</key><string>12.0</string>
   <key>LSApplicationCategoryType</key><string>public.app-category.productivity</string>
   <key>NSHighResolutionCapable</key><true/>
+  <key>CFBundleURLTypes</key>
+  <array>
+    <dict>
+      <key>CFBundleURLName</key><string>app.lifeos.desktop</string>
+      <key>CFBundleURLSchemes</key><array><string>lifeos</string></array>
+    </dict>
+  </array>
   <key>NSAppTransportSecurity</key>
   <dict><key>NSAllowsLocalNetworking</key><true/></dict>
 </dict>
@@ -167,6 +174,16 @@ if command -v swiftc >/dev/null && xcode-select -p >/dev/null 2>&1; then
         -framework Cocoa -framework WebKit 2> "$ROOT/mac/dist/swift-errors.txt"; then
     WINDOW="browser"
     echo "The window did not compile. The reason is in mac/dist/swift-errors.txt."
+    # A window that compiled on an earlier build still works with the new
+    # LifeOS inside it. Keep it rather than dropping back to the browser.
+    for OLD in "/Applications/LifeOS.app/Contents/MacOS/LifeOS" "$HOME/Applications/LifeOS.app/Contents/MacOS/LifeOS"; do
+      if [ -f "$OLD" ] && file "$OLD" | grep -q "Mach-O"; then
+        cp "$OLD" "$APP/Contents/MacOS/LifeOS"
+        WINDOW="kept"
+        echo "Keeping the window from your last build. New window features (saving files, reminder links) wait until this is fixed."
+        break
+      fi
+    done
   else
     rm -f "$ROOT/mac/dist/swift-errors.txt"
   fi
@@ -195,7 +212,7 @@ if ! curl -s -o /dev/null -m 2 "$URL/api/health"; then
   [ -x "$NODE" ] || NODE="$(command -v node || echo /opt/homebrew/bin/node)"
   set -a; . "$SETTINGS"; set +a
   cd "$HERE/app" && PORT="$PORT" HOSTNAME=127.0.0.1 NODE_ENV=production LIFEOS_APP_URL="$URL" \
-    LIFEOS_INSECURE_COOKIES=1 nohup "$NODE" server.js > "$LOG" 2>&1 &
+    LIFEOS_INSECURE_COOKIES=1 LIFEOS_DESKTOP=1 nohup "$NODE" server.js > "$LOG" 2>&1 &
   for _ in $(seq 1 60); do curl -s -o /dev/null -m 1 "$URL/api/health" && break; sleep 0.4; done
 fi
 open "$URL"
@@ -221,6 +238,9 @@ ln -sfn "$DEST/LifeOS.app" "$HOME/Desktop/LifeOS"
 say "Done. LifeOS is in $DEST, with a shortcut on your Desktop."
 if [ "$WINDOW" = "browser" ]; then
   echo "This build opens LifeOS in your browser rather than its own window."
+elif [ "$WINDOW" = "kept" ]; then
+  echo "LifeOS itself is up to date. The window is the one from your last build;"
+  echo "send mac/dist/swift-errors.txt to get the new one fixed."
 fi
 echo "The first time someone picks their name, public sign-up has to be on in"
 echo "NoCodeBackend for the 54318_lifeos database. See mac/README.md."

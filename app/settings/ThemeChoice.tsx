@@ -6,12 +6,12 @@ const OPTIONS: { value: "day" | "night"; label: string; desc: string }[] = [
   {
     value: "day",
     label: "Day",
-    desc: "Cool grey stock, black ink. The default when your device is in light mode.",
+    desc: "Cream laid stock, warm black ink. Where everyone starts.",
   },
   {
     value: "night",
     label: "Night",
-    desc: "Dark stock, the same inks. The default when your device is in dark mode.",
+    desc: "Dark stock, the same inks. For late hours.",
   },
 ];
 

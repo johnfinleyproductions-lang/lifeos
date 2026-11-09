@@ -80,6 +80,22 @@ LIFEOS_LLM_BASE_URL=http://192.168.4.200:11434/v1
 Any server that speaks the OpenAI API works the same way: LM Studio,
 llama.cpp, vLLM.
 
+## Reminders, export and search
+
+**Reminders** are in Settings. Pick a time for the morning page and the
+evening page and press Add to my calendar. Calendar opens with two daily
+events, each with an alert. Because they live in your calendar they reach
+your phone and watch too, and on this Mac the alert's link opens LifeOS on
+the right page. To change the times, add it again; to stop, delete the events.
+
+**Export** is in Settings, under Your data. Download to read gives one
+document with your journal, days, habits, focus, quests and compass. Download
+the full record gives every row as stored. Both land in your Downloads folder
+and are shown in Finder.
+
+**Search** is on Journal, Past entries. Every word you type has to appear in
+the entry.
+
 ## Day to day
 
 - **Cmd R** reloads. **Cmd 1** goes to Today. **Cmd [** and **Cmd ]** go back

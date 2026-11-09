@@ -6,7 +6,7 @@
     "dev": "next dev -p 3001",
     "build": "next build",
     "start": "next start -p 3001",
-    "check": "node --experimental-strip-types scripts/check-time.mjs && node --experimental-strip-types scripts/check-db.mjs"
+    "check": "node --experimental-strip-types scripts/check-time.mjs && node --experimental-strip-types scripts/check-db.mjs && node --experimental-strip-types scripts/check-features.mjs"
   },
   "dependencies": {
     "next": "^16.0.0",

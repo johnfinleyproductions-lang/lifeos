@@ -105,19 +105,31 @@ than calling `new Date()` or date-fns directly. `scripts/check-time.mjs` is the
 unit check and `scripts/check-day-boundary.sh` drives a real server across the
 boundary.
 
+## Taking your data with you
+
+Settings has two downloads under Your data: a Markdown document to read
+(journal, days, habits, focus, quests, compass) and a JSON file holding every
+row as stored. `GET /api/export?format=md|json` is the same thing. It is also
+the only backup there is, so it is worth doing now and then.
+
+Reminders are a calendar file from Settings (`GET /api/reminders`), and the
+journal can be searched from Past entries.
+
 ## Checks
 
 ```bash
 pnpm check
 ```
 
-Runs two suites under plain Node, with no network and no build:
+Runs three suites under plain Node, with no network and no build:
 
 - `scripts/check-time.mjs`, 88 checks on which calendar day an instant
   belongs to, across zones and both daylight-saving changes.
 - `scripts/check-db.mjs`, 26 checks on the data layer, the last of which runs
   3,000 random queries and compares each answer with the plain meaning of the
   query.
+- `scripts/check-features.mjs`, 10 checks on journal search and the reminders
+  calendar file.
 
 ## Health
 

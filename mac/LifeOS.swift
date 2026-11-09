@@ -73,12 +73,17 @@ func page(_ title: String, _ body: String, retry: Bool = true) -> String {
 
 // MARK: - The app
 
-final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUIDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUIDelegate, WKDownloadDelegate {
     var window: NSWindow!
     var webView: WKWebView!
     var server: Process?
     var base = URL(string: "http://127.0.0.1:3187")!
     var attempt = 0
+    /// Where each download in progress is being saved.
+    var saving: [ObjectIdentifier: URL] = [:]
+    /// A lifeos:// link that arrived before the window was ready.
+    var pendingPath: String?
+    var ready = false
 
     // MARK: launch
 
@@ -95,6 +100,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
 
     func applicationWillTerminate(_ notification: Notification) {
         stopServer()
+    }
+
+    /// lifeos://morning and lifeos://evening, from a calendar reminder.
+    func application(_ application: NSApplication, open urls: [URL]) {
+        guard let url = urls.first, url.scheme == "lifeos" else { return }
+        let page = (url.host ?? "") + url.path
+        let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-/"))
+        guard page.unicodeScalars.allSatisfy({ allowed.contains($0) }) else { return }
+        if ready {
+            webView.load(URLRequest(url: base.appendingPathComponent(page)))
+            NSApp.activate(ignoringOtherApps: true)
+            window.makeKeyAndOrderFront(nil)
+        } else {
+            pendingPath = page
+        }
     }
 
     func stopServer() {
@@ -156,7 +176,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         // A deployed LifeOS: just open it.
         if let remote = settings["LIFEOS_URL"], !remote.isEmpty, let url = URL(string: remote) {
             base = url
-            webView.load(URLRequest(url: url))
+            opened(.up)
             return
         }
 
@@ -235,7 +255,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
             ))
             return
         }
-        webView.load(URLRequest(url: base))
+        ready = true
+        if let page = pendingPath {
+            pendingPath = nil
+            webView.load(URLRequest(url: base.appendingPathComponent(page)))
+        } else {
+            webView.load(URLRequest(url: base))
+        }
     }
 
     /// Starts the packed server. Returns a message if it could not.
@@ -279,6 +305,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         env["LIFEOS_APP_URL"] = base.absoluteString
         // Plain http on the same machine: see lib/http/cookie-flags.ts.
         env["LIFEOS_INSECURE_COOKIES"] = "1"
+        // Tells the server its links should open this app (lifeos://).
+        env["LIFEOS_DESKTOP"] = "1"
 
         let process = Process()
         process.executableURL = URL(fileURLWithPath: node)
@@ -327,6 +355,73 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         } else {
             decisionHandler(.cancel)
         }
+    }
+
+    // MARK: downloads (the export and the reminders file)
+
+    /// A response the server marks as a file to keep is saved, not shown.
+    func webView(
+        _ webView: WKWebView,
+        decidePolicyFor navigationResponse: WKNavigationResponse,
+        decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void
+    ) {
+        if let http = navigationResponse.response as? HTTPURLResponse,
+           let disposition = http.value(forHTTPHeaderField: "Content-Disposition"),
+           disposition.lowercased().hasPrefix("attachment") {
+            decisionHandler(.download)
+        } else {
+            decisionHandler(.allow)
+        }
+    }
+
+    func webView(_ webView: WKWebView, navigationResponse: WKNavigationResponse, didBecome download: WKDownload) {
+        download.delegate = self
+    }
+
+    func webView(_ webView: WKWebView, navigationAction: WKNavigationAction, didBecome download: WKDownload) {
+        download.delegate = self
+    }
+
+    /// Into the Downloads folder, never over a file that is already there.
+    func download(
+        _ download: WKDownload,
+        decideDestinationUsing response: URLResponse,
+        suggestedFilename: String,
+        completionHandler: @escaping (URL?) -> Void
+    ) {
+        let folder = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first
+            ?? home.appendingPathComponent("Downloads")
+        let name = suggestedFilename.isEmpty ? "lifeos-download" : suggestedFilename
+        let stem = (name as NSString).deletingPathExtension
+        let ext = (name as NSString).pathExtension
+        var target = folder.appendingPathComponent(name)
+        var n = 2
+        while FileManager.default.fileExists(atPath: target.path) {
+            let numbered = ext.isEmpty ? "\(stem) \(n)" : "\(stem) \(n).\(ext)"
+            target = folder.appendingPathComponent(numbered)
+            n += 1
+        }
+        saving[ObjectIdentifier(download)] = target
+        completionHandler(target)
+    }
+
+    func downloadDidFinish(_ download: WKDownload) {
+        guard let file = saving.removeValue(forKey: ObjectIdentifier(download)) else { return }
+        if file.pathExtension.lowercased() == "ics" {
+            // A calendar file is only useful opened: hand it to Calendar.
+            NSWorkspace.shared.open(file)
+        } else {
+            NSWorkspace.shared.activateFileViewerSelecting([file])
+        }
+    }
+
+    func download(_ download: WKDownload, didFailWithError error: Error, resumeData: Data?) {
+        saving.removeValue(forKey: ObjectIdentifier(download))
+        let alert = NSAlert()
+        alert.messageText = "The download did not finish."
+        alert.informativeText = error.localizedDescription
+        alert.addButton(withTitle: "OK")
+        alert.runModal()
     }
 
     /// Links that ask for a new window open in the browser instead.
