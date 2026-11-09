@@ -1,5 +1,6 @@
 "use client";
 
+import { WizPlate } from "@/components/field/WizPlate";
 import { useState, type KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
 import { BALANCE_DIMENSIONS } from "@/lib/reflection/balance";
@@ -21,6 +22,16 @@ type Props = {
 };
 
 const TOTAL_PHASES = 6;
+
+/** Each phase's engraving and the two words that name it. */
+const PHASE_PLATE = [
+  { plate: "calipers", name: "the week" },
+  { plate: "sheaf", name: "the wins" },
+  { plate: "mountain", name: "the quests" },
+  { plate: "trellis", name: "the balance" },
+  { plate: "lantern", name: "the lesson" },
+  { plate: "sprout", name: "the planting" },
+];
 
 /** Where an untouched thumb rests. Not a reading until the control moves. */
 const REST = 5;
@@ -134,13 +145,19 @@ export function WeeklyReviewClient({
 
       <form
         key={phase}
-        className="wiz-card"
+        className="wiz-card wiz-plated"
         onSubmit={(e) => {
           e.preventDefault();
           next();
         }}
       >
-        <div className="wiz-step">
+        <WizPlate
+          n={phase}
+          total={TOTAL_PHASES}
+          plate={PHASE_PLATE[phase - 1].plate}
+          name={PHASE_PLATE[phase - 1].name}
+        />
+        <div className="wiz-step sr-only">
           Phase {phase} of {TOTAL_PHASES}
         </div>
 

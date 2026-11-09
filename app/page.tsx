@@ -14,6 +14,7 @@ import {
   TomorrowSeed,
 } from "@/components/today/EveningSummaryCard";
 import { CollectionNote } from "@/components/today/CollectionNote";
+import { DayArc } from "@/components/today/DayArc";
 
 function greetingFor(h: number) {
   if (h < 5) return "Still up";
@@ -61,8 +62,8 @@ export default async function TodayPage() {
     <div className="sheet sheet-bare flex items-center justify-between gap-4 flex-wrap">
       <span className="t-read text-ink-300 m-0">
         {eveningHours
-          ? "The day is winding down. The shutdown takes about four minutes."
-          : "The day is still open. The shutdown takes about four minutes."}
+          ? "The day is winding down. Closing it is thirty seconds, or five cards."
+          : "The day is still open. Closing it is thirty seconds, or five cards."}
       </span>
       <Link href="/evening" className="btn btn-spot shrink-0">
         Close the day
@@ -72,11 +73,12 @@ export default async function TodayPage() {
 
   return (
     <div className="max-w-[1080px] mx-auto">
-      <header className="flex items-start justify-between gap-5 mb-6">
-        <div className="flex items-start gap-3.5 min-w-0">
-          {/* the pressed leaf: the day you are standing in */}
-          <span className="shrink-0 text-ink-50 mt-1 hidden sm:block">
-            <Plate name="leaf" />
+      <header className="runhead flex items-start justify-between gap-5 mb-6">
+        <div className="flex items-center gap-4 min-w-0">
+          {/* the pressed leaf: the day you are standing in, mounted */}
+          <span className="plate-tile">
+            <Plate name="leaf" size={46} className="hidden sm:block" />
+            <Plate name="leaf" size={32} className="sm:hidden" />
           </span>
           <div className="min-w-0">
             <div
@@ -84,8 +86,8 @@ export default async function TodayPage() {
               style={{ fontVariationSettings: "'wdth' 100, 'wght' 620" }}
             >
               {formatDay(today, "EEEE, d MMMM")}
-              <span className="inline-block w-5" />
-              <b className="text-ink-50 tabular-nums">No. {dayOfYear(today)}</b>
+              <span className="inline-block w-3 sm:w-5" />
+              <b className="text-ink-50 tabular-nums whitespace-nowrap">No. {dayOfYear(today)}</b>
             </div>
             <h1 className="t-h1 mt-[7px]">
               {greetingFor(now.hour)}
@@ -111,24 +113,18 @@ export default async function TodayPage() {
         <div className="sheet sheet-bare mb-5">
           <div className="t-h2">No session, so this is sample data</div>
           <p className="t-read text-ink-300 mt-2 max-w-[62ch]">
-            Nothing on this page is yours yet. Pick a profile, or sign in over
-            at Evergreen Core, and your real check-ins will populate here.
+            Nothing on this page is yours yet. Pick a profile and your own
+            check-ins will print here.
           </p>
           <div className="flex items-center gap-2 mt-4">
             <Link href="/pick-profile" className="btn btn-sm">
               Pick a profile
             </Link>
-            <Link
-              href={`${
-                process.env.NEXT_PUBLIC_EC_URL?.trim() || "http://localhost:3000"
-              }/auth`}
-              className="btn btn-sm btn-ghost"
-            >
-              Open Evergreen Core
-            </Link>
           </div>
         </div>
       )}
+
+      <DayArc />
 
       <div className="grid grid-cols-1 lg:grid-cols-[1.55fr_1fr] gap-5 items-start">
         <div className="flex flex-col gap-5">
@@ -145,7 +141,7 @@ export default async function TodayPage() {
               <FocusLive />
               <PlanCard variant="lead" />
               <ManifestoCard mode="line" />
-              {eveningHours && closeRow}
+              {closeRow}
             </>
           )}
 
@@ -158,6 +154,12 @@ export default async function TodayPage() {
               <TomorrowSeed />
             </>
           )}
+
+          {user && (
+            <div className="empty:hidden">
+              <CollectionNote />
+            </div>
+          )}
         </div>
 
         <div className="flex flex-col gap-3.5">
@@ -167,13 +169,6 @@ export default async function TodayPage() {
         </div>
       </div>
 
-      {user && (
-        <div className="mt-5 empty:hidden">
-          <CollectionNote />
-        </div>
-      )}
-
-      {state === "open" && !eveningHours && <div className="mt-5">{closeRow}</div>}
     </div>
   );
 }

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { AppUser } from "@/lib/auth/types";
+import { Plate, PLATE_FOR } from "@/components/field/plates";
 
 type NavItem = { label: string; href: string };
 type NavGroup = { label: string; items: NavItem[] };
@@ -86,15 +87,21 @@ export function Sidebar({
   return (
     <aside className="relative z-40 shrink-0 bg-ink-950 border-b-[1.5px] border-ink-50 md:border-b-0 md:border-r-[1.5px] md:w-[232px] md:flex md:flex-col md:sticky md:top-0 md:h-screen md:overflow-y-auto">
       <div className="flex items-center justify-between gap-3 px-[18px] py-3 md:block md:pt-[22px] md:pb-[18px] md:border-b-[1.5px] md:border-ink-50">
-        <div>
-          <div
-            className="text-[22px] md:text-[27px] leading-[0.92] tracking-[-0.035em]"
-            style={{ fontVariationSettings: "'wdth' 88, 'wght' 800" }}
-          >
-            LifeOS
-          </div>
-          <div className="text-[11px] text-ink-300 mt-1 tabular-nums">
-            Day {day} of {year}
+        <div className="flex items-center gap-3">
+          {/* the press's own device, as a publisher sets one on a spine */}
+          <span className="shrink-0 text-ink-50">
+            <Plate name="leaf" size={34} />
+          </span>
+          <div>
+            <div
+              className="text-[22px] md:text-[27px] leading-[0.92] tracking-[-0.035em]"
+              style={{ fontVariationSettings: "'wdth' 88, 'wght' 800" }}
+            >
+              LifeOS
+            </div>
+            <div className="text-[11px] text-ink-300 mt-1 tabular-nums">
+              Day {day} of {year}
+            </div>
           </div>
         </div>
         <button
@@ -187,6 +194,11 @@ function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
       }`}
       style={{ fontVariationSettings: active ? "'wght' 700" : "'wght' 550" }}
     >
+      {/* each section's own engraving, small, so the rail can be read by
+          shape as well as by word */}
+      <span className={`nav-glyph ${active ? "" : "opacity-70"}`} aria-hidden="true">
+        <Plate name={PLATE_FOR[item.href] ?? "leaf"} size={19} under={null} />
+      </span>
       {item.label}
     </Link>
   );

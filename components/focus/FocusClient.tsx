@@ -21,13 +21,16 @@ export function FocusClient({
   active,
   today,
   totalMinutes,
+  initialLabel = "",
 }: {
   active: ActiveSession | null;
   today: CompletedSession[];
   totalMinutes: number;
+  /** a priority handed over from Today, so the block starts named */
+  initialLabel?: string;
 }) {
   const router = useRouter();
-  const [label, setLabel] = useState("");
+  const [label, setLabel] = useState(initialLabel);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [elapsed, setElapsed] = useState(0);

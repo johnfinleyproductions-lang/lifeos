@@ -58,16 +58,24 @@ export async function PlanCard({
         </span>
       </div>
 
-      <PriorityList
-        key={`${closed}-${done.join("")}`}
-        priorities={morning.priorities}
-        done={done}
-        readOnly={closed}
-        size={closed ? "compact" : "full"}
-      />
+      <div
+        className={
+          closed
+            ? ""
+            : "sheet sheet-hi crop px-4 sm:px-5 py-1 shadow-[4px_4px_0_rgb(var(--text-1))] [&>div>div]:border-t-0 [&>div>div>div:last-child]:border-b-0"
+        }
+      >
+        <PriorityList
+          key={`${closed}-${done.join("")}`}
+          priorities={morning.priorities}
+          done={done}
+          readOnly={closed}
+          size={closed ? "compact" : "full"}
+        />
+      </div>
 
       {!closed && (morning.protect || morning.gratitude) && (
-        <div className="sheet sheet-bare mt-3.5 py-1 px-3.5">
+        <div className="sheet sheet-bare mt-6 py-1 px-3.5">
           {morning.protect && (
             <div className="flex gap-3.5 py-2.5 border-b border-ink-600 last:border-b-0">
               <span

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useTransition } from "react";
 import { strikePriority } from "./actions";
 
@@ -61,15 +62,25 @@ export function PriorityList({
                 full ? "py-3.5" : "py-2.5"
               }`}
             >
-              <span
-                className={`w-[26px] shrink-0 tabular-nums text-ink-400 ${
-                  full ? "text-[15px]" : "text-[13px]"
-                }`}
-                style={{ fontVariationSettings: "'wdth' 80, 'wght' 800" }}
-                aria-hidden="true"
-              >
-                {i + 1}
-              </span>
+              {full ? (
+                <span
+                  className={`folio folio-sm text-[44px] w-[36px] shrink-0 text-center ${
+                    struck ? "folio-struck" : ""
+                  }`}
+                  data-n={i + 1}
+                  aria-hidden="true"
+                >
+                  {i + 1}
+                </span>
+              ) : (
+                <span
+                  className="w-[26px] shrink-0 tabular-nums text-ink-400 text-[13px]"
+                  style={{ fontVariationSettings: "'wdth' 80, 'wght' 800" }}
+                  aria-hidden="true"
+                >
+                  {i + 1}
+                </span>
+              )}
               {readOnly ? (
                 <span
                   aria-hidden="true"
@@ -112,6 +123,17 @@ export function PriorityList({
                 )}
                 {p}
               </label>
+              {/* A priority is usually the next thing to sit down with, and
+                  the way there used to be: open Focus, retype it. */}
+              {full && !readOnly && !struck && (
+                <Link
+                  href={`/focus?label=${encodeURIComponent(p)}`}
+                  className="btn btn-sm btn-ghost shrink-0"
+                  aria-label={`Start a focus block on: ${p}`}
+                >
+                  Sit with it
+                </Link>
+              )}
             </div>
           );
         })}

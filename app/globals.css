@@ -1128,3 +1128,401 @@
     animation: stamp 0.22s steps(3) backwards;
   }
 }
+
+/* =====================================================================
+   The second pass over version two: more of the press on the page.
+
+   Version two was correct and flat. Every surface was a grey box with a
+   black tab on it, and the engravings that give the field guide its
+   character were twenty-six pixels wide and hidden on phones. Nothing
+   here adds a new idea to the idiom; it spends the ones already there
+   more generously: hatching, keylines, crop marks, ruled stock, plates.
+   ===================================================================== */
+@layer components {
+  /* ---- engraved numerals ------------------------------------------
+     A figure cut from hatching with an ink keyline, the way a plate
+     number is engraved rather than set. Used where a number is furniture
+     (a step, a rank) and never where it is a reading. */
+  .folio {
+    position: relative;
+    display: inline-block;
+    font-variation-settings: "wdth" 78, "wght" 800;
+    line-height: 0.82;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+    user-select: none;
+    /* The keyline. Stroke first, then a fill in the stock's own colour:
+       a variable font draws its glyphs from overlapping contours, and a
+       bare stroke shows every one of them as a line through the figure.
+       Filling over the stroke hides the seams and leaves the outline. */
+    color: rgb(var(--folio-stock, var(--surface-3)));
+    -webkit-text-stroke: 3px rgb(var(--text-1));
+    paint-order: stroke fill;
+  }
+  /* the hatching, as a second pass laid over the keylined figure */
+  .folio::after {
+    content: attr(data-n);
+    position: absolute;
+    inset: 0;
+    color: transparent;
+    -webkit-text-stroke: 0;
+    background-image: repeating-linear-gradient(
+      -58deg,
+      rgb(var(--text-1)) 0 1.3px,
+      transparent 1.3px 5px
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
+  .folio-sm {
+    -webkit-text-stroke-width: 2.4px;
+  }
+  .folio-sm::after {
+    background-image: repeating-linear-gradient(
+      -58deg,
+      rgb(var(--text-1)) 0 1px,
+      transparent 1px 3.6px
+    );
+  }
+  .folio-struck {
+    -webkit-text-stroke-color: rgb(var(--text-3));
+  }
+  .folio-struck::after {
+    background-image: none;
+  }
+
+  /* ---- crop marks --------------------------------------------------
+     The trim marks a printer leaves outside the corners of a sheet.
+     Reserved for the one sheet on a page that everything else is about. */
+  .crop {
+    position: relative;
+  }
+  .crop::after {
+    content: "";
+    position: absolute;
+    inset: -15px;
+    pointer-events: none;
+    --c: rgb(var(--text-1));
+    background:
+      linear-gradient(var(--c), var(--c)) left 0 top 15px / 9px 1px,
+      linear-gradient(var(--c), var(--c)) left 15px top 0 / 1px 9px,
+      linear-gradient(var(--c), var(--c)) right 0 top 15px / 9px 1px,
+      linear-gradient(var(--c), var(--c)) right 15px top 0 / 1px 9px,
+      linear-gradient(var(--c), var(--c)) left 0 bottom 15px / 9px 1px,
+      linear-gradient(var(--c), var(--c)) left 15px bottom 0 / 1px 9px,
+      linear-gradient(var(--c), var(--c)) right 0 bottom 15px / 9px 1px,
+      linear-gradient(var(--c), var(--c)) right 15px bottom 0 / 1px 9px;
+    background-repeat: no-repeat;
+  }
+  @media (max-width: 760px) {
+    .crop::after {
+      display: none;
+    }
+  }
+
+  /* ---- ruled stock -------------------------------------------------
+     Anything you write more than a line into is ledger paper: feint
+     rules under each line and a double margin rule down the left. The
+     rules scroll with the writing (background-attachment: local), and
+     the line height is fixed so the type sits on them. */
+  .ta {
+    line-height: 28px;
+    padding: 8px 14px 10px 42px;
+    background-color: rgb(var(--surface-3));
+    background-image:
+      linear-gradient(
+        90deg,
+        transparent 29px,
+        rgb(var(--line)) 29px 30px,
+        transparent 30px 33px,
+        rgb(var(--line)) 33px 34px,
+        transparent 34px
+      ),
+      repeating-linear-gradient(
+        transparent 0 27px,
+        rgb(var(--line-soft)) 27px 28px
+      );
+    background-attachment: local, local;
+    background-position: 0 0, 0 6px;
+  }
+  @media (max-width: 760px) {
+    .ta {
+      padding-left: 30px;
+      background-image:
+        linear-gradient(
+          90deg,
+          transparent 19px,
+          rgb(var(--line)) 19px 20px,
+          transparent 20px
+        ),
+        repeating-linear-gradient(
+          transparent 0 27px,
+          rgb(var(--line-soft)) 27px 28px
+        );
+    }
+  }
+
+  /* ---- the plate tile ----------------------------------------------
+     Each page's engraving, mounted: a keylined square on a stippled
+     ground with the block's shadow under it. The header's emblem. */
+  .plate-tile {
+    position: relative;
+    width: 64px;
+    height: 64px;
+    flex: 0 0 64px;
+    display: grid;
+    place-items: center;
+    color: rgb(var(--text-1));
+    background: rgb(var(--surface-3));
+    border: 1.5px solid rgb(var(--text-1));
+    box-shadow: 3px 3px 0 rgb(var(--text-1));
+  }
+  .plate-tile::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgb(var(--text-1));
+    opacity: 0.16;
+    -webkit-mask: var(--tile-dot) repeat 0 0 / 7px 7px;
+    mask: var(--tile-dot) repeat 0 0 / 7px 7px;
+    pointer-events: none;
+  }
+  .plate-tile > svg {
+    position: relative;
+  }
+  @media (max-width: 760px) {
+    .plate-tile {
+      width: 46px;
+      height: 46px;
+      flex-basis: 46px;
+      box-shadow: 2px 2px 0 rgb(var(--text-1));
+    }
+  }
+
+  /* ---- the running head --------------------------------------------
+     A thick rule and a thin one under the page's stamp, as a field
+     guide closes its running head. */
+  .runhead {
+    padding-bottom: 16px;
+    border-bottom: 1.5px solid rgb(var(--text-1));
+    position: relative;
+  }
+  .runhead::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -5px;
+    border-bottom: 1px solid rgb(var(--text-1));
+  }
+
+  /* ---- the wizard's plate panel --------------------------------------
+     Each card of a ritual carries its own engraving and its number, in
+     a stippled margin down the left. On a phone the margin turns into a
+     band across the top. The panel is positioned rather than laid out so
+     the wizards did not have to be restructured around it. */
+  .wiz:has(.wiz-plated) {
+    max-width: 780px;
+  }
+  .wiz-plated {
+    padding-left: 172px;
+    min-height: 330px;
+  }
+  .wiz-plate {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 138px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 30px;
+    padding: 28px 0 20px;
+    border-right: 1.5px solid rgb(var(--text-1));
+    background: rgb(var(--surface-2));
+    color: rgb(var(--text-1));
+    overflow: hidden;
+    --folio-stock: var(--surface-2);
+  }
+  .wiz-plate::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgb(var(--text-1));
+    opacity: 0.13;
+    -webkit-mask: var(--tile-dot) repeat 0 0 / 8px 8px;
+    mask: var(--tile-dot) repeat 0 0 / 8px 8px;
+    pointer-events: none;
+  }
+  .wiz-plate > * {
+    position: relative;
+  }
+  .wiz-plate .folio {
+    font-size: 84px;
+  }
+  .wiz-plate-cap {
+    margin-top: auto;
+    font-size: 11px;
+    text-align: center;
+    line-height: 1.3;
+    color: rgb(var(--text-2));
+    font-variation-settings: "wdth" 96, "wght" 640;
+    padding: 0 10px;
+  }
+  .wiz-plate-cap b {
+    display: block;
+    color: rgb(var(--text-1));
+    font-family: var(--font-newsreader), ui-serif, Georgia, serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 15px;
+  }
+  @media (max-width: 760px) {
+    .wiz-plated {
+      padding-left: 20px;
+      padding-top: 88px;
+      min-height: 0;
+    }
+    .wiz-plate {
+      right: 0;
+      bottom: auto;
+      width: auto;
+      height: 68px;
+      flex-direction: row;
+      justify-content: flex-start;
+      gap: 14px;
+      padding: 0 16px;
+      border-right: 0;
+      border-bottom: 1.5px solid rgb(var(--text-1));
+    }
+    .wiz-plate .folio {
+      font-size: 44px;
+    }
+    .wiz-plate-cap {
+      text-align: left;
+      padding: 0;
+      margin-left: auto;
+    }
+  }
+
+  /* ---- the day, plotted --------------------------------------------
+     A strip from four to four with the day's marks set along it: when
+     it was set, each sit in the hide as a hatched block, where the hour
+     hand is now, and when it closed. The only orange on it is now. */
+  .arc {
+    position: relative;
+    height: 74px;
+    margin: 0 8px;
+  }
+  .arc-track {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 34px;
+    height: 12px;
+    border: 1.5px solid rgb(var(--text-1));
+    background: rgb(var(--surface-3));
+  }
+  /* the dark hours at either end, stippled */
+  .arc-dark {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    background: rgb(var(--text-1));
+    opacity: 0.42;
+    -webkit-mask: var(--tile-dot) repeat 0 0 / 5px 5px;
+    mask: var(--tile-dot) repeat 0 0 / 5px 5px;
+  }
+  .arc-tick {
+    position: absolute;
+    top: 46px;
+    width: 1px;
+    height: 6px;
+    background: rgb(var(--text-1));
+  }
+  .arc-hour {
+    position: absolute;
+    top: 55px;
+    transform: translateX(-50%);
+    font-size: 10.5px;
+    color: rgb(var(--text-3));
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .arc-block {
+    position: absolute;
+    top: 34px;
+    height: 12px;
+    min-width: 3px;
+    color: rgb(var(--text-1));
+    background: currentColor;
+    -webkit-mask: var(--tile-hatch) repeat 0 0 / 4.5px 5.8px;
+    mask: var(--tile-hatch) repeat 0 0 / 4.5px 5.8px;
+    border: 0;
+  }
+  .arc-block-live {
+    color: rgb(var(--spot));
+  }
+  .arc-mark {
+    position: absolute;
+    top: 0;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: rgb(var(--text-1));
+  }
+  .arc-mark::after {
+    content: "";
+    width: 1px;
+    height: 7px;
+    background: rgb(var(--text-1));
+    margin-top: 1px;
+  }
+  .arc-now {
+    position: absolute;
+    top: 26px;
+    width: 2px;
+    height: 28px;
+    background: rgb(var(--spot));
+    transform: translateX(-1px);
+  }
+  .arc-now::before {
+    content: "";
+    position: absolute;
+    left: -4px;
+    top: -6px;
+    border: 5px solid transparent;
+    border-top: 7px solid rgb(var(--spot));
+    border-bottom: 0;
+  }
+
+  /* A plate drawn for forty pixels thins to a hair at nineteen, so the
+     small ones are cut with a heavier line. */
+  .nav-glyph {
+    display: inline-flex;
+    flex: 0 0 auto;
+  }
+  .nav-glyph svg *,
+  .arc-mark svg * {
+    stroke-width: 2.7px;
+  }
+
+  /* ---- small furniture ---------------------------------------------- */
+  /* a caption under a plate, as "fig. 4" sits under an engraving */
+  .fig {
+    font-family: var(--font-newsreader), ui-serif, Georgia, serif;
+    font-style: italic;
+    font-size: 13.5px;
+    color: rgb(var(--text-2));
+  }
+  /* a printed pointing rule between two things on one line */
+  .leader {
+    flex: 1;
+    min-width: 18px;
+    border-bottom: 1.5px dotted rgb(var(--line));
+    transform: translateY(-4px);
+  }
+}

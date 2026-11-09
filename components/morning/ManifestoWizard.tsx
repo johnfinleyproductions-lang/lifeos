@@ -1,5 +1,6 @@
 "use client";
 
+import { WizPlate } from "@/components/field/WizPlate";
 import { useState, type KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
 import type { MorningManifesto, MorningRequest } from "@/lib/manifesto/schema";
@@ -22,6 +23,15 @@ function appendVoice(prev: string, text: string): string {
  * to the back of the deck so the easy ones have warmed the hand first.
  */
 type StepId = "tank" | "three" | "protect" | "manifesto" | "gratitude";
+
+/** Each card's engraving and the two words that name it. */
+const STEP_PLATE: Record<StepId, { plate: string; name: string }> = {
+  tank: { plate: "seedpod", name: "the tank" },
+  three: { plate: "cairn", name: "the three" },
+  protect: { plate: "hide", name: "the hide" },
+  manifesto: { plate: "feather", name: "who you are" },
+  gratitude: { plate: "bloom", name: "one thanks" },
+};
 
 const STEPS: Record<DepthChoice, StepId[]> = {
   quick: ["tank", "three", "gratitude"],
@@ -200,14 +210,20 @@ export function ManifestoWizard({
 
       <form
         key={`${depth}-${stepId}`}
-        className="wiz-card"
+        className="wiz-card wiz-plated"
         onSubmit={(e) => {
           e.preventDefault();
           next();
         }}
       >
+        <WizPlate
+          n={index + 1}
+          total={total}
+          plate={STEP_PLATE[stepId].plate}
+          name={STEP_PLATE[stepId].name}
+        />
         <div className="flex items-center justify-between gap-3 flex-wrap">
-          <div className="wiz-step mb-0">
+          <div className="wiz-step mb-0 sr-only">
             Step {index + 1} of {total}
           </div>
           {stepId === "tank" && (

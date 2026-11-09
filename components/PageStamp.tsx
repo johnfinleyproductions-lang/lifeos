@@ -33,11 +33,16 @@ export function PageStamp({
   const today = todayKey();
 
   return (
-    <header className="flex items-start justify-between gap-4 md:gap-5 mb-6">
-      <div className="flex items-start gap-3.5 min-w-0">
-        {/* every screen carries its own specimen plate */}
-        <span className="shrink-0 text-ink-50 mt-1 hidden sm:block">
-          <PlateForRoute />
+    <header className="runhead flex items-start justify-between gap-4 md:gap-5 mb-7">
+      <div className="flex items-center gap-4 min-w-0">
+        {/* every screen carries its own specimen plate, mounted */}
+        <span className="plate-tile">
+          <span className="hidden sm:block">
+            <PlateForRoute size={46} />
+          </span>
+          <span className="sm:hidden">
+            <PlateForRoute size={32} />
+          </span>
         </span>
         <div className="min-w-0">
           <div
@@ -45,15 +50,11 @@ export function PageStamp({
             style={{ fontVariationSettings: "'wdth' 100, 'wght' 620" }}
           >
             {formatDay(today, "EEEE, d MMMM")}
-            <span className="inline-block w-5" />
-            <b className="text-ink-50 tabular-nums">No. {dayOfYear(today)}</b>
+            <span className="inline-block w-3 sm:w-5" />
+            <b className="text-ink-50 tabular-nums whitespace-nowrap">No. {dayOfYear(today)}</b>
           </div>
           {title && <h1 className="t-h1 mt-[7px]">{title}</h1>}
-          {subtitle && (
-            <p className="text-[14.5px] text-ink-300 mt-2 max-w-[62ch]">
-              {subtitle}
-            </p>
-          )}
+          {subtitle && <p className="fig mt-1.5 max-w-[62ch]">{subtitle}</p>}
         </div>
       </div>
       <div className="flex items-center justify-end gap-2 shrink-0 flex-wrap max-w-[50%]">

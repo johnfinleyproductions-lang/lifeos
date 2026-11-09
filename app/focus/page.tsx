@@ -5,9 +5,16 @@ import { lifeosFocusSessions } from "@/lib/db/schema/lifeos";
 import { requireUserContext } from "@/lib/auth/server-helpers";
 import { FocusClient } from "@/components/focus/FocusClient";
 import { PageStamp } from "@/components/PageStamp";
+import { DayArc } from "@/components/today/DayArc";
 
-export default async function FocusPage() {
+export default async function FocusPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ label?: string }>;
+}) {
   const { user } = await requireUserContext();
+  // Today hands a priority over as ?label=, so the block starts named.
+  const handed = (await searchParams).label?.trim().slice(0, 140) ?? "";
 
   const [active] = await db
     .select()
@@ -41,8 +48,11 @@ export default async function FocusPage() {
   return (
     <div className="max-w-3xl mx-auto">
       <PageStamp title="Focus" subtitle="Where the work actually happens." />
+      {/* the same strip Today carries: each sit is a block on it */}
+      <DayArc />
 
       <FocusClient
+        initialLabel={handed}
         active={
           active
             ? {

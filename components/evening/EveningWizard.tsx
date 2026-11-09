@@ -1,5 +1,6 @@
 "use client";
 
+import { WizPlate } from "@/components/field/WizPlate";
 import {
   useState,
   type Dispatch,
@@ -29,6 +30,15 @@ function appendVoice(prev: string, text: string): string {
  * priorities to strike.
  */
 type StepId = "rate" | "strike" | "win" | "lesson" | "seed";
+
+/** Each card's engraving and the two words that name it. */
+const STEP_PLATE: Record<StepId, { plate: string; name: string }> = {
+  rate: { plate: "disc", name: "the reading" },
+  strike: { plate: "flag", name: "the three" },
+  win: { plate: "sheaf", name: "the win" },
+  lesson: { plate: "lantern", name: "the lesson" },
+  seed: { plate: "sprout", name: "the seed" },
+};
 
 const STEPS: Record<DepthChoice, StepId[]> = {
   quick: ["rate", "strike", "win"],
@@ -146,14 +156,20 @@ export function EveningWizard({
 
       <form
         key={`${depth}-${stepId}`}
-        className="wiz-card"
+        className="wiz-card wiz-plated"
         onSubmit={(e) => {
           e.preventDefault();
           next();
         }}
       >
+        <WizPlate
+          n={index + 1}
+          total={total}
+          plate={STEP_PLATE[stepId].plate}
+          name={STEP_PLATE[stepId].name}
+        />
         <div className="flex items-center justify-between gap-3 flex-wrap">
-          <div className="wiz-step mb-0">
+          <div className="wiz-step mb-0 sr-only">
             Step {index + 1} of {total}
           </div>
           {stepId === "rate" && (
