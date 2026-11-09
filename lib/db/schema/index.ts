@@ -23,3 +23,5 @@ export * from "./lifeosConfidenceEntries";
 export * from "./lifeosReframesSeen";
 export * from "./lifeosJournalEntries";
 export * from "./lifeosOpenLoops";
+export * from "./lifeosExperiments";
+export * from "./lifeosExperimentDays";

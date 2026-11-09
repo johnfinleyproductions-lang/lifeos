@@ -1,6 +1,6 @@
 {
   "instance": "54318_lifeos",
-  "generatedAt": "2026-11-09T20:37:33.415Z",
+  "generatedAt": "2026-11-09T23:29:53.060Z",
   "tables": {
     "lifeos_compass": {
       "primaryKey": "id",
@@ -160,6 +160,171 @@
             "onDelete": "cascade",
             "onUpdate": "cascade"
           }
+        }
+      }
+    },
+    "lifeos_experiment_days": {
+      "primaryKey": "id",
+      "columns": {
+        "id": {
+          "type": "integer",
+          "nullable": false,
+          "autoIncrement": true
+        },
+        "experiment_id": {
+          "type": "integer",
+          "nullable": true,
+          "default": null,
+          "indexed": true,
+          "unique": true,
+          "foreignKey": {
+            "table": "lifeos_experiments",
+            "column": "id",
+            "onDelete": "cascade",
+            "onUpdate": "cascade"
+          }
+        },
+        "entry_date": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "NULL",
+          "indexed": true,
+          "unique": true
+        },
+        "note": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "created_at": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "user_id": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL",
+          "indexed": true,
+          "foreignKey": {
+            "table": "ncba_user",
+            "column": "id",
+            "onDelete": "cascade",
+            "onUpdate": "cascade"
+          }
+        },
+        "done": {
+          "type": "integer",
+          "nullable": true,
+          "default": null
+        },
+        "reason": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "updated_at": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "NULL"
+        }
+      }
+    },
+    "lifeos_experiments": {
+      "primaryKey": "id",
+      "columns": {
+        "id": {
+          "type": "integer",
+          "nullable": false,
+          "autoIncrement": true
+        },
+        "action": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "cadence": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "curiosity": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "worked": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "did_not": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "next_step": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "created_at": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "updated_at": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "user_id": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL",
+          "indexed": true,
+          "foreignKey": {
+            "table": "ncba_user",
+            "column": "id",
+            "onDelete": "cascade",
+            "onUpdate": "cascade"
+          }
+        },
+        "start_date": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "length_days": {
+          "type": "integer",
+          "nullable": true,
+          "default": null
+        },
+        "status": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL",
+          "indexed": true
+        },
+        "outcome": {
+          "type": "string",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "closed_at": {
+          "type": "datetime",
+          "nullable": true,
+          "default": "NULL"
+        },
+        "previous_id": {
+          "type": "integer",
+          "nullable": true,
+          "default": null
+        },
+        "habit_id": {
+          "type": "integer",
+          "nullable": true,
+          "default": null
         }
       }
     },

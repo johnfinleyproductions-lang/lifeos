@@ -9,6 +9,8 @@
  */
 import { createDatabase } from "./query";
 import {
+  lifeosExperimentDays,
+  lifeosExperiments,
   lifeosHabitCompletions,
   lifeosHabits,
   lifeosJournalEntries,
@@ -21,5 +23,6 @@ export const db = createDatabase(ncbTransport);
 // What used to be ON DELETE CASCADE. NCB has no foreign keys.
 db.cascade(lifeosHabits, lifeosHabitCompletions, lifeosHabitCompletions.habitId);
 db.cascade(lifeosJournalEntries, lifeosOpenLoops, lifeosOpenLoops.sourceEntryId);
+db.cascade(lifeosExperiments, lifeosExperimentDays, lifeosExperimentDays.experimentId);
 
 export type DbClient = typeof db;

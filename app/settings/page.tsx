@@ -4,6 +4,7 @@ import { FieldMarksToggle } from "@/components/settings/FieldMarksToggle";
 import { PageStamp } from "@/components/PageStamp";
 import { ThemeChoice } from "./ThemeChoice";
 import { Reminders } from "@/components/settings/Reminders";
+import { ExperimentsToggle } from "@/components/settings/ExperimentsToggle";
 
 /**
  * What a person, not a developer, might want to tune. The account block
@@ -84,6 +85,13 @@ export default async function SettingsPage() {
       </Section>
 
       <Section
+        title="Experiments"
+        subtitle="An optional section for trying something small for a set time and then deciding about it. Off, it leaves no trace in the app. Anything you have recorded is kept either way."
+      >
+        <ExperimentsToggle />
+      </Section>
+
+      <Section
         title="Your data"
         subtitle="Everything you have written here is yours to take. Both files hold your journal, so keep them somewhere private."
       >
@@ -98,7 +106,7 @@ export default async function SettingsPage() {
           </div>
           <p className="mt-4 mb-0 text-[13.5px] text-ink-300 max-w-[62ch]">
             The first is one document you can open in any text editor or print: journal, days,
-            habits, focus, quests and compass. The second is every row exactly as stored, for a
+            habits, focus, quests, compass and experiments. The second is every row exactly as stored, for a
             backup or for moving to another tool.
           </p>
         </div>

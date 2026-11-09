@@ -10,7 +10,7 @@ auth on. NCB's own guides and the schema it reports are saved as issued under
 
 ## What lives where
 
-NCB holds eleven `lifeos_*` tables and its own `ncba_*` auth tables. To every
+NCB holds thirteen `lifeos_*` tables and its own `ncba_*` auth tables. To every
 data table it adds two columns: an integer `id`, and `user_id`, which it fills
 from the signed-in session on every insert and filters every read by.
 
@@ -27,7 +27,8 @@ they were created with.
 
 Three unique rules carried over from the Postgres schema and are enforced by
 the database: one check-in per person per day, one completion per habit per
-day, one compass per person.
+day, one compass per person. A fourth came with the Experiments section: one
+mark per experiment per day.
 
 ## Sign-in
 
@@ -176,6 +177,14 @@ A request that names a column NCB does not have fails with a 500, so step 1
 comes before deploying step 2. For a new table, give it no `id` and no
 `user_id`; NCB adds both.
 
+Once a database exists NCB's tools have no call that adds a table. The two
+experiments tables were added with `execute_sql` by copying an existing table
+(`CREATE TABLE new LIKE old`) and reshaping the copy, which carries over the
+`id` and `user_id` columns exactly as NCB made them. The data API then treats
+the new table like any other: it fills `user_id` from the session and filters
+reads by it. That was checked with two accounts. The statements are in
+`docs/ncb/experiments.sql`.
+
 ## Limits to know about
 
 - **Speed.** Each query is one HTTPS round trip of roughly a tenth of a second.
@@ -228,3 +237,16 @@ test account and its rows were removed afterwards.
 One thing this relies on: a save route checks for an existing row and then
 writes. The random nonce on every read (see above) is what makes that check
 see a row written a moment earlier.
+
+The Experiments section had a run of 37 checks in Chromium and again in
+WebKit, with the server's clock moved forward between steps. Covered: the
+section absent from the rail, Today and the evening page until switched on in
+Settings; starting one from the form; the mark and the note surviving a
+reload; a third experiment refused; marks made from Today; the evening page
+asking only about what is unmarked; yesterday fillable and older days not;
+both experiments reaching their last day and showing a count with no
+percentage; keep going, change and run again, end early and make a habit;
+the export; a second person seeing none of it and refused on mark, close and
+remove; removal taking the day rows with it; a phone-width page; and the
+record kept when the section is switched off again. The test accounts and
+their rows were removed afterwards.

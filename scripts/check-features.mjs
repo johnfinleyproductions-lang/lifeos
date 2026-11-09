@@ -1,5 +1,5 @@
-// Checks for journal search, the reminders calendar file and the offline
-// outbox, under bare node:
+// Checks for journal search, the reminders calendar file, the offline
+// outbox and the experiment rules, under bare node:
 //   node --experimental-strip-types scripts/check-features.mjs
 import assert from "node:assert/strict";
 
@@ -225,6 +225,63 @@ await acheck("if the device cannot keep it, the caller hears a failure", async (
   assert.equal(res.ok, false);
 });
 globalThis.fetch = realFetch;
+
+// ---- experiments: which days count, and what the record says ----
+const ex = await import("../lib/experiments/rules.ts");
+const marks = (obj) => new Map(Object.entries(obj));
+check("an experiment covers its length, first day included", () => {
+  assert.equal(ex.lastDay("2026-11-09", 10), "2026-11-18");
+  assert.equal(ex.allDays("2026-11-09", 5).join(), "2026-11-09,2026-11-10,2026-11-11,2026-11-12,2026-11-13");
+  assert.equal(ex.lastDay("2026-12-28", 7), "2027-01-03", "across the new year");
+});
+check("weekdays skips the weekend; a times-a-week cadence can use any day", () => {
+  // 9 Nov 2026 is a Monday.
+  assert.equal(ex.dueDays("2026-11-09", 7, "weekdays").length, 5);
+  assert.equal(ex.dueDays("2026-11-09", 7, "x3").length, 7);
+  assert.equal(ex.dueDays("2026-11-09", 7, "nonsense").length, 7, "an unknown cadence is daily");
+});
+check("it runs through its last day and is ready to close the day after", () => {
+  const e = { status: "running", startDate: "2026-11-09", lengthDays: 5 };
+  assert.equal(ex.phaseOf(e, "2026-11-13"), "running");
+  assert.equal(ex.phaseOf(e, "2026-11-14"), "ready");
+  assert.equal(ex.phaseOf({ ...e, status: "closed" }, "2026-11-10"), "closed");
+  assert.equal(ex.dayNumber("2026-11-09", 5, "2026-11-09"), 1);
+  assert.equal(ex.dayNumber("2026-11-09", 5, "2026-11-30"), 5, "capped once it is over");
+});
+check("only today and yesterday can be marked, and only inside the dates", () => {
+  const e = { status: "running", startDate: "2026-11-09", lengthDays: 5 };
+  assert.equal(ex.canMark(e, "2026-11-10", "2026-11-10"), true);
+  assert.equal(ex.canMark(e, "2026-11-09", "2026-11-10"), true, "yesterday");
+  assert.equal(ex.canMark(e, "2026-11-08", "2026-11-09"), false, "before it began");
+  assert.equal(ex.canMark(e, "2026-11-09", "2026-11-11"), false, "two days back");
+  assert.equal(ex.canMark(e, "2026-11-13", "2026-11-14"), true, "the last day, marked the morning after");
+  assert.equal(ex.canMark(e, "2026-11-14", "2026-11-14"), false, "after the last day");
+  assert.equal(ex.canMark({ ...e, status: "closed" }, "2026-11-10", "2026-11-10"), false);
+});
+check("the tally counts what happened, and never punishes a day still to come", () => {
+  const e = { startDate: "2026-11-09", lengthDays: 5, cadence: "daily" };
+  const t = ex.tally(e, marks({ "2026-11-09": { done: true }, "2026-11-10": { done: false, reason: "hand" }, "2026-11-12": { done: true } }), "2026-11-12");
+  assert.deepEqual([t.done, t.planned, t.missed, t.unmarked], [2, 5, 1, 1]);
+  assert.equal(t.reasons.hand, 1);
+  assert.equal(ex.tallyWords(t, "daily"), "Done on 2 of 5 days.");
+});
+check("a times-a-week experiment counts times against the plan and has no missed days", () => {
+  const e = { startDate: "2026-11-09", lengthDays: 14, cadence: "x3" };
+  const t = ex.tally(e, marks({ "2026-11-09": { done: true }, "2026-11-11": { done: false }, "2026-11-12": { done: true } }), "2026-11-20");
+  assert.deepEqual([t.done, t.planned, t.missed, t.unmarked], [2, 6, 0, 0]);
+  assert.equal(ex.tallyWords(t, "x3"), "Done 2 times, of 6 planned.");
+});
+check("one reason has to stand out before it is named", () => {
+  const base = { done: 0, planned: 5, missed: 3, unmarked: 0 };
+  assert.equal(ex.mainReason({ ...base, reasons: { head: 0, heart: 0, hand: 0 } }), null);
+  assert.equal(ex.mainReason({ ...base, reasons: { head: 1, heart: 1, hand: 0 } }), null, "a tie names nothing");
+  assert.equal(ex.mainReason({ ...base, reasons: { head: 0, heart: 1, hand: 2 } }), "hand");
+});
+check("the sentence reads as a person would say it", () => {
+  assert.equal(ex.sentence({ action: "walk before work. ", cadence: "daily", lengthDays: 10 }), "I will walk before work for 10 days.");
+  assert.equal(ex.sentence({ action: "do pilates", cadence: "x3", lengthDays: 28 }), "I will do pilates 3 times a week for 4 weeks.");
+  assert.equal(ex.sentence({ action: "write first", cadence: "weekdays", lengthDays: 7 }), "I will write first on weekdays for one week.");
+});
 
 if (process.exitCode) console.error(`\n${passed} passed, some failed`);
 else console.log(`check-features: ${passed} checks passed`);

@@ -16,6 +16,7 @@ import {
 } from "@/components/today/EveningSummaryCard";
 import { CollectionNote } from "@/components/today/CollectionNote";
 import { DayArc } from "@/components/today/DayArc";
+import { ExperimentCards } from "@/components/today/ExperimentCards";
 
 function greetingFor(h: number) {
   if (h < 5) return "Still up";
@@ -167,6 +168,7 @@ export default async function TodayPage() {
         </div>
 
         <div className="flex flex-col gap-3.5">
+          <ExperimentCards />
           <FocusHabitsCard />
           <QuestsCard />
           <BalanceCard />

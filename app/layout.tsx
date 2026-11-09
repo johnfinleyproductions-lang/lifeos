@@ -5,6 +5,7 @@ import { PressMargin } from "@/components/field/PressMargin";
 import { PressDefs } from "@/components/field/PressDefs";
 import { OutboxMark } from "@/components/offline/OutboxMark";
 import { getAuthContext } from "@/lib/auth/server-helpers";
+import { experimentsOn } from "@/lib/experiments/enabled";
 import { dayOfYear, parseDayKey, todayKey } from "@/lib/time/day";
 import "./globals.css";
 
@@ -71,6 +72,7 @@ export default async function RootLayout({
   // getAuthContext() again — getSession is cached per-request.
   const { user, session } = await getAuthContext();
   const today = todayKey();
+  const experiments = await experimentsOn();
 
   return (
     <html
@@ -92,6 +94,7 @@ export default async function RootLayout({
             user={user}
             day={dayOfYear(today)}
             year={parseDayKey(today).year}
+            experiments={experiments}
           />
           <main
             id="sheet"

@@ -114,6 +114,29 @@ the only backup there is, so it is worth doing now and then.
 Reminders are a calendar file from Settings (`GET /api/reminders`), and the
 journal can be searched from Past entries.
 
+## Experiments
+
+An optional section, off until someone switches it on in Settings. Off, it
+has no entry in the rail, prints nothing on Today or the evening page, and
+those pages do not read its tables.
+
+It follows the loop in Anne-Laure Le Cunff's book Tiny Experiments. An
+experiment is one sentence, "I will [action] for [length]", with the
+curiosity behind it: every day, on weekdays, or a number of times a week,
+for five days up to four weeks. Each day gets a mark, done or not, and one
+line on how it went. A day it did not happen can carry one of three reasons
+(not sure it is worth doing, did not feel like it, something practical got in
+the way). On the last day the page shows the count and any reason that kept
+recurring, asks what worked, what did not and what next, and offers four ways
+on: another round, make it a habit, pause, or change it and run again.
+
+Left out on purpose: percentages, streaks and any verdict before the end.
+Two can run at once. The rules are in `lib/experiments/rules.ts`, which has
+no dependencies and is covered by `pnpm check`.
+
+The switch is a cookie, like the other Settings choices, so it is per
+browser. Marks are not kept offline yet; they need the connection.
+
 ## Writing without a connection
 
 The morning page, the evening page, a new journal entry and a habit tick are
@@ -162,9 +185,10 @@ Runs three suites under plain Node, with no network and no build:
 - `scripts/check-db.mjs`, 26 checks on the data layer, the last of which runs
   3,000 random queries and compares each answer with the plain meaning of the
   query.
-- `scripts/check-features.mjs`, 26 checks on journal search, the reminders
-  calendar file and the offline outbox (order, retries, two people on one
-  device, two tabs at once).
+- `scripts/check-features.mjs`, 34 checks on journal search, the reminders
+  calendar file, the offline outbox (order, retries, two people on one
+  device, two tabs at once) and the experiment rules (which days count, what
+  can be marked, what the record says).
 
 ## Health
 

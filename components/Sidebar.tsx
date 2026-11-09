@@ -73,13 +73,23 @@ export function Sidebar({
   user,
   day,
   year,
+  experiments = false,
 }: {
   user: AppUser | null;
   day: number;
   year: number;
+  /** The Experiments section is switched on in Settings. Off, it has no entry here. */
+  experiments?: boolean;
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const nav = experiments
+    ? NAV.map((group) =>
+        group.label === "The day"
+          ? { ...group, items: [...group.items, { label: "Experiments", href: "/experiments" }] }
+          : group,
+      )
+    : NAV;
 
   // A chosen route closes the menu.
   useEffect(() => setOpen(false), [pathname]);
@@ -122,7 +132,7 @@ export function Sidebar({
         } md:flex flex-col absolute md:static left-0 right-0 top-full max-h-[calc(100vh-64px)] md:max-h-none overflow-y-auto md:overflow-visible bg-ink-950 border-b-[1.5px] border-ink-50 md:border-b-0 md:flex-1`}
       >
         <nav className="flex-1 py-3.5" aria-label="Sections">
-          {NAV.map((group) => (
+          {nav.map((group) => (
             <div key={group.label} className="mb-3">
               <div
                 className="text-[11.5px] text-ink-300 px-[18px] pb-1.5"

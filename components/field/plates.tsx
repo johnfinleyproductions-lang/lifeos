@@ -23,6 +23,16 @@ const S = {
 };
 
 export const PLATES: Record<string, React.ReactNode> = {
+  /* a flask on the bench, half full, for something being tried */
+  flask: (
+    <g {...S}>
+      <path d="M16 6h9" />
+      <path d="M17.5 6v10L9 31c-1 2 0 4 2.5 4h17c2.5 0 3.5-2 2.5-4L23 16V6" />
+      <path d="M12.5 26c3-1.5 5 1.5 8 0s5-1 7.5 0" />
+      <path d="M17 30.5h.01M22.5 31.5h.01" />
+    </g>
+  ),
+
   /* a pressed leaf, for the day you are standing in */
   leaf: (
     <g {...S}>
@@ -362,6 +372,7 @@ export const PLATE_FOR: Record<string, string> = {
   "/evening": "moth",
   "/focus": "hourglass",
   "/habits": "sprout",
+  "/experiments": "flask",
   "/discipline": "trellis",
   "/quests": "mountain",
   "/compass": "compass",

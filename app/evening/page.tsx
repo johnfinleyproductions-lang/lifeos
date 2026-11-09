@@ -7,6 +7,7 @@ import { EveningWizard } from "@/components/evening/EveningWizard";
 import { morningManifestoSchema } from "@/lib/manifesto/schema";
 import { getTodayStrikes } from "@/components/today/strikes";
 import { PageStamp } from "@/components/PageStamp";
+import { ExperimentCards } from "@/components/today/ExperimentCards";
 import {
   eveningShutdownSchema,
   type EveningShutdown,
@@ -60,6 +61,10 @@ export default async function EveningPage() {
   return (
     <div className="max-w-[1080px] mx-auto">
       <PageStamp title="Evening shutdown" backLabel="Leave" />
+      {/* An experiment still waiting for today's mark, before the day closes. */}
+      <div className="max-w-[640px] mx-auto mb-5 empty:hidden">
+        <ExperimentCards unmarkedOnly />
+      </div>
       <EveningWizard
         initial={initial}
         morningPriorities={morningPriorities}

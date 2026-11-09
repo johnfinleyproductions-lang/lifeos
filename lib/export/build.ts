@@ -19,6 +19,8 @@ import {
   lifeosCompass,
   lifeosConfidenceEntries,
   lifeosDailyCheckins,
+  lifeosExperimentDays,
+  lifeosExperiments,
   lifeosFocusSessions,
   lifeosHabitCompletions,
   lifeosHabits,
@@ -29,6 +31,7 @@ import {
   lifeosReframesSeen,
 } from "@/lib/db/schema";
 import { formatDay, formatInstant } from "@/lib/time/day";
+import { OUTCOME_WORDS, sentence, type Outcome } from "@/lib/experiments/rules";
 
 export type ExportData = Awaited<ReturnType<typeof gatherEverything>>;
 
@@ -45,6 +48,8 @@ export async function gatherEverything(userId: string) {
     reframesSeen,
     journalEntries,
     openLoops,
+    experiments,
+    experimentDays,
   ] = await Promise.all([
     db.select().from(lifeosDailyCheckins).where(eq(lifeosDailyCheckins.userId, userId)).orderBy(asc(lifeosDailyCheckins.entryDate)),
     db.select().from(lifeosHabits).where(eq(lifeosHabits.userId, userId)).orderBy(asc(lifeosHabits.createdAt)),
@@ -57,6 +62,8 @@ export async function gatherEverything(userId: string) {
     db.select().from(lifeosReframesSeen).where(eq(lifeosReframesSeen.userId, userId)).orderBy(asc(lifeosReframesSeen.shownAt)),
     db.select().from(lifeosJournalEntries).where(eq(lifeosJournalEntries.userId, userId)).orderBy(asc(lifeosJournalEntries.entryDate), asc(lifeosJournalEntries.createdAt)),
     db.select().from(lifeosOpenLoops).where(eq(lifeosOpenLoops.userId, userId)).orderBy(asc(lifeosOpenLoops.openedAt)),
+    db.select().from(lifeosExperiments).where(eq(lifeosExperiments.userId, userId)).orderBy(asc(lifeosExperiments.createdAt)),
+    db.select().from(lifeosExperimentDays).where(eq(lifeosExperimentDays.userId, userId)).orderBy(asc(lifeosExperimentDays.entryDate)),
   ]);
   return {
     checkins,
@@ -70,6 +77,8 @@ export async function gatherEverything(userId: string) {
     reframesSeen,
     journalEntries,
     openLoops,
+    experiments,
+    experimentDays,
   };
 }
 
@@ -208,6 +217,30 @@ export function toMarkdown(
       const days = data.habitCompletions.filter((c) => c.habitId === habit.id).map((c) => c.completionDate);
       push(`### ${habit.name}`, "", `${habit.cadence}${habit.archived ? ", archived" : ""}. Kept on ${days.length} ${days.length === 1 ? "day" : "days"}.`, "");
       if (days.length) push(days.join(", "), "");
+    }
+  }
+
+  if (data.experiments.length > 0) {
+    push("## Experiments", "");
+    for (const exp of data.experiments) {
+      const marks = data.experimentDays.filter((d) => d.experimentId === exp.id);
+      const done = marks.filter((d) => d.done).length;
+      push(`### ${sentence(exp)}`, "");
+      push(
+        `Started ${day(exp.startDate)}. Done ${done} ${done === 1 ? "time" : "times"}. ` +
+          (exp.status === "closed"
+            ? `Ended: ${OUTCOME_WORDS[(exp.outcome ?? "paused") as Outcome] ?? exp.outcome}.`
+            : "Still running."),
+        "",
+      );
+      if (exp.curiosity) push(`Curious whether ${exp.curiosity}`, "");
+      for (const m of marks) {
+        if (m.note) push(`- ${formatDay(m.entryDate, "d MMM")}, ${m.done ? "done" : "not done"}: ${m.note}`);
+      }
+      if (marks.some((m) => m.note)) push("");
+      if (exp.worked) push(`What worked: ${exp.worked}`, "");
+      if (exp.didNot) push(`What did not: ${exp.didNot}`, "");
+      if (exp.nextStep) push(`What next: ${exp.nextStep}`, "");
     }
   }
 

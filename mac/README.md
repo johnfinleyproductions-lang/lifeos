@@ -96,6 +96,18 @@ and are shown in Finder.
 **Search** is on Journal, Past entries. Every word you type has to appear in
 the entry.
 
+## Experiments
+
+An optional section for trying something small for a set time and then
+deciding about it. It is off to begin with. Turn it on under Settings,
+Experiments, and it appears in the rail under The day.
+
+Write the sentence (I will do this, for this long), then each day tap Done
+today or Not today and add a line on how it went. The mark is also on Today
+and above the evening page. When the time is up it asks what worked, what
+did not and what next, and you choose to keep going, make it a habit, pause
+it, or change it and run again. Marking a day needs the internet for now.
+
 ## Writing with no internet
 
 The app opens and works for writing when the Mac is offline. Any page takes
