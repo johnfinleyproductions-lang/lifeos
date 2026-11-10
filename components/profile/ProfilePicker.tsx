@@ -84,8 +84,10 @@ export function ProfilePicker({
             <input
               id="household-code"
               type="password"
-              inputMode="numeric"
               autoComplete="off"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
               autoFocus
               value={code}
               onChange={(e) => setCode(e.target.value)}
