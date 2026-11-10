@@ -229,8 +229,29 @@ codesign --force --deep --sign - "$APP" >/dev/null 2>&1 || true
 say "Installing"
 DEST="/Applications"
 [ -w "$DEST" ] || { DEST="$HOME/Applications"; mkdir -p "$DEST"; }
+# Stop the copy that is running, and the server it started.
+#
+# The server has to be found by the port it holds. Its command line used to
+# be just "node server.js", which no pattern here matched, so an update left
+# the old server running. The new window then found something answering on
+# the port, used it, and showed the old build with half its files replaced
+# underneath it: pages that had not been opened yet failed to load.
+if pgrep -x LifeOS >/dev/null 2>&1; then
+  osascript -e 'tell application id "app.lifeos.desktop" to quit' >/dev/null 2>&1 || true
+  for _ in 1 2 3 4 5 6; do pgrep -x LifeOS >/dev/null 2>&1 || break; sleep 0.5; done
+fi
 pkill -x LifeOS >/dev/null 2>&1 || true
-pkill -f "$DEST/LifeOS.app/Contents/Resources/app/server.js" >/dev/null 2>&1 || true
+pkill -f "LifeOS.app/Contents/Resources/app/server.js" >/dev/null 2>&1 || true
+for pid in $(lsof -nP -tiTCP:"$PORT" -sTCP:LISTEN 2>/dev/null); do
+  # Only a node process: anything else on this port is not ours to stop.
+  case "$(ps -o command= -p "$pid" 2>/dev/null)" in
+    *node*) kill "$pid" >/dev/null 2>&1 || true ;;
+  esac
+done
+for _ in 1 2 3 4 5 6 7 8 9 10; do
+  lsof -nP -tiTCP:"$PORT" -sTCP:LISTEN >/dev/null 2>&1 || break
+  sleep 0.5
+done
 rm -rf "$DEST/LifeOS.app"
 cp -R "$APP" "$DEST/LifeOS.app"
 ln -sfn "$DEST/LifeOS.app" "$HOME/Desktop/LifeOS"

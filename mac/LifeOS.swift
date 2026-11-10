@@ -310,7 +310,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
 
         let process = Process()
         process.executableURL = URL(fileURLWithPath: node)
-        process.arguments = ["server.js"]
+        // The full path, so the process can be told apart from any other
+        // "node server.js" on this Mac when an update needs to stop it.
+        process.arguments = [appDir.appendingPathComponent("server.js").path]
         process.currentDirectoryURL = appDir
         process.environment = env
         process.standardOutput = log

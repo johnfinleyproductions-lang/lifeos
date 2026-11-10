@@ -144,6 +144,20 @@ ask for the microphone, so do not expect it there.
 - Links that leave LifeOS open in your browser.
 - After pulling new code, run `./mac/build-app.sh` again.
 
+## If a page says it could not load after an update
+
+Before 9 November 2026 the build script could leave the previous version's
+server running, and the new window would pick it up. The sign is a page
+that says it could not load while others work. Stop the old server and open
+the app again:
+
+```
+lsof -ti tcp:3187 | xargs kill
+open /Applications/LifeOS.app
+```
+
+The script now stops it itself, so this should not come back.
+
 ## If it does not open
 
 The app shows a short message saying what went wrong. The detail is in the
