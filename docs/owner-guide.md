@@ -29,7 +29,7 @@ data, because the data is in NoCodeBackend, not in any copy.
 
 | Copy | Where | Address | Data | Status |
 |---|---|---|---|---|
-| **Home server** (main one) | m90t, a Coolify app built from `v2-ncb` | `https://m90t.tailf4ba1f.ts.net:8444` (your tailnet only) | NoCodeBackend `54318_lifeos` | see section 12 |
+| **Home server** (main one) | m90t, a Coolify app built from `v2-ncb` | `https://m90t.tailf4ba1f.ts.net:8444` (your tailnet only) | NoCodeBackend `54318_lifeos` | live, healthy |
 | **Mac app** | Tyler's Mac mini, `/Applications/LifeOS.app` | its own window (internally `127.0.0.1:3187`) | NoCodeBackend `54318_lifeos` | working |
 | **Old LifeOS** | m90t, Coolify app `rky0c51mvpv2fan7r4p0jj7f`, branch `main` | was `lifeos.evergreenwellnessmktg.com`; that public name no longer resolves | the old Postgres database on m90t | still running, kept on purpose until retired |
 
@@ -93,7 +93,7 @@ The Mac app and the home server must use the **same** values for:
 ~/Library/Application Support/LifeOS/lifeos.env
 ```
 
-The home server's copy is in Coolify, under the LifeOS (v2-ncb) app,
+The home server's copy is in Coolify, under the `lifeos-v2-ncb` app,
 **Environment Variables**.
 
 **Keep `LIFEOS_SECRET` in your password manager.** If it is lost, nobody can
@@ -104,7 +104,7 @@ it. So does resetting each user's password in the NoCodeBackend dashboard.
 
 ## 5. Settings reference (home server)
 
-Set these in Coolify for the v2-ncb app. `.env.example` explains every one
+Set these in Coolify for the `lifeos-v2-ncb` app. `.env.example` explains every one
 in full.
 
 | Key | Value on m90t | Notes |
@@ -211,7 +211,7 @@ The code lives at `github.com/johnfinleyproductions-lang/lifeos`. The
 deployed branch is **`v2-ncb`**.
 
 1. Push to `v2-ncb`.
-2. In Coolify, open **LifeOS (v2-ncb)** and press **Deploy**. Coolify builds
+2. In Coolify, open **lifeos-v2-ncb** and press **Deploy**. Coolify builds
    from GitHub. It takes a few minutes.
 3. Check `https://m90t.tailf4ba1f.ts.net:8444/api/health`. It should read
    `{"ok":true,"db":"up"}`.
@@ -229,7 +229,7 @@ itself; `docs/nocodebackend.md`, "Changing the schema", covers how.
 | What | Where |
 |---|---|
 | Health | `/api/health` → `{"ok":true,"db":"up"}` means the app is serving and NoCodeBackend answers. Coolify's health check uses the same path. |
-| Server log (home) | Coolify → LifeOS (v2-ncb) → Logs, or on m90t: `docker logs --tail 100 <container>` |
+| Server log (home) | Coolify → lifeos-v2-ncb → Logs, or on m90t: `docker logs --tail 100 <container>` |
 | Server log (Mac) | LifeOS menu → Show Log, or `~/Library/Logs/LifeOS/server.log` |
 | Per-request timing | Set `LIFEOS_NCB_TRACE=1` and redeploy. You get one log line per NoCodeBackend call. |
 | Private address list | on m90t: `docker exec tailscale-m90t tailscale --socket=/tmp/tailscaled.sock serve status` |
@@ -259,19 +259,23 @@ Log lines start with a tag that names the area: `[health]`, `[profiles]`,
 
 ## 12. The home-server setup, step by step (and how to undo it)
 
-> **Status, 9 Nov 2026:** the `v2-ncb` image was test-built on m90t
-> (53 s, 346 MB) and smoke-tested there: `/api/health` returned
-> `{"ok":true,"db":"up"}` and the picker returned 200. Steps 1–4 below are
-> **not done yet**. They are waiting on a working Coolify API token: the one
-> in Evergreen Core's `.env.local` returns 401. Update this note once the
-> app is live.
+> **Status: live since 9 Nov 2026, 21:40 CT.** Coolify app `lifeos-v2-ncb`
+> (uuid `nlsgb19ijtiru6ltrrzgv9wm`, project Evergreen, environment production),
+> built from `v2-ncb`. Docker reports it healthy. Checked through the tailnet
+> address: `/api/health` returned `{"ok":true,"db":"up"}`, the household code
+> was accepted, picking a name signed in to NoCodeBackend (which proves the
+> secret matches the Mac's), and Today loaded. Port 3011 does not answer from
+> the LAN.
 
 The setup on m90t:
 
-1. A **new Coolify app**, "LifeOS (v2-ncb)", from the GitHub repo, branch
-   `v2-ncb`. Build pack is Dockerfile, it exposes 3001, and the health check
-   path is `/api/health`. It lives in the same Coolify project as the old
-   LifeOS.
+1. A **new Coolify app**, `lifeos-v2-ncb`, from the GitHub repo, branch
+   `v2-ncb`. Build pack is Dockerfile, it exposes 3001, and it has no domain.
+   The health check path is `/api/health` and the **health check host is
+   `127.0.0.1`**. Leave that host alone: with the default, `localhost`, the
+   check goes to IPv6, the app listens on IPv4 only, and Docker marks a
+   perfectly working app unhealthy. It lives in the same Coolify project as
+   the old LifeOS.
 2. A **port mapping** `127.0.0.1:3011:3001`, so the container is reachable
    from m90t itself and from nowhere else.
 3. The **settings** from section 5.
@@ -285,12 +289,17 @@ The setup on m90t:
 Other private addresses on m90t, so you do not reuse their ports: `:443` is
 Evergreen Core, and `:8443`, `:9443` and `:10000` are other apps.
 
+**The Coolify API token** for scripts is in Core's secrets vault as
+`coolify-api` (usable by Claude Code). The `COOLIFY_API_TOKEN` in think's
+`~/evergreen-core/.env.local` was rejected (401) on 9 Nov 2026 and needs
+replacing with the working value.
+
 **To undo it**, in this order:
 
 ```bash
 # 1. close the private address
 docker exec tailscale-m90t tailscale --socket=/tmp/tailscaled.sock serve --https=8444 off
-# 2. in Coolify: stop, then delete the "LifeOS (v2-ncb)" app
+# 2. in Coolify: stop, then delete the "lifeos-v2-ncb" app
 ```
 
 Nothing else changes. The old LifeOS, Evergreen Core and the data in
@@ -304,7 +313,7 @@ Postgres data stays in the m90t Postgres until you remove it on purpose.
 
 ## 13. Things to know about m90t
 
-- **Disk.** On 9 Nov 2026 the main disk was 95% full, with 23 GB free.
+- **Disk.** On 9 Nov 2026 the main disk was 96% full, with 20 GB free after this deploy.
   Builds need a few GB each time. Freeing space (Evergreen need #117) keeps
   deploys from failing for no obvious reason.
 - **Uptime.** The home server is only as available as m90t and its internet
