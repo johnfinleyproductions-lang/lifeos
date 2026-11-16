@@ -4,7 +4,7 @@ import { getInsights, type InsightsWindow } from "@/lib/insights/queries";
 import { detectPatterns } from "@/lib/insights/patterns";
 import { getLatestBalance, getYearHeatmap } from "@/lib/reflection/auto-detect";
 import { StatCards } from "@/components/insights/StatCards";
-import { Trends } from "@/components/insights/Trends";
+import { Trends, WeeklyTrend } from "@/components/insights/Trends";
 import { PatternList } from "@/components/insights/PatternList";
 import { BalanceSheet } from "@/components/insights/BalanceSheet";
 import { YearHeatmap } from "@/components/reflection/YearHeatmap";
@@ -83,9 +83,13 @@ export default async function InsightsPage({
         <BalanceSheet balance={balance} />
       </div>
 
-      {windowDays !== 365 && (
+      {windowDays !== 365 ? (
         <div className="mb-8">
           <Trends data={data} />
+        </div>
+      ) : (
+        <div className="mb-8">
+          <WeeklyTrend data={data} />
         </div>
       )}
 

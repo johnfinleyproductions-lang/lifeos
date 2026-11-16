@@ -1,6 +1,9 @@
 import { formatDay } from "@/lib/time/day";
 import type { InsightsData } from "@/lib/insights/queries";
 import { phraseTally } from "@/lib/insights/habit-denominator";
+import { meanRange } from "@/lib/stats/evidence";
+import { runsOf, runWords, weeksOf } from "@/lib/insights/runs";
+import { MIN_RATINGS_FOR_AVERAGE } from "@/lib/insights/patterns";
 
 /**
  * The plotted sheets for a 7- or 30-day window:
@@ -53,17 +56,38 @@ function DayRatingChart({ data }: { data: InsightsData }) {
     return "hx-dot text-accent-rose";
   };
 
+  // The average and its honest range, drawn as a band across the bars,
+  // once there are enough rated evenings for the range to mean something.
+  const ratings = data.dayPoints
+    .map((p) => p.eveningRating)
+    .filter((r): r is number => r !== null);
+  const band = ratings.length >= MIN_RATINGS_FOR_AVERAGE ? meanRange(ratings) : null;
+
   return (
     <section>
       <div className="tab-row">
         <span className="tab">Evening rating</span>
         <span className="fill" />
-        <span className="text-[11.5px] text-ink-400">
+        <span className="text-[11.5px] text-ink-400 tabular-nums">
           last {data.windowDays} days
+          {band
+            ? `, average ${band.estimate.toFixed(1)} (90% range ${band.low.toFixed(1)} to ${band.high.toFixed(1)})`
+            : ""}
         </span>
       </div>
       <div className="sheet">
-        <div className="flex items-end gap-[2px] sm:gap-[3px] h-32 border-b-[1.5px] border-ink-50">
+        <div className="relative flex items-end gap-[2px] sm:gap-[3px] h-32 border-b-[1.5px] border-ink-50">
+          {band && (
+            <div
+              aria-hidden
+              data-rating-band
+              className="pointer-events-none absolute inset-x-0 border-y border-dashed border-ink-50 bg-ink-50/10"
+              style={{
+                bottom: `${(band.low / maxRating) * 100}%`,
+                height: `${Math.max(1, ((band.high - band.low) / maxRating) * 100)}%`,
+              }}
+            />
+          )}
           {data.dayPoints.map((p) => {
             const h =
               p.eveningRating !== null
@@ -183,12 +207,62 @@ function HabitHeatmap({ data }: { data: InsightsData }) {
                   );
                 })}
               </div>
-              <div className="w-24 text-right text-[11.5px] text-ink-400 tabular-nums shrink-0">
-                {phraseTally(h.tally, data.windowDays)}
+              <div className="w-36 text-right text-[11.5px] text-ink-400 tabular-nums shrink-0">
+                <div>{phraseTally(h.tally, data.windowDays)}</div>
+                {runWords(runsOf(h.tally, data.endDate)) && (
+                  <div className="text-[10.5px] leading-tight" data-habit-run>
+                    {runWords(runsOf(h.tally, data.endDate))}
+                  </div>
+                )}
               </div>
             </div>
           ))}
         </div>
+      </div>
+    </section>
+  );
+}
+
+/**
+ * The year by week: one bar per ISO week, its height the week's mean
+ * evening rating, its weight how many evenings were rated. A week with
+ * nothing rated prints as a stub. For the year window, where a bar a day
+ * would be too thin to read.
+ */
+export function WeeklyTrend({ data }: { data: InsightsData }) {
+  const weeks = weeksOf(data.dayPoints).filter((_, i, all) => {
+    // Start at the first week with anything rated.
+    const first = all.findIndex((w) => w.rated > 0);
+    return first >= 0 && i >= first;
+  });
+  if (weeks.length < 2) return null;
+  return (
+    <section>
+      <div className="tab-row">
+        <span className="tab">By week</span>
+        <span className="fill" />
+        <span className="text-[11.5px] text-ink-400">mean evening rating, {weeks.length} weeks</span>
+      </div>
+      <div className="sheet">
+        <div className="flex items-end gap-[2px] h-28 border-b-[1.5px] border-ink-50" data-weekly-trend>
+          {weeks.map((w) => (
+            <div
+              key={w.week}
+              title={`Week of ${formatDay(w.week, "MMM d")}: ${
+                w.rating === null ? "nothing rated" : `${w.rating.toFixed(1)}/5 over ${w.rated} evenings`
+              }`}
+              className={`flex-1 ${
+                w.rating === null ? "bg-ink-600" : w.rated >= 4 ? "hx-x text-accent-sky" : "hx-dot text-accent-sky"
+              }`}
+              style={{ height: w.rating === null ? "6%" : `${(w.rating / 5) * 100}%` }}
+            />
+          ))}
+        </div>
+        <div className="flex justify-between text-[10.5px] text-ink-400 mt-2 tabular-nums">
+          <span>{formatDay(weeks[0].week, "MMM d")}</span>
+          <span>{formatDay(weeks[weeks.length - 1].week, "MMM d")}</span>
+        </div>
+        <p className="lbl mt-2 mb-0">A dotted bar is a week with fewer than four rated evenings: read it lightly.</p>
       </div>
     </section>
   );

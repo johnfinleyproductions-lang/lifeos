@@ -1,6 +1,8 @@
-import { asc, eq, inArray } from "@/lib/db/ops";
+import { and, asc, eq, gte, inArray } from "@/lib/db/ops";
 import { db } from "@/lib/db";
-import { lifeosExperimentDays, lifeosExperiments } from "@/lib/db/schema";
+import { lifeosDailyCheckins, lifeosExperimentDays, lifeosExperiments } from "@/lib/db/schema";
+import { eveningShutdownSchema } from "@/lib/manifesto/evening-schema";
+import { effectOf } from "./effect";
 import { dayKeyOf, formatDay, todayKey } from "@/lib/time/day";
 import {
   addDays,
@@ -61,13 +63,35 @@ export type ExperimentView = {
   endedEarly: boolean;
   /** "October" */
   month: string;
+  /** What the evening ratings say about it so far, as sentences, and the caution under them. */
+  evidence: { lines: string[]; caution: string | null };
 };
+
+/** Evening ratings by day, from the earliest day any of these experiments could compare against. */
+async function ratingsFrom(userId: string, exps: { startDate: string }[]): Promise<Map<string, number>> {
+  const ratings = new Map<string, number>();
+  if (exps.length === 0) return ratings;
+  const earliest = exps.reduce((m, e) => (e.startDate < m ? e.startDate : m), exps[0].startDate);
+  const rows = await db
+    .select({ entryDate: lifeosDailyCheckins.entryDate, evening: lifeosDailyCheckins.evening })
+    .from(lifeosDailyCheckins)
+    .where(
+      and(eq(lifeosDailyCheckins.userId, userId), gte(lifeosDailyCheckins.entryDate, addDays(earliest, -28))),
+    );
+  for (const r of rows) {
+    if (!r.evening) continue;
+    const parsed = eveningShutdownSchema.safeParse(r.evening);
+    if (parsed.success) ratings.set(r.entryDate, parsed.data.dayRating);
+  }
+  return ratings;
+}
 
 function view(
   exp: typeof lifeosExperiments.$inferSelect,
   days: (typeof lifeosExperimentDays.$inferSelect)[],
   round: number,
   today: string,
+  ratings: Map<string, number>,
 ): ExperimentView {
   const marks = new Map<string, Mark & { note: string | null }>();
   for (const d of days) marks.set(d.entryDate, { done: d.done, reason: d.reason, note: d.note });
@@ -103,6 +127,7 @@ function view(
 
   const t = tally(exp, marks, phase === "running" ? today : addDays(end, 1));
   const reason = mainReason(t);
+  const effect = effectOf(exp, marks, ratings, phase === "running" ? today : end);
   const todayMark = marks.get(today);
   const yesterday = addDays(today, -1);
 
@@ -146,6 +171,7 @@ function view(
     // Closed on or before its last day: it was stopped, not finished.
     endedEarly: exp.status === "closed" && exp.closedAt !== null && dayKeyOf(exp.closedAt) <= end,
     month: formatDay(exp.startDate, "MMMM"),
+    evidence: { lines: effect.comparisons.map((c) => c.sentence), caution: effect.caution },
   };
 }
 
@@ -190,7 +216,8 @@ export async function loadExperiments(userId: string): Promise<{
     byExp.get(d.experimentId)!.push(d);
   }
   const byId = new Map(all.map((e) => [e.id, e]));
-  const views = all.map((e) => view(e, byExp.get(e.id) ?? [], roundOf(e.id, byId), today));
+  const ratings = await ratingsFrom(userId, all);
+  const views = all.map((e) => view(e, byExp.get(e.id) ?? [], roundOf(e.id, byId), today, ratings));
 
   return {
     live: views.filter((v) => v.phase !== "closed"),
@@ -218,12 +245,14 @@ export async function loadLiveExperiments(userId: string): Promise<ExperimentVie
       ),
     );
   const byId = new Map(running.map((e) => [e.id, e]));
+  const ratings = await ratingsFrom(userId, live);
   return live.map((e) =>
     view(
       e,
       days.filter((d) => d.experimentId === e.id),
       roundOf(e.id, byId),
       today,
+      ratings,
     ),
   );
 }

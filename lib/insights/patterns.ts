@@ -1,5 +1,14 @@
 import { formatDay } from "@/lib/time/day";
 import type { InsightsData } from "./queries";
+import { meanRange, wilson } from "@/lib/stats/evidence";
+import { ratingTrend } from "./runs";
+
+/**
+ * Fewest rated evenings before an average is printed. Below this the
+ * honest range is wider than the scale's middle, so the number would say
+ * more than the record does.
+ */
+export const MIN_RATINGS_FOR_AVERAGE = 5;
 
 export type Pattern = {
   emoji: string;
@@ -41,9 +50,11 @@ export function detectPatterns(data: InsightsData): Pattern[] {
   if (data.habits.length > 0) {
     const ranked = [...data.habits]
       .filter((h) => h.tally.possible > 0 && h.tally.kept > 0)
+      // Ranked by the low end of the Wilson range, not the raw share: a
+      // habit kept 1 of 1 has proved little, one kept 27 of 30 a lot.
       .sort(
         (a, b) =>
-          b.tally.kept / b.tally.possible - a.tally.kept / a.tally.possible ||
+          wilson(b.tally.kept, b.tally.possible).low - wilson(a.tally.kept, a.tally.possible).low ||
           b.tally.kept - a.tally.kept,
       );
     const top = ranked[0];
@@ -69,8 +80,9 @@ export function detectPatterns(data: InsightsData): Pattern[] {
   const ratings = data.dayPoints
     .map((p) => p.eveningRating)
     .filter((r): r is number => r !== null);
-  if (ratings.length >= 3) {
-    const avg = ratings.reduce((s, r) => s + r, 0) / ratings.length;
+  if (ratings.length >= MIN_RATINGS_FOR_AVERAGE) {
+    const r = meanRange(ratings);
+    const avg = r.estimate;
     const fmt = avg.toFixed(1);
     const tone =
       avg >= 4
@@ -81,8 +93,14 @@ export function detectPatterns(data: InsightsData): Pattern[] {
     patterns.push({
       emoji: "📊",
       title: "Average day rating",
-      body: `${fmt}/5 across ${ratings.length} evening shutdowns. ${tone}`,
+      body: `${fmt}/5 across ${ratings.length} evening shutdowns, 90% range ${r.low.toFixed(1)} to ${r.high.toFixed(1)}. ${tone}`,
     });
+  }
+
+  // The last four weeks against the four before (the year window only).
+  const trend = ratingTrend(data.dayPoints);
+  if (trend) {
+    patterns.push({ emoji: "📈", title: "Four-week trend", body: trend.sentence });
   }
 
   // Focus consistency
