@@ -236,6 +236,9 @@ DEST="/Applications"
 # the old server running. The new window then found something answering on
 # the port, used it, and showed the old build with half its files replaced
 # underneath it: pages that had not been opened yet failed to load.
+# The port the running copy holds: the same rule the launcher uses.
+# No LIFEOS_PORT line is normal, so the grep may find nothing (set -e, pipefail).
+PORT="$( { grep -E '^LIFEOS_PORT=' "$SETTINGS" 2>/dev/null || true; } | head -1 | cut -d= -f2-)"; PORT="${PORT:-3187}"
 if pgrep -x LifeOS >/dev/null 2>&1; then
   osascript -e 'tell application id "app.lifeos.desktop" to quit' >/dev/null 2>&1 || true
   for _ in 1 2 3 4 5 6; do pgrep -x LifeOS >/dev/null 2>&1 || break; sleep 0.5; done
