@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { ExperimentView } from "@/lib/experiments/load";
+import { Evidence } from "./Evidence";
 import { timesPerWeek, type Reason } from "@/lib/experiments/rules";
 import { VoiceButton } from "@/components/voice/VoiceButton";
 import { Strip } from "./Strip";
@@ -112,6 +113,8 @@ export function RunningCard({
       <div className="mt-4">
         <Strip days={exp.strip} compact={compact} />
       </div>
+
+      {!compact && <Evidence evidence={exp.evidence} />}
 
       {ready ? (
         <div className="mt-4 flex items-center justify-between gap-3 flex-wrap">

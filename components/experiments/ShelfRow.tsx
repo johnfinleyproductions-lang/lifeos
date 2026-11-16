@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { ExperimentView } from "@/lib/experiments/load";
+import { Evidence } from "./Evidence";
 import { OUTCOME_WORDS, type Outcome } from "@/lib/experiments/rules";
 
 /** One ended experiment: the sentence, the count, what it taught, how it ended. */
@@ -41,13 +42,14 @@ export function ShelfRow({ exp }: { exp: ExperimentView }) {
           {OUTCOME_WORDS[outcome]}
         </span>
       </div>
-      {(lines.length > 0 || exp.notes.length > 0) && (
+      {(lines.length > 0 || exp.notes.length > 0 || exp.evidence.lines.length > 0) && (
         <button type="button" className="lbl underline mt-2" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
           {open ? "Fold it away" : "What it taught"}
         </button>
       )}
       {open && (
         <div className="mt-2.5 space-y-2.5">
+          <Evidence evidence={exp.evidence} />
           {lines.map(([label, value]) => (
             <div key={label}>
               <div className="lbl">{label}</div>
